@@ -1,0 +1,39 @@
+{
+  "summary": "Backend API testing for MetaQi Academy user-reported fixes. 16/16 pytest tests passed covering Fix 1 (concepts endpoint returns 7 items with expected core slugs), Fix 2 (moon current is_premium=false with all content fields present), Fix 4 (agendas + months structure valid), and Fix 5 (admin CMS endpoints - daily energy and newborn vocation POST require auth, allowed for admin, forbidden 403 for regular user). Also verified /api/energy/year/current returns year 2026 and /api/newborn-vocation/today returns valid content. Frontend UI testing was explicitly out of scope per the request.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/conftest.py",
+    "/app/backend/tests/test_metaqi_fixes.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix 3 (separated tabs) and Fix 4's UI behavior (current-month unlocked, other months locked) require frontend UI validation - not covered here per request. Main agent should self-verify or invoke a frontend testing pass.",
+    "Consider seeding an AgendaMonth for the current month (July 2026) so QA can visually confirm the 'Gratis' current-month unlock rule against real data (existing seed only has Jan/Feb/Mar 2027)."
+  ],
+  "critical_code_review_comments": [
+    "backend/server.py POST /energy/daily uses insert_one without upsert; the request wording says 'create/update daily energy' but the endpoint only creates - duplicates for the same date will accumulate. Consider using update_one(..., upsert=True) keyed on date.",
+    "backend/server.py POST /newborn-vocation similarly inserts unconditionally; recommend upsert by date to avoid duplicates.",
+    "CORS middleware is added AFTER app.include_router(api_router) in server.py (lines 716-725). Starlette applies middleware in reverse-registered order, but middleware must be added before the app starts serving. In practice FastAPI still applies it (it works at startup), but it's cleaner and safer to register CORS before include_router."
+  ],
+  "updated_files": [
+    "/app/backend/tests/conftest.py (new)",
+    "/app/backend/tests/test_metaqi_fixes.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A (not tested per request)"
+  },
+  "seed_data_creation": "None. Test-created rows (daily_energy 2099-01-02 and newborn_vocation 2099-02-02 prefixed TEST_*) were cleaned up post-run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/. Base URL comes from frontend/.env EXPO_PUBLIC_BACKEND_URL (currently https://baazi-wisdom.preview.emergentagent.com). Admin creds: admin@metaqi.com/admin123. User creds: user@test.com/user123. All 7 concepts, moon current (is_premium=false), year 2026, newborn today, wedding agenda + 3 months (Jan/Feb/Mar 2027) are seeded and returning 200. Admin auth uses Authorization: Bearer <access_token>. Frontend UI verification for Fixes 3 and 4 (visual/route-level) still pending."
+}

@@ -16,13 +16,13 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 60,
+          height: 64,
           paddingBottom: 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontFamily: Typography.sansMedium,
-          fontSize: Typography.xs,
+          fontSize: 11,
         },
       }}
     >
@@ -50,6 +50,15 @@ export default function TabsLayout() {
           title: 'Cursos',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="agendas"
+        options={{
+          title: 'Agendas',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" size={size} color={color} />
           ),
         }}
       />

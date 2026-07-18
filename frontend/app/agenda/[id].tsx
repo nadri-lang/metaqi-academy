@@ -50,6 +50,13 @@ export default function AgendaDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [purchased, setPurchased] = useState(false);
 
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  const currentYear = new Date().getFullYear();
+
+  const isMonthFree = (m: AgendaMonth) => {
+    return m.month === currentMonth && m.year === currentYear;
+  };
+
   useEffect(() => {
     loadData();
   }, [id]);
@@ -145,7 +152,9 @@ export default function AgendaDetailScreen() {
             <Text style={styles.previewLabel}>Vista Previa del Contenido</Text>
             <Text style={styles.previewTitle}>{months.length} meses de contenido detallado</Text>
 
-            {months.map((month, index) => (
+            {months.map((month, index) => {
+              const isFree = isMonthFree(month) || purchased;
+              return (
               <View key={month.id} style={styles.monthCard}>
                 <View style={styles.monthHeader}>
                   <View style={styles.monthNumberCircle}>
@@ -155,16 +164,21 @@ export default function AgendaDetailScreen() {
                     <Text style={styles.monthTitle}>{month.title}</Text>
                     <Text style={styles.monthSubtitle}>{month.events.length} eventos</Text>
                   </View>
-                  {!purchased && index >= 1 && (
+                  {!isFree && (
                     <Ionicons name="lock-closed" size={20} color={Colors.textLight} />
+                  )}
+                  {isMonthFree(month) && (
+                    <View style={styles.freeBadge}>
+                      <Text style={styles.freeBadgeText}>Gratis</Text>
+                    </View>
                   )}
                 </View>
 
-                <Text style={styles.monthContent} numberOfLines={purchased || index === 0 ? undefined : 2}>
+                <Text style={styles.monthContent} numberOfLines={isFree ? undefined : 2}>
                   {month.content}
                 </Text>
 
-                {(purchased || index === 0) && month.events.slice(0, purchased ? undefined : 2).map((event, i) => (
+                {isFree && month.events.map((event, i) => (
                   <View key={i} style={styles.eventCard}>
                     <View style={styles.eventHeader}>
                       <Ionicons 
@@ -174,20 +188,23 @@ export default function AgendaDetailScreen() {
                       />
                       <Text style={styles.eventDate}>{event.date} · {event.day}</Text>
                     </View>
-                    <Text style={styles.eventNotes} numberOfLines={purchased ? undefined : 1}>
+                    <Text style={styles.eventNotes}>
                       {event.notes}
                     </Text>
                   </View>
                 ))}
 
-                {!purchased && index === 0 && (
-                  <View style={styles.previewBadge}>
-                    <Ionicons name="eye" size={14} color={Colors.accent} />
-                    <Text style={styles.previewBadgeText}>Vista previa gratis</Text>
+                {!isFree && (
+                  <View style={styles.lockedOverlay}>
+                    <Ionicons name="lock-closed" size={24} color={Colors.accent} />
+                    <Text style={styles.lockedText}>
+                      Desbloquea todo el año para acceder
+                    </Text>
                   </View>
                 )}
               </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
@@ -400,6 +417,36 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.xs,
     color: Colors.accent,
+  },
+  freeBadge: {
+    backgroundColor: Colors.jade,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  freeBadgeText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.white,
+  },
+  lockedOverlay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '10',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderStyle: 'dashed',
+  },
+  lockedText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
   },
   stickyBottom: {
     position: 'absolute',

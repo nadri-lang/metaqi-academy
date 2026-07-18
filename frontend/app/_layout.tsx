@@ -77,8 +77,12 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/login" />
           <Stack.Screen name="(auth)/register" />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="concepts" />
           <Stack.Screen name="concept/[slug]" />
           <Stack.Screen name="agenda/[id]" />
+          <Stack.Screen name="admin/index" />
+          <Stack.Screen name="admin/daily-energy" />
+          <Stack.Screen name="admin/newborn-vocation" />
         </Stack>
       </AuthProvider>
     </GestureHandlerRootView>

@@ -157,6 +157,27 @@ export default function ProfileScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Admin Panel Link - Only for admins */}
+        {(user.role === 'admin' || user.role === 'editor') && (
+          <TouchableOpacity
+            testID="admin-panel-btn"
+            style={styles.adminButton}
+            onPress={() => router.push('/admin')}
+          >
+            <LinearGradient
+              colors={Gradients.gold}
+              style={styles.adminGradient}
+            >
+              <Ionicons name="settings" size={22} color={Colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.adminButtonText}>Panel de Administración</Text>
+                <Text style={styles.adminButtonDesc}>Gestionar contenido de la app</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
         <View style={styles.menuSection}>
           <TouchableOpacity style={styles.menuItem} testID="menu-favorites">
             <Ionicons name="heart" size={22} color={Colors.textSecondary} />
@@ -429,5 +450,28 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.error,
+  },
+  adminButton: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    marginBottom: Spacing.md,
+  },
+  adminGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  adminButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.primary,
+  },
+  adminButtonDesc: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.primary,
+    opacity: 0.7,
+    marginTop: 2,
   },
 });
