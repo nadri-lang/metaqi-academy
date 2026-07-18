@@ -26,6 +26,10 @@ from models import (
     InfoPage, InfoPageCreate,
     Settings, SettingsUpdate,
     UserRole,
+    YearEnergy, YearEnergyCreate,
+    NewbornVocation, NewbornVocationCreate,
+    Concept, ConceptCreate,
+    AgendaMonth, AgendaMonthCreate,
 )
 from auth import (
     get_password_hash, 
@@ -619,6 +623,94 @@ async def update_settings(
     
     updated = await db.settings.find_one({"id": existing["id"]})
     return Settings(**updated)
+
+# ============= CONCEPTS (Home Intro Cards) =============
+
+@api_router.get("/concepts", response_model=List[Concept])
+async def get_concepts():
+    concepts = await db.concepts.find().sort("order", 1).to_list(100)
+    return [Concept(**c) for c in concepts]
+
+@api_router.get("/concepts/{slug}", response_model=Concept)
+async def get_concept(slug: str):
+    concept = await db.concepts.find_one({"slug": slug})
+    if not concept:
+        raise HTTPException(status_code=404, detail="Concept not found")
+    return Concept(**concept)
+
+@api_router.post("/concepts", response_model=Concept)
+async def create_concept(
+    concept_data: ConceptCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    concept_dict = concept_data.model_dump()
+    concept_dict["id"] = str(uuid.uuid4())
+    await db.concepts.insert_one(concept_dict)
+    return Concept(**concept_dict)
+
+# ============= YEAR ENERGY =============
+
+@api_router.get("/energy/year/current", response_model=YearEnergy)
+async def get_current_year_energy():
+    now = datetime.utcnow()
+    energy = await db.year_energy.find_one({"year": now.year})
+    if not energy:
+        raise HTTPException(status_code=404, detail="No year energy data")
+    return YearEnergy(**energy)
+
+@api_router.get("/energy/year", response_model=List[YearEnergy])
+async def get_year_energies():
+    energies = await db.year_energy.find().sort("year", -1).to_list(50)
+    return [YearEnergy(**e) for e in energies]
+
+@api_router.post("/energy/year", response_model=YearEnergy)
+async def create_year_energy(
+    energy_data: YearEnergyCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    energy_dict = energy_data.model_dump()
+    energy_dict["id"] = str(uuid.uuid4())
+    energy_dict["created_at"] = datetime.utcnow()
+    await db.year_energy.insert_one(energy_dict)
+    return YearEnergy(**energy_dict)
+
+# ============= NEWBORN VOCATION (Daily general) =============
+
+@api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
+async def get_today_newborn_vocation():
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    vocation = await db.newborn_vocation.find_one({"date": today})
+    if not vocation:
+        raise HTTPException(status_code=404, detail="No newborn vocation for today")
+    return NewbornVocation(**vocation)
+
+@api_router.post("/newborn-vocation", response_model=NewbornVocation)
+async def create_newborn_vocation(
+    vocation_data: NewbornVocationCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    vocation_dict = vocation_data.model_dump()
+    vocation_dict["id"] = str(uuid.uuid4())
+    vocation_dict["created_at"] = datetime.utcnow()
+    await db.newborn_vocation.insert_one(vocation_dict)
+    return NewbornVocation(**vocation_dict)
+
+# ============= AGENDA MONTHS (Content sections per month) =============
+
+@api_router.get("/agendas/{agenda_id}/months", response_model=List[AgendaMonth])
+async def get_agenda_months(agenda_id: str):
+    months = await db.agenda_months.find({"agenda_id": agenda_id}).sort("order", 1).to_list(100)
+    return [AgendaMonth(**m) for m in months]
+
+@api_router.post("/agenda-months", response_model=AgendaMonth)
+async def create_agenda_month(
+    month_data: AgendaMonthCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    month_dict = month_data.model_dump()
+    month_dict["id"] = str(uuid.uuid4())
+    await db.agenda_months.insert_one(month_dict)
+    return AgendaMonth(**month_dict)
 
 # Include router
 app.include_router(api_router)

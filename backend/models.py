@@ -411,6 +411,100 @@ class InfoPageCreate(BaseModel):
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
 
+# Year Energy - Simple concept with YouTube link
+class YearEnergy(BaseModel):
+    id: str
+    year: int
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    content: str  # Short description of year trends
+    content_en: Optional[str] = None
+    content_zh: Optional[str] = None
+    video_url: Optional[str] = None  # YouTube link
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class YearEnergyCreate(BaseModel):
+    year: int
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    content: str
+    content_en: Optional[str] = None
+    content_zh: Optional[str] = None
+    video_url: Optional[str] = None
+
+# Newborn Vocation Daily (Free general content)
+class NewbornVocation(BaseModel):
+    id: str
+    date: str  # YYYY-MM-DD
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    content: str  # General analysis for babies born today
+    content_en: Optional[str] = None
+    content_zh: Optional[str] = None
+    talents: List[str] = []
+    vocations: List[str] = []
+    challenges: List[str] = []
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class NewbornVocationCreate(BaseModel):
+    date: str
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    content: str
+    content_en: Optional[str] = None
+    content_zh: Optional[str] = None
+    talents: List[str] = []
+    vocations: List[str] = []
+    challenges: List[str] = []
+
+# Concept Cards (Home intro - What is BaZi, Qi Men, etc)
+class Concept(BaseModel):
+    id: str
+    slug: str  # bazi, qi-men, feng-shui, tongshu, activations, remedies
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    short_description: str
+    full_description: Optional[str] = None
+    icon: str = "sparkles"  # Ionicons name
+    color: str = "#C8A24A"
+    order: int = 0
+
+class ConceptCreate(BaseModel):
+    slug: str
+    title: str
+    title_en: Optional[str] = None
+    title_zh: Optional[str] = None
+    short_description: str
+    full_description: Optional[str] = None
+    icon: str = "sparkles"
+    color: str = "#C8A24A"
+    order: int = 0
+
+# Premium Agenda Content - Monthly sections (scrollable content)
+class AgendaMonth(BaseModel):
+    id: str
+    agenda_id: str
+    month: int  # 1-12
+    year: int
+    title: str  # e.g. "Enero 2027"
+    content: str  # Main content for the month
+    events: List[Dict[str, Any]] = []  # List of events/dates with details
+    order: int = 0
+
+class AgendaMonthCreate(BaseModel):
+    agenda_id: str
+    month: int
+    year: int
+    title: str
+    content: str
+    events: List[Dict[str, Any]] = []
+    order: int = 0
+
 # Settings
 class Settings(BaseModel):
     id: str
