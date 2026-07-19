@@ -109,11 +109,6 @@ export default function ProfileScreen() {
 
           {/* Info Section */}
           <View style={styles.infoSection}>
-            <TouchableOpacity style={styles.infoItem} testID="info-about-btn">
-              <Ionicons name="information-circle" size={20} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>Sobre Nosotros</Text>
-              <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.infoItem} testID="info-faq-btn">
               <Ionicons name="help-circle" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>Preguntas Frecuentes</Text>
@@ -211,11 +206,16 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem} testID="menu-about">
-            <Ionicons name="information-circle" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Sobre Nosotros</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
+          {(user.role === 'admin' || user.role === 'editor') && (
+            <TouchableOpacity style={styles.menuItem} testID="menu-about">
+              <Ionicons name="information-circle" size={22} color={Colors.textSecondary} />
+              <Text style={styles.menuText}>Sobre Nosotros</Text>
+              <View style={styles.adminOnlyBadge}>
+                <Text style={styles.adminOnlyText}>Admin</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.menuItem} testID="menu-faq">
             <Ionicons name="help-circle" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>FAQ</Text>
@@ -473,5 +473,17 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     opacity: 0.7,
     marginTop: 2,
+  },
+  adminOnlyBadge: {
+    backgroundColor: Colors.accent + '30',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginRight: Spacing.xs,
+  },
+  adminOnlyText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: 10,
+    color: Colors.accent,
   },
 });

@@ -283,6 +283,8 @@ class CustomService(BaseModel):
     description_zh: Optional[str] = None
     includes: List[str] = []
     price: float
+    original_price: Optional[float] = None  # For displaying discounts
+    is_offer: bool = False
     form_fields: List[Dict[str, Any]] = []  # Dynamic form configuration
     is_active: bool = True
 
@@ -295,6 +297,8 @@ class CustomServiceCreate(BaseModel):
     description_zh: Optional[str] = None
     includes: List[str] = []
     price: float
+    original_price: Optional[float] = None
+    is_offer: bool = False
     form_fields: List[Dict[str, Any]] = []
     is_active: bool = True
 

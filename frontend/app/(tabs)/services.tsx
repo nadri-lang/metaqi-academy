@@ -22,6 +22,8 @@ interface CustomService {
   description: string;
   includes: string[];
   price: number;
+  original_price?: number;
+  is_offer?: boolean;
   form_fields: any[];
 }
 
@@ -80,8 +82,18 @@ export default function ServicesScreen() {
               <View style={styles.iconWrapper}>
                 <Ionicons name="sparkles" size={20} color={Colors.accent} />
               </View>
-              <View style={styles.priceTag}>
-                <Text style={styles.priceText}>€{service.price.toFixed(0)}</Text>
+              <View style={styles.priceContainer}>
+                {service.is_offer && service.original_price && (
+                  <View style={styles.offerBadge}>
+                    <Text style={styles.offerBadgeText}>OFERTA</Text>
+                  </View>
+                )}
+                <View style={styles.priceTag}>
+                  {service.is_offer && service.original_price && (
+                    <Text style={styles.originalPrice}>€{service.original_price.toFixed(2)}</Text>
+                  )}
+                  <Text style={styles.priceText}>€{service.price.toFixed(2)}</Text>
+                </View>
               </View>
             </View>
 
@@ -106,7 +118,7 @@ export default function ServicesScreen() {
               onPress={() => handleRequestService(service)}
             >
               <Text style={styles.requestButtonText}>
-                {user ? 'Solicitar servicio' : 'Inicia sesión para solicitar'}
+                {user ? `Solicitar por €${service.price.toFixed(2)}` : 'Inicia sesión para solicitar'}
               </Text>
               <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
             </TouchableOpacity>
@@ -179,11 +191,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  offerBadge: {
+    backgroundColor: Colors.error,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginBottom: 4,
+  },
+  offerBadgeText: {
+    fontFamily: Typography.sansBold,
+    fontSize: 10,
+    color: Colors.white,
+    letterSpacing: 1,
+  },
   priceTag: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  originalPrice: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    textDecorationLine: 'line-through',
   },
   priceText: {
     fontFamily: Typography.sansBold,
