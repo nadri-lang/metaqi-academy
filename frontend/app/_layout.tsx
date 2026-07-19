@@ -83,6 +83,7 @@ export default function RootLayout() {
           <Stack.Screen name="admin/index" />
           <Stack.Screen name="admin/daily-energy" />
           <Stack.Screen name="admin/newborn-vocation" />
+          <Stack.Screen name="faq" />
         </Stack>
       </AuthProvider>
     </GestureHandlerRootView>

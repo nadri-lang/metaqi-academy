@@ -30,6 +30,7 @@ from models import (
     NewbornVocation, NewbornVocationCreate,
     Concept, ConceptCreate,
     AgendaMonth, AgendaMonthCreate,
+    FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
 )
 from auth import (
     get_password_hash, 
@@ -711,6 +712,37 @@ async def create_agenda_month(
     month_dict["id"] = str(uuid.uuid4())
     await db.agenda_months.insert_one(month_dict)
     return AgendaMonth(**month_dict)
+
+# ============= FAQ =============
+
+@api_router.get("/faq", response_model=List[FAQCategory])
+async def get_faq():
+    categories = await db.faq_categories.find().sort("order", 1).to_list(100)
+    for cat in categories:
+        items = await db.faq_items.find({"category_id": cat["id"]}).sort("order", 1).to_list(100)
+        cat["items"] = [FAQItem(**i) for i in items]
+    return [FAQCategory(**c) for c in categories]
+
+@api_router.post("/faq/categories", response_model=FAQCategory)
+async def create_faq_category(
+    data: FAQCategoryCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    cat_dict = data.model_dump()
+    cat_dict["id"] = str(uuid.uuid4())
+    cat_dict["items"] = []
+    await db.faq_categories.insert_one(cat_dict)
+    return FAQCategory(**cat_dict)
+
+@api_router.post("/faq/items", response_model=FAQItem)
+async def create_faq_item(
+    data: FAQItemCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    item_dict = data.model_dump()
+    item_dict["id"] = str(uuid.uuid4())
+    await db.faq_items.insert_one(item_dict)
+    return FAQItem(**item_dict)
 
 # Include router
 app.include_router(api_router)

@@ -509,6 +509,32 @@ class AgendaMonthCreate(BaseModel):
     events: List[Dict[str, Any]] = []
     order: int = 0
 
+# FAQ - Frequently Asked Questions
+class FAQItem(BaseModel):
+    id: str
+    category_id: str
+    question: str
+    answer: str
+    order: int = 0
+
+class FAQItemCreate(BaseModel):
+    category_id: str
+    question: str
+    answer: str
+    order: int = 0
+
+class FAQCategory(BaseModel):
+    id: str
+    title: str
+    icon: str = "help-circle"
+    order: int = 0
+    items: List[FAQItem] = []
+
+class FAQCategoryCreate(BaseModel):
+    title: str
+    icon: str = "help-circle"
+    order: int = 0
+
 # Settings
 class Settings(BaseModel):
     id: str

@@ -109,7 +109,11 @@ export default function ProfileScreen() {
 
           {/* Info Section */}
           <View style={styles.infoSection}>
-            <TouchableOpacity style={styles.infoItem} testID="info-faq-btn">
+            <TouchableOpacity 
+              style={styles.infoItem} 
+              testID="info-faq-btn"
+              onPress={() => router.push('/faq')}
+            >
               <Ionicons name="help-circle" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>Preguntas Frecuentes</Text>
               <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
@@ -216,7 +220,11 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.menuItem} testID="menu-faq">
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            testID="menu-faq"
+            onPress={() => router.push('/faq')}
+          >
             <Ionicons name="help-circle" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>FAQ</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
