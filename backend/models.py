@@ -90,8 +90,13 @@ class DailyEnergy(BaseModel):
     content: str
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
-    recommendations: List[str] = []
+    animal: Optional[str] = None  # e.g. "Tigre de Madera"
+    bazi_relationships: Optional[str] = None  # BaZi element relationships text
+    recommendations: List[str] = []  # Sustained activities
     avoid: List[str] = []
+    feng_shui_sectors: List[str] = []  # e.g. ["Norte: Prosperidad"]
+    qimen_directions: List[str] = []  # e.g. ["Sur: Fama"]
+    favorable_hours: List[str] = []  # e.g. ["07:00-09:00: Energía Yang"]
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -102,8 +107,13 @@ class DailyEnergyCreate(BaseModel):
     content: str
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
+    animal: Optional[str] = None
+    bazi_relationships: Optional[str] = None
     recommendations: List[str] = []
     avoid: List[str] = []
+    feng_shui_sectors: List[str] = []
+    qimen_directions: List[str] = []
+    favorable_hours: List[str] = []
 
 class MoonEnergy(BaseModel):
     id: str

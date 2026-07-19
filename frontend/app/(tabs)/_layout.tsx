@@ -38,9 +38,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="articles"
         options={{
-          title: 'Artículos',
+          title: 'Energía Día',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
+            <Ionicons name="sunny" size={size} color={color} />
           ),
         }}
       />

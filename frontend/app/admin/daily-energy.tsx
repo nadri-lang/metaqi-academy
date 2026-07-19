@@ -26,8 +26,13 @@ export default function AdminDailyEnergyScreen() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [animal, setAnimal] = useState('');
+  const [baziRelationships, setBaziRelationships] = useState('');
   const [recommendations, setRecommendations] = useState('');
   const [avoid, setAvoid] = useState('');
+  const [fengShuiSectors, setFengShuiSectors] = useState('');
+  const [qimenDirections, setQimenDirections] = useState('');
+  const [favorableHours, setFavorableHours] = useState('');
   const [loading, setLoading] = useState(false);
   const [existing, setExisting] = useState<any>(null);
 
@@ -40,16 +45,26 @@ export default function AdminDailyEnergyScreen() {
       const response = await api.get(`/energy/daily?date=${date}`);
       const data = response.data;
       setExisting(data);
-      setTitle(data.title);
-      setContent(data.content);
-      setRecommendations(data.recommendations.join('\n'));
-      setAvoid(data.avoid.join('\n'));
+      setTitle(data.title || '');
+      setContent(data.content || '');
+      setAnimal(data.animal || '');
+      setBaziRelationships(data.bazi_relationships || '');
+      setRecommendations((data.recommendations || []).join('\n'));
+      setAvoid((data.avoid || []).join('\n'));
+      setFengShuiSectors((data.feng_shui_sectors || []).join('\n'));
+      setQimenDirections((data.qimen_directions || []).join('\n'));
+      setFavorableHours((data.favorable_hours || []).join('\n'));
     } catch (error) {
       setExisting(null);
       setTitle('');
       setContent('');
+      setAnimal('');
+      setBaziRelationships('');
       setRecommendations('');
       setAvoid('');
+      setFengShuiSectors('');
+      setQimenDirections('');
+      setFavorableHours('');
     }
   };
 
@@ -65,8 +80,13 @@ export default function AdminDailyEnergyScreen() {
         date,
         title,
         content,
+        animal: animal || null,
+        bazi_relationships: baziRelationships || null,
         recommendations: recommendations.split('\n').filter(r => r.trim()),
         avoid: avoid.split('\n').filter(r => r.trim()),
+        feng_shui_sectors: fengShuiSectors.split('\n').filter(r => r.trim()),
+        qimen_directions: qimenDirections.split('\n').filter(r => r.trim()),
+        favorable_hours: favorableHours.split('\n').filter(r => r.trim()),
       };
 
       await api.post('/energy/daily', payload);
@@ -119,16 +139,15 @@ export default function AdminDailyEnergyScreen() {
               style={styles.input}
               value={date}
               onChangeText={setDate}
-              placeholder="2026-07-18"
               placeholderTextColor={Colors.textLight}
             />
             {existing && (
-              <Text style={styles.helperText}>
-                ✓ Ya existe contenido para esta fecha - se actualizará
+              <Text style={styles.helperTextGreen}>
+                ✓ Ya existe contenido para esta fecha
               </Text>
             )}
 
-            <Text style={styles.label}>Título</Text>
+            <Text style={styles.label}>Título *</Text>
             <TextInput
               testID="input-title"
               style={styles.input}
@@ -138,7 +157,7 @@ export default function AdminDailyEnergyScreen() {
               placeholderTextColor={Colors.textLight}
             />
 
-            <Text style={styles.label}>Contenido principal</Text>
+            <Text style={styles.label}>Descripción principal *</Text>
             <TextInput
               testID="input-content"
               style={[styles.input, styles.textArea]}
@@ -147,33 +166,88 @@ export default function AdminDailyEnergyScreen() {
               placeholder="Descripción del día..."
               placeholderTextColor={Colors.textLight}
               multiline
-              numberOfLines={5}
               textAlignVertical="top"
             />
 
-            <Text style={styles.label}>Recomendaciones (una por línea)</Text>
+            <Text style={styles.label}>Animal del Día</Text>
+            <TextInput
+              testID="input-animal"
+              style={styles.input}
+              value={animal}
+              onChangeText={setAnimal}
+              placeholder="Ej: Tigre de Madera Yang"
+              placeholderTextColor={Colors.textLight}
+            />
+
+            <Text style={styles.label}>Relaciones BaZi</Text>
+            <TextInput
+              testID="input-bazi"
+              style={[styles.input, styles.textArea]}
+              value={baziRelationships}
+              onChangeText={setBaziRelationships}
+              placeholder="Descripción de las relaciones entre elementos BaZi del día..."
+              placeholderTextColor={Colors.textLight}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>Actividades Sostenidas (una por línea)</Text>
             <TextInput
               testID="input-recommendations"
               style={[styles.input, styles.textArea]}
               value={recommendations}
               onChangeText={setRecommendations}
-              placeholder="Viste de dorado&#10;Medita al amanecer&#10;Bebe té verde"
+              placeholder="Comenzar proyectos creativos&#10;Firmar acuerdos"
               placeholderTextColor={Colors.textLight}
               multiline
-              numberOfLines={4}
               textAlignVertical="top"
             />
 
-            <Text style={styles.label}>Evitar (una por línea)</Text>
+            <Text style={styles.label}>Actividades a Evitar (una por línea)</Text>
             <TextInput
               testID="input-avoid"
               style={[styles.input, styles.textArea]}
               value={avoid}
               onChangeText={setAvoid}
-              placeholder="Discusiones&#10;Decisiones financieras"
+              placeholder="Discusiones&#10;Decisiones impulsivas"
               placeholderTextColor={Colors.textLight}
               multiline
-              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>Sectores Feng Shui (uno por línea)</Text>
+            <TextInput
+              testID="input-fengshui"
+              style={[styles.input, styles.textArea]}
+              value={fengShuiSectors}
+              onChangeText={setFengShuiSectors}
+              placeholder="Este: Sector activo&#10;Norte: Sabiduría"
+              placeholderTextColor={Colors.textLight}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>Direcciones Qi Men (una por línea)</Text>
+            <TextInput
+              testID="input-qimen"
+              style={[styles.input, styles.textArea]}
+              value={qimenDirections}
+              onChangeText={setQimenDirections}
+              placeholder="Este: Puerta Vida&#10;Sur: Puerta Apertura"
+              placeholderTextColor={Colors.textLight}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>Horas más Favorables (una por línea)</Text>
+            <TextInput
+              testID="input-hours"
+              style={[styles.input, styles.textArea]}
+              value={favorableHours}
+              onChangeText={setFavorableHours}
+              placeholder="05:00-07:00: Hora del Conejo&#10;11:00-13:00: Máxima energía Yang"
+              placeholderTextColor={Colors.textLight}
+              multiline
               textAlignVertical="top"
             />
 
@@ -230,9 +304,7 @@ const styles = StyleSheet.create({
     fontSize: Typography['2xl'],
     color: Colors.white,
   },
-  content: {
-    padding: Spacing.lg,
-  },
+  content: { padding: Spacing.lg },
   form: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
@@ -259,9 +331,9 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   textArea: {
-    minHeight: 100,
+    minHeight: 90,
   },
-  helperText: {
+  helperTextGreen: {
     fontFamily: Typography.sansMedium,
     fontSize: Typography.xs,
     color: Colors.jade,
@@ -277,9 +349,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
     gap: Spacing.sm,
   },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
+  saveButtonDisabled: { opacity: 0.6 },
   saveButtonText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
