@@ -13,10 +13,12 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -25,21 +27,30 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
+
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/home');
+    }
+  };
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
+      Alert.alert(t('common.error'), t('auth.fill_all_fields'));
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      Alert.alert(t('common.error'), t('auth.passwords_dont_match'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      Alert.alert(t('common.error'), t('auth.password_too_short'));
       return;
     }
 
@@ -48,7 +59,7 @@ export default function RegisterScreen() {
       await register(name, email, password);
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -65,36 +76,42 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header with gradient */}
-          <LinearGradient
-            colors={Gradients.navy}
-            style={styles.header}
-          >
-            <Text style={styles.logo}>MetaQi</Text>
-            <Text style={styles.subtitle}>Academy</Text>
+          <LinearGradient colors={Gradients.navy} style={styles.header}>
+            <TouchableOpacity
+              testID="register-back-btn"
+              style={styles.backButton}
+              onPress={goBack}
+            >
+              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <Text style={styles.backButtonText}>{t('common.back')}</Text>
+            </TouchableOpacity>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logo}>MetaQi</Text>
+              <Text style={styles.subtitle}>Academy</Text>
+            </View>
           </LinearGradient>
 
           {/* Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.title}>Crear Cuenta</Text>
-            <Text style={styles.description}>
-              Únete y comienza tu viaje en la metafísica china
-            </Text>
+            <Text style={styles.title}>{t('auth.register_title')}</Text>
+            <Text style={styles.description}>{t('auth.register_description')}</Text>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Nombre</Text>
+              <Text style={styles.label}>{t('common.name')}</Text>
               <TextInput
+                testID="register-name-input"
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
-                placeholder="Tu nombre"
                 placeholderTextColor={Colors.textLight}
                 autoCapitalize="words"
               />
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('common.email')}</Text>
               <TextInput
+                testID="register-email-input"
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
@@ -107,8 +124,9 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>{t('common.password')}</Text>
               <TextInput
+                testID="register-password-input"
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
@@ -120,8 +138,9 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirmar Contraseña</Text>
+              <Text style={styles.label}>{t('common.confirm_password')}</Text>
               <TextInput
+                testID="register-confirm-password-input"
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -133,6 +152,7 @@ export default function RegisterScreen() {
             </View>
 
             <TouchableOpacity
+              testID="register-submit-btn"
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleRegister}
               disabled={loading}
@@ -140,14 +160,14 @@ export default function RegisterScreen() {
               {loading ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
-                <Text style={styles.buttonText}>Registrarse</Text>
+                <Text style={styles.buttonText}>{t('common.register')}</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
-              <TouchableOpacity onPress={() => router.back()}>
-                <Text style={styles.linkText}>Inicia sesión</Text>
+              <Text style={styles.footerText}>{t('auth.have_account')} </Text>
+              <TouchableOpacity onPress={goBack}>
+                <Text style={styles.linkText}>{t('auth.login_here')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -169,9 +189,25 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    paddingVertical: Spacing['2xl'],
+    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.sm,
+  },
+  backButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.base,
+    color: Colors.white,
+    marginLeft: 4,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
   },
   logo: {
     fontFamily: Typography.serifBold,

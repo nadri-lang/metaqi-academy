@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '@/src/context/AuthContext';
+import { LanguageProvider } from '@/src/context/LanguageContext';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { 
@@ -68,24 +69,27 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <Stack screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: Colors.background },
-        }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)/login" />
-          <Stack.Screen name="(auth)/register" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="concepts" />
-          <Stack.Screen name="concept/[slug]" />
-          <Stack.Screen name="agenda/[id]" />
-          <Stack.Screen name="admin/index" />
-          <Stack.Screen name="admin/daily-energy" />
-          <Stack.Screen name="admin/newborn-vocation" />
-          <Stack.Screen name="faq" />
-        </Stack>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Stack screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: Colors.background },
+          }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)/login" />
+            <Stack.Screen name="(auth)/register" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="concepts" />
+            <Stack.Screen name="concept/[slug]" />
+            <Stack.Screen name="agenda/[id]" />
+            <Stack.Screen name="admin/index" />
+            <Stack.Screen name="admin/daily-energy" />
+            <Stack.Screen name="admin/newborn-vocation" />
+            <Stack.Screen name="faq" />
+            <Stack.Screen name="daily-energy-detail" />
+          </Stack>
+        </AuthProvider>
+      </LanguageProvider>
     </GestureHandlerRootView>
   );
 }

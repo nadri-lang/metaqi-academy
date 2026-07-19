@@ -13,21 +13,32 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
+
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/home');
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
+      Alert.alert(t('common.error'), t('auth.fill_all_fields'));
       return;
     }
 
@@ -36,7 +47,7 @@ export default function LoginScreen() {
       await login(email, password);
       router.replace('/(tabs)/home');
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -53,24 +64,30 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header with gradient */}
-          <LinearGradient
-            colors={Gradients.navy}
-            style={styles.header}
-          >
-            <Text style={styles.logo}>MetaQi</Text>
-            <Text style={styles.subtitle}>Academy</Text>
+          <LinearGradient colors={Gradients.navy} style={styles.header}>
+            <TouchableOpacity
+              testID="login-back-btn"
+              style={styles.backButton}
+              onPress={goBack}
+            >
+              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <Text style={styles.backButtonText}>{t('common.back')}</Text>
+            </TouchableOpacity>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logo}>MetaQi</Text>
+              <Text style={styles.subtitle}>Academy</Text>
+            </View>
           </LinearGradient>
 
           {/* Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.title}>Iniciar Sesión</Text>
-            <Text style={styles.description}>
-              Accede a tu cuenta para continuar tu aprendizaje
-            </Text>
+            <Text style={styles.title}>{t('auth.login_title')}</Text>
+            <Text style={styles.description}>{t('auth.login_description')}</Text>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('common.email')}</Text>
               <TextInput
+                testID="login-email-input"
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
@@ -83,8 +100,9 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Contraseña</Text>
+              <Text style={styles.label}>{t('common.password')}</Text>
               <TextInput
+                testID="login-password-input"
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
@@ -96,6 +114,7 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity
+              testID="login-submit-btn"
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
@@ -103,14 +122,14 @@ export default function LoginScreen() {
               {loading ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
+                <Text style={styles.buttonText}>{t('common.enter')}</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>¿No tienes cuenta? </Text>
+              <Text style={styles.footerText}>{t('auth.no_account')} </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                <Text style={styles.linkText}>Regístrate</Text>
+                <Text style={styles.linkText}>{t('auth.register_here')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -132,9 +151,25 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
-    paddingVertical: Spacing['3xl'],
+    paddingBottom: Spacing['2xl'],
+    paddingTop: Spacing.sm,
+  },
+  backButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  backButtonText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.base,
+    color: Colors.white,
+    marginLeft: 4,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
   },
   logo: {
     fontFamily: Typography.serifBold,

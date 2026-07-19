@@ -7,63 +7,54 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-
-interface YearEnergy {
-  id: string;
-  year: number;
-  title: string;
-  content: string;
-  video_url?: string;
-}
 
 interface DailyEnergy {
   id: string;
   date: string;
   title: string;
+  title_en?: string;
   content: string;
-  recommendations: string[];
-  avoid: string[];
+  content_en?: string;
+  animal?: string;
 }
 
-interface MoonEnergy {
+interface Concept {
   id: string;
-  month: number;
-  year: number;
+  slug: string;
   title: string;
-  content: string;
-  recommendations: string[];
-  activations: string[];
-  rituals: string[];
-  remedies: string[];
-  avoid: string[];
+  title_en?: string;
+  short_description: string;
+  icon: string;
+  color: string;
 }
 
 interface NewbornVocation {
   id: string;
   date: string;
   title: string;
+  title_en?: string;
   content: string;
+  content_en?: string;
   talents: string[];
   vocations: string[];
-  challenges: string[];
 }
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { t, localizeContent, language } = useLanguage();
   const router = useRouter();
-  const [yearEnergy, setYearEnergy] = useState<YearEnergy | null>(null);
   const [dailyEnergy, setDailyEnergy] = useState<DailyEnergy | null>(null);
-  const [moonEnergy, setMoonEnergy] = useState<MoonEnergy | null>(null);
+  const [concepts, setConcepts] = useState<Concept[]>([]);
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,16 +65,14 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     try {
-      const [yearRes, dailyRes, moonRes, vocationRes] = await Promise.allSettled([
-        api.get('/energy/year/current'),
+      const [dailyRes, conceptsRes, vocationRes] = await Promise.allSettled([
         api.get('/energy/daily'),
-        api.get('/energy/moon/current'),
+        api.get('/concepts'),
         api.get('/newborn-vocation/today'),
       ]);
-      
-      if (yearRes.status === 'fulfilled') setYearEnergy(yearRes.value.data);
+
       if (dailyRes.status === 'fulfilled') setDailyEnergy(dailyRes.value.data);
-      if (moonRes.status === 'fulfilled') setMoonEnergy(moonRes.value.data);
+      if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.data);
       if (vocationRes.status === 'fulfilled') setNewbornVocation(vocationRes.value.data);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -96,10 +85,6 @@ export default function HomeScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     loadData();
-  };
-
-  const openYouTube = (url?: string) => {
-    if (url) Linking.openURL(url);
   };
 
   const handleSaveFavorite = async (itemType: string, itemId: string) => {
@@ -144,148 +129,77 @@ export default function HomeScreen() {
                 style={styles.loginButton}
                 onPress={() => router.push('/(auth)/login')}
               >
-                <Text style={styles.loginButtonText}>Entrar</Text>
+                <Text style={styles.loginButtonText}>{t('common.enter')}</Text>
               </TouchableOpacity>
             )}
           </View>
           {user && (
-            <Text style={styles.greeting}>Bienvenido, {user.name}</Text>
+            <Text style={styles.greeting}>{t('home.welcome')}, {user.name}</Text>
           )}
         </LinearGradient>
 
-        {/* Year Energy */}
-        {yearEnergy && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="calendar" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Energía del Año</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{yearEnergy.title}</Text>
-              <Text style={styles.cardContent}>{yearEnergy.content}</Text>
-              {yearEnergy.video_url && (
-                <TouchableOpacity
-                  testID="year-energy-video"
-                  style={styles.videoButton}
-                  onPress={() => openYouTube(yearEnergy.video_url)}
-                >
-                  <Ionicons name="logo-youtube" size={20} color={Colors.white} />
-                  <Text style={styles.videoButtonText}>Ver en YouTube</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* Daily Energy */}
+        {/* Daily Energy Summary Card - Button to detail */}
         {dailyEnergy && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="sunny" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Energía del Día</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{dailyEnergy.title}</Text>
-              <Text style={styles.cardContent}>{dailyEnergy.content}</Text>
-
-              {dailyEnergy.recommendations.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Recomendaciones</Text>
-                  {dailyEnergy.recommendations.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.jade }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
+            <TouchableOpacity
+              testID="daily-energy-card"
+              style={styles.dailyEnergyCard}
+              onPress={() => router.push('/(tabs)/articles')}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={Gradients.gold}
+                style={styles.dailyEnergyGradient}
+              >
+                <View style={styles.dailyIconContainer}>
+                  <Ionicons name="sunny" size={32} color={Colors.primary} />
                 </View>
-              )}
-
-              {dailyEnergy.avoid.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Evita</Text>
-                  {dailyEnergy.avoid.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.error }]} />
-                      <Text style={styles.listText}>{item}</Text>
+                <View style={styles.dailyEnergyContent}>
+                  <Text style={styles.dailyEnergyLabel}>{t('home.daily_energy')}</Text>
+                  <Text style={styles.dailyEnergyTitle} numberOfLines={2}>
+                    {localizeContent(dailyEnergy.title, dailyEnergy.title_en)}
+                  </Text>
+                  {dailyEnergy.animal && (
+                    <View style={styles.animalBadge}>
+                      <Ionicons name="paw" size={12} color={Colors.primary} />
+                      <Text style={styles.animalText}>{dailyEnergy.animal}</Text>
                     </View>
-                  ))}
+                  )}
                 </View>
-              )}
-            </View>
+                <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         )}
 
-        {/* Moon Energy - FREE - Fully accessible */}
-        {moonEnergy && (
+        {/* Concepts Section - MAIN CONTENT */}
+        {concepts.length > 0 && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="moon" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Energía del Mes</Text>
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{moonEnergy.title}</Text>
-              <Text style={styles.cardContent}>{moonEnergy.content}</Text>
+            <Text style={styles.sectionLabel}>{t('home.discover')}</Text>
+            <Text style={styles.sectionTitleLarge}>{t('home.metaphysics')}</Text>
 
-              {moonEnergy.recommendations.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Recomendaciones</Text>
-                  {moonEnergy.recommendations.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.jade }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
+            {concepts.map((concept, index) => (
+              <TouchableOpacity
+                key={concept.id}
+                testID={`home-concept-${concept.slug}`}
+                style={styles.conceptCard}
+                onPress={() => router.push(`/concept/${concept.slug}`)}
+                activeOpacity={0.85}
+              >
+                <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
+                  <Ionicons name={concept.icon as any} size={22} color={concept.color} />
                 </View>
-              )}
-
-              {moonEnergy.activations.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Activaciones</Text>
-                  {moonEnergy.activations.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.accent }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
+                <View style={styles.conceptTextContainer}>
+                  <Text style={styles.conceptTitle}>
+                    {localizeContent(concept.title, concept.title_en)}
+                  </Text>
+                  <Text style={styles.conceptDesc} numberOfLines={2}>
+                    {concept.short_description}
+                  </Text>
                 </View>
-              )}
-
-              {moonEnergy.rituals.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Rituales</Text>
-                  {moonEnergy.rituals.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.accent }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {moonEnergy.remedies.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Remedios</Text>
-                  {moonEnergy.remedies.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.jade }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {moonEnergy.avoid.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Evita</Text>
-                  {moonEnergy.avoid.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.error }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
@@ -294,15 +208,19 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="star" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Vocación del Bebé Hoy</Text>
+              <Text style={styles.sectionTitle}>{t('home.newborn_vocation')}</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{newbornVocation.title}</Text>
-              <Text style={styles.cardContent}>{newbornVocation.content}</Text>
+              <Text style={styles.cardTitle}>
+                {localizeContent(newbornVocation.title, newbornVocation.title_en)}
+              </Text>
+              <Text style={styles.cardContent}>
+                {localizeContent(newbornVocation.content, newbornVocation.content_en)}
+              </Text>
 
               {newbornVocation.talents.length > 0 && (
                 <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Talentos naturales</Text>
+                  <Text style={styles.listTitle}>{t('home.natural_talents')}</Text>
                   {newbornVocation.talents.map((item, index) => (
                     <View key={index} style={styles.listItem}>
                       <View style={[styles.bullet, { backgroundColor: Colors.accent }]} />
@@ -314,7 +232,7 @@ export default function HomeScreen() {
 
               {newbornVocation.vocations.length > 0 && (
                 <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>Vocaciones favorables</Text>
+                  <Text style={styles.listTitle}>{t('home.favorable_vocations')}</Text>
                   {newbornVocation.vocations.map((item, index) => (
                     <View key={index} style={styles.listItem}>
                       <View style={[styles.bullet, { backgroundColor: Colors.jade }]} />
@@ -331,7 +249,7 @@ export default function HomeScreen() {
               >
                 <Ionicons name={user ? "heart" : "heart-outline"} size={18} color={Colors.accent} />
                 <Text style={styles.saveButtonText}>
-                  {user ? 'Guardar en Favoritos' : 'Inicia sesión para guardar'}
+                  {user ? t('home.save_favorite') : t('home.login_to_save')}
                 </Text>
               </TouchableOpacity>
 
@@ -340,7 +258,7 @@ export default function HomeScreen() {
                 style={styles.ctaButton}
                 onPress={() => router.push('/(tabs)/services')}
               >
-                <Text style={styles.ctaButtonText}>Análisis personalizado de tu bebé</Text>
+                <Text style={styles.ctaButtonText}>{t('home.personalized_analysis')}</Text>
                 <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
               </TouchableOpacity>
             </View>
@@ -354,21 +272,16 @@ export default function HomeScreen() {
             style={styles.discoverButton}
             onPress={() => router.push('/concepts')}
           >
-            <LinearGradient
-              colors={Gradients.navy}
-              style={styles.discoverGradient}
-            >
+            <LinearGradient colors={Gradients.navy} style={styles.discoverGradient}>
               <View style={styles.discoverIconContainer}>
-                <Ionicons name="book" size={32} color={Colors.accent} />
+                <Ionicons name="book" size={28} color={Colors.accent} />
               </View>
               <View style={styles.discoverTextContainer}>
-                <Text style={styles.discoverLabel}>Descubre</Text>
-                <Text style={styles.discoverTitle}>Metafísica China</Text>
-                <Text style={styles.discoverSubtitle}>
-                  BaZi, Qi Men, Feng Shui, Tongshu y más
-                </Text>
+                <Text style={styles.discoverLabel}>{t('home.discover')}</Text>
+                <Text style={styles.discoverTitle}>{t('home.metaphysics')}</Text>
+                <Text style={styles.discoverSubtitle}>{t('home.metaphysics_subtitle')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.accent} />
+              <Ionicons name="chevron-forward" size={22} color={Colors.accent} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -380,19 +293,14 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
+  scrollContent: { flexGrow: 1 },
   header: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.xl,
@@ -437,6 +345,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
   },
+  sectionLabel: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: Spacing.xs,
+  },
+  sectionTitleLarge: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography['2xl'],
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -444,11 +366,95 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['2xl'],
+    fontSize: Typography.xl,
     color: Colors.textPrimary,
     marginLeft: Spacing.sm,
     flex: 1,
   },
+  // Daily Energy Card (button style)
+  dailyEnergyCard: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
+  dailyEnergyGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    gap: Spacing.md,
+  },
+  dailyIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dailyEnergyContent: {
+    flex: 1,
+  },
+  dailyEnergyLabel: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.primary,
+    opacity: 0.7,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  dailyEnergyTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.base,
+    color: Colors.primary,
+    lineHeight: 22,
+  },
+  animalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 4,
+  },
+  animalText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.primary,
+    opacity: 0.9,
+  },
+  // Concept Cards (list style)
+  conceptCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.md,
+  },
+  conceptIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  conceptTextContainer: {
+    flex: 1,
+  },
+  conceptTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  conceptDesc: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  // Card generic
   card: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
@@ -468,9 +474,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 24,
   },
-  listSection: {
-    marginTop: Spacing.lg,
-  },
+  listSection: { marginTop: Spacing.lg },
   listTitle: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
@@ -496,23 +500,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 20,
   },
-  videoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FF0000',
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
-    alignSelf: 'flex-start',
-  },
-  videoButtonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
-    color: Colors.white,
-    marginLeft: Spacing.sm,
-  },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -522,12 +509,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     marginTop: Spacing.md,
+    gap: Spacing.sm,
   },
   saveButtonText: {
     fontFamily: Typography.sansMedium,
     fontSize: Typography.sm,
     color: Colors.accent,
-    marginLeft: Spacing.sm,
   },
   ctaButton: {
     flexDirection: 'row',
@@ -537,12 +524,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     marginTop: Spacing.sm,
+    gap: Spacing.sm,
   },
   ctaButtonText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.primary,
-    marginRight: Spacing.sm,
   },
   discoverButton: {
     borderRadius: BorderRadius.xl,
@@ -555,16 +542,14 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   discoverIconContainer: {
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 56,
     borderRadius: 16,
     backgroundColor: Colors.accent + '30',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  discoverTextContainer: {
-    flex: 1,
-  },
+  discoverTextContainer: { flex: 1 },
   discoverLabel: {
     fontFamily: Typography.sansMedium,
     fontSize: Typography.xs,

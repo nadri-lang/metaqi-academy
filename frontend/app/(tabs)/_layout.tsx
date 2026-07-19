@@ -3,8 +3,10 @@ import { Tabs } from 'expo-router';
 import { Colors } from '@/src/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/src/constants/Typography';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 export default function TabsLayout() {
+  const { t } = useLanguage();
   return (
     <Tabs
       screenOptions={{
@@ -29,7 +31,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Inicio',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -38,7 +40,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="articles"
         options={{
-          title: 'Energía Día',
+          title: t('tabs.daily_energy'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="sunny" size={size} color={color} />
           ),
@@ -47,7 +49,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="courses"
         options={{
-          title: 'Cursos',
+          title: t('tabs.courses'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
           ),
@@ -56,7 +58,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="agendas"
         options={{
-          title: 'Agendas',
+          title: t('tabs.agendas'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size} color={color} />
           ),
@@ -65,7 +67,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="services"
         options={{
-          title: 'Servicios',
+          title: t('tabs.services'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="sparkles" size={size} color={color} />
           ),
@@ -74,7 +76,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Cuenta',
+          title: t('tabs.account'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

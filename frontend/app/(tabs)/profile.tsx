@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,27 +6,31 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
+      t('common.logout'),
+      t('profile.logout_confirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Cerrar Sesión',
+          text: t('common.logout'),
           style: 'destructive',
           onPress: async () => {
             await logout();
@@ -36,18 +40,66 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleLanguageChange = async (lang: 'es' | 'en') => {
+    await setLanguage(lang);
+    setLanguageModalVisible(false);
+  };
+
+  const LanguageSelector = () => (
+    <Modal
+      visible={languageModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setLanguageModalVisible(false)}
+    >
+      <TouchableOpacity
+        testID="lang-modal-backdrop"
+        style={styles.modalBackdrop}
+        activeOpacity={1}
+        onPress={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>{t('profile.select_language')}</Text>
+
+          <TouchableOpacity
+            testID="lang-option-es"
+            style={[styles.langOption, language === 'es' && styles.langOptionActive]}
+            onPress={() => handleLanguageChange('es')}
+          >
+            <Text style={styles.langFlag}>🇪🇸</Text>
+            <Text style={styles.langLabel}>Español</Text>
+            {language === 'es' && (
+              <Ionicons name="checkmark-circle" size={22} color={Colors.accent} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            testID="lang-option-en"
+            style={[styles.langOption, language === 'en' && styles.langOptionActive]}
+            onPress={() => handleLanguageChange('en')}
+          >
+            <Text style={styles.langFlag}>🇬🇧</Text>
+            <Text style={styles.langLabel}>English</Text>
+            {language === 'en' && (
+              <Ionicons name="checkmark-circle" size={22} color={Colors.accent} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+
   // Not logged in view
   if (!user) {
     return (
       <View style={styles.container}>
+        <LanguageSelector />
         <LinearGradient colors={Gradients.navy} style={styles.header}>
           <SafeAreaView edges={['top']}>
             <View style={styles.headerContent}>
-              <Text style={styles.headerLabel}>Bienvenido a</Text>
-              <Text style={styles.headerTitle}>MetaQi Academy</Text>
-              <Text style={styles.headerSubtitle}>
-                Crea tu cuenta para acceder a favoritos, cursos y servicios exclusivos
-              </Text>
+              <Text style={styles.headerLabel}>{t('profile.welcome_to')}</Text>
+              <Text style={styles.headerTitle}>{t('profile.academy')}</Text>
+              <Text style={styles.headerSubtitle}>{t('profile.subtitle_guest')}</Text>
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -59,7 +111,7 @@ export default function ProfileScreen() {
             onPress={() => router.push('/(auth)/login')}
           >
             <Ionicons name="log-in" size={20} color={Colors.primary} />
-            <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
+            <Text style={styles.primaryButtonText}>{t('common.login')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -67,45 +119,59 @@ export default function ProfileScreen() {
             style={styles.secondaryButton}
             onPress={() => router.push('/(auth)/register')}
           >
-            <Text style={styles.secondaryButtonText}>Crear Cuenta Nueva</Text>
+            <Text style={styles.secondaryButtonText}>{t('profile.create_account')}</Text>
           </TouchableOpacity>
 
           {/* Benefits Section */}
           <View style={styles.benefitsCard}>
-            <Text style={styles.benefitsTitle}>Beneficios de crear tu cuenta</Text>
+            <Text style={styles.benefitsTitle}>{t('profile.benefits')}</Text>
             
             <View style={styles.benefitItem}>
               <Ionicons name="heart" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
-                <Text style={styles.benefitLabel}>Favoritos</Text>
-                <Text style={styles.benefitDesc}>Guarda artículos y contenido</Text>
+                <Text style={styles.benefitLabel}>{t('profile.benefit_favorites')}</Text>
+                <Text style={styles.benefitDesc}>{t('profile.benefit_favorites_desc')}</Text>
               </View>
             </View>
 
             <View style={styles.benefitItem}>
               <Ionicons name="book" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
-                <Text style={styles.benefitLabel}>Progreso de Cursos</Text>
-                <Text style={styles.benefitDesc}>Guarda tu avance</Text>
+                <Text style={styles.benefitLabel}>{t('profile.benefit_progress')}</Text>
+                <Text style={styles.benefitDesc}>{t('profile.benefit_progress_desc')}</Text>
               </View>
             </View>
 
             <View style={styles.benefitItem}>
               <Ionicons name="sparkles" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
-                <Text style={styles.benefitLabel}>Servicios Personalizados</Text>
-                <Text style={styles.benefitDesc}>Solicita lecturas BaZi, Qi Men, rituales</Text>
+                <Text style={styles.benefitLabel}>{t('profile.benefit_services')}</Text>
+                <Text style={styles.benefitDesc}>{t('profile.benefit_services_desc')}</Text>
               </View>
             </View>
 
             <View style={styles.benefitItem}>
               <Ionicons name="star" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
-                <Text style={styles.benefitLabel}>Contenido Premium</Text>
-                <Text style={styles.benefitDesc}>Accede a agendas y cursos exclusivos</Text>
+                <Text style={styles.benefitLabel}>{t('profile.benefit_premium')}</Text>
+                <Text style={styles.benefitDesc}>{t('profile.benefit_premium_desc')}</Text>
               </View>
             </View>
           </View>
+
+          {/* Language Selector - Guest */}
+          <TouchableOpacity
+            testID="guest-language-btn"
+            style={styles.languageButton}
+            onPress={() => setLanguageModalVisible(true)}
+          >
+            <Ionicons name="language" size={20} color={Colors.textSecondary} />
+            <Text style={styles.languageButtonText}>{t('profile.language')}</Text>
+            <Text style={styles.languageValue}>
+              {language === 'es' ? '🇪🇸 Español' : '🇬🇧 English'}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
+          </TouchableOpacity>
 
           {/* Info Section */}
           <View style={styles.infoSection}>
@@ -115,12 +181,12 @@ export default function ProfileScreen() {
               onPress={() => router.push('/faq')}
             >
               <Ionicons name="help-circle" size={20} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>Preguntas Frecuentes</Text>
+              <Text style={styles.infoText}>{t('profile.faq')}</Text>
               <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.infoItem} testID="info-contact-btn">
               <Ionicons name="mail" size={20} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>Contacto</Text>
+              <Text style={styles.infoText}>{t('profile.contact')}</Text>
               <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
             </TouchableOpacity>
           </View>
@@ -132,6 +198,7 @@ export default function ProfileScreen() {
   // Logged in view
   return (
     <View style={styles.container}>
+      <LanguageSelector />
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.userHeader}>
@@ -144,11 +211,11 @@ export default function ProfileScreen() {
             {user.has_active_subscription ? (
               <View style={styles.premiumBadge}>
                 <Ionicons name="star" size={14} color={Colors.primary} />
-                <Text style={styles.premiumBadgeText}>Miembro Premium</Text>
+                <Text style={styles.premiumBadgeText}>{t('profile.premium_member')}</Text>
               </View>
             ) : (
               <View style={styles.freeBadge}>
-                <Text style={styles.freeBadgeText}>Miembro Gratuito</Text>
+                <Text style={styles.freeBadgeText}>{t('profile.free_member')}</Text>
               </View>
             )}
           </View>
@@ -169,8 +236,8 @@ export default function ProfileScreen() {
             >
               <Ionicons name="settings" size={22} color={Colors.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.adminButtonText}>Panel de Administración</Text>
-                <Text style={styles.adminButtonDesc}>Gestionar contenido de la app</Text>
+                <Text style={styles.adminButtonText}>{t('profile.admin_panel')}</Text>
+                <Text style={styles.adminButtonDesc}>{t('profile.admin_panel_desc')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
             </LinearGradient>
@@ -180,31 +247,38 @@ export default function ProfileScreen() {
         <View style={styles.menuSection}>
           <TouchableOpacity style={styles.menuItem} testID="menu-favorites">
             <Ionicons name="heart" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Mis Favoritos</Text>
+            <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} testID="menu-progress">
             <Ionicons name="book" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Mi Progreso</Text>
+            <Text style={styles.menuText}>{t('profile.my_progress')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} testID="menu-purchases">
             <Ionicons name="receipt" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Mis Compras</Text>
+            <Text style={styles.menuText}>{t('profile.my_purchases')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} testID="menu-requests">
             <Ionicons name="sparkles" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Mis Solicitudes</Text>
+            <Text style={styles.menuText}>{t('profile.my_requests')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} testID="menu-language">
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            testID="menu-language"
+            onPress={() => setLanguageModalVisible(true)}
+          >
             <Ionicons name="language" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Idioma</Text>
+            <Text style={styles.menuText}>{t('profile.language')}</Text>
+            <Text style={styles.menuValue}>
+              {language === 'es' ? '🇪🇸 Español' : '🇬🇧 English'}
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
@@ -213,7 +287,7 @@ export default function ProfileScreen() {
           {(user.role === 'admin' || user.role === 'editor') && (
             <TouchableOpacity style={styles.menuItem} testID="menu-about">
               <Ionicons name="information-circle" size={22} color={Colors.textSecondary} />
-              <Text style={styles.menuText}>Sobre Nosotros</Text>
+              <Text style={styles.menuText}>{t('profile.about')}</Text>
               <View style={styles.adminOnlyBadge}>
                 <Text style={styles.adminOnlyText}>Admin</Text>
               </View>
@@ -226,12 +300,12 @@ export default function ProfileScreen() {
             onPress={() => router.push('/faq')}
           >
             <Ionicons name="help-circle" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>FAQ</Text>
+            <Text style={styles.menuText}>{t('profile.faq')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuItem} testID="menu-contact">
             <Ionicons name="mail" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>Contacto</Text>
+            <Text style={styles.menuText}>{t('profile.contact')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
@@ -242,7 +316,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
         >
           <Ionicons name="log-out" size={20} color={Colors.error} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -493,5 +567,77 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: 10,
     color: Colors.accent,
+  },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  languageButtonText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  languageValue: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  menuValue: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    marginRight: Spacing.xs,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    width: '100%',
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.xl,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  langOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    marginBottom: Spacing.sm,
+    gap: Spacing.md,
+  },
+  langOptionActive: {
+    borderColor: Colors.accent,
+    backgroundColor: Colors.accent + '10',
+  },
+  langFlag: {
+    fontSize: 24,
+  },
+  langLabel: {
+    flex: 1,
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
   },
 });
