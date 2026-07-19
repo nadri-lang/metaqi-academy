@@ -31,7 +31,7 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-daily-energy',
   },
   {
-    title: 'Energía Lunar',
+    title: 'Energía del Mes',
     description: 'Editar contenido mensual',
     icon: 'moon',
     route: '/admin/moon-energy',

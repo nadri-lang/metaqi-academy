@@ -220,7 +220,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons name="moon" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Energía Lunar</Text>
+              <Text style={styles.sectionTitle}>Energía del Mes</Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{moonEnergy.title}</Text>
