@@ -43,6 +43,8 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  const [appReady, setAppReady] = React.useState(false);
+
   useEffect(() => {
     async function prepare() {
       try {
@@ -58,12 +60,27 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    // Timeout de 5 segundos para cargar fuentes
+    const fontTimeout = setTimeout(() => {
+      if (!fontsLoaded) {
+        console.warn('Font loading timeout - proceeding with system fonts');
+        setAppReady(true);
+        SplashScreen.hideAsync();
+      }
+    }, 5000);
+
+    // Si las fuentes se cargan antes del timeout, limpiar el timeout
     if (fontsLoaded) {
+      clearTimeout(fontTimeout);
+      setAppReady(true);
       SplashScreen.hideAsync();
     }
+
+    // Cleanup
+    return () => clearTimeout(fontTimeout);
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
+  if (!appReady) {
     return null;
   }
 
