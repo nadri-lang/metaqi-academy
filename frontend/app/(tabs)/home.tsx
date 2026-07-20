@@ -222,7 +222,7 @@ export default function HomeScreen() {
             activeOpacity={0.85}
           >
             <View style={styles.energyIconContainer}>
-              <Ionicons name="calendar" size={28} color={Colors.accent} />
+              <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
             </View>
             <View style={styles.energyContent}>
               <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
@@ -256,27 +256,34 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* 4. Botón - Vocación del Bebé */}
+        {/* 4. Tarjeta - Talento del Bebé (estilo similar a Energía del Día) */}
         <View style={styles.section}>
           <TouchableOpacity
-            testID="vocation-button"
-            style={styles.vocationButton}
+            testID="baby-talent-button"
+            style={styles.babyTalentButton}
             onPress={() => router.push('/newborn-vocation-detail')}
             activeOpacity={0.85}
           >
-            <LinearGradient 
-              colors={[Colors.jade + '30', Colors.jade + '10']} 
-              style={styles.vocationGradient}
-            >
-              <View style={styles.vocationIconContainer}>
-                <Ionicons name="star" size={32} color={Colors.jade} />
+            <LinearGradient colors={Gradients.navy} style={styles.babyTalentGradient}>
+              <View style={styles.babyTalentIconContainer}>
+                <Ionicons name="star" size={32} color={Colors.accent} />
               </View>
-              <View style={styles.vocationContent}>
-                <Text style={styles.vocationLabel}>{t('home.newborn_vocation_button')}</Text>
-                <Text style={styles.vocationSubtitle}>{t('home.newborn_vocation_subtitle')}</Text>
+              <View style={styles.babyTalentContent}>
+                <Text style={styles.babyTalentLabel}>{t('home.baby_talent')}</Text>
+                <Text style={styles.babyTalentSubtitle}>{t('home.baby_talent_subtitle')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.jade} />
+              <Ionicons name="chevron-forward" size={24} color={Colors.accent} />
             </LinearGradient>
+          </TouchableOpacity>
+          
+          {/* Botón CTA - Lectura Personalizada */}
+          <TouchableOpacity
+            testID="baby-talent-cta"
+            style={styles.babyTalentCtaButton}
+            onPress={() => router.push('/(tabs)/services')}
+          >
+            <Text style={styles.babyTalentCtaText}>{t('home.personalized_reading')}</Text>
+            <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -289,10 +296,13 @@ export default function HomeScreen() {
             activeOpacity={0.85}
           >
             <View style={styles.energyIconContainer}>
-              <Ionicons name="sparkles" size={28} color={Colors.jade} />
+              <Ionicons name="sparkles-outline" size={28} color={Colors.accent} />
             </View>
             <View style={styles.energyContent}>
-              <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
+              <View style={styles.yearEnergyRow}>
+                <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
+                <Text style={styles.yearBadge}>2026</Text>
+              </View>
             </View>
             <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
           </TouchableOpacity>
@@ -499,48 +509,79 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.primary,
   },
-  // Vocation Button
-  vocationButton: {
+  // Baby Talent Card (estilo similar a Energía del Día)
+  babyTalentButton: {
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    shadowColor: Colors.jade,
+    shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  vocationGradient: {
+  babyTalentGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: Spacing.lg,
     gap: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.jade + '30',
+    borderColor: Colors.accent + '40',
     borderRadius: BorderRadius.xl,
   },
-  vocationIconContainer: {
+  babyTalentIconContainer: {
     width: 64,
     height: 64,
     borderRadius: 16,
-    backgroundColor: Colors.jade + '20',
+    backgroundColor: Colors.accent + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  vocationContent: {
+  babyTalentContent: {
     flex: 1,
   },
-  vocationLabel: {
+  babyTalentLabel: {
     fontFamily: Typography.serifBold,
     fontSize: Typography.lg,
-    color: Colors.jade,
+    color: Colors.accent,
     lineHeight: 24,
     marginBottom: 4,
   },
-  vocationSubtitle: {
+  babyTalentSubtitle: {
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
+    color: Colors.white,
+    opacity: 0.8,
     lineHeight: 20,
+  },
+  babyTalentCtaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  babyTalentCtaText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.primary,
+  },
+  // Year Energy Badge
+  yearEnergyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  yearBadge: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    backgroundColor: Colors.accent + '20',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
   },
   // Language Modal
   modalOverlay: {

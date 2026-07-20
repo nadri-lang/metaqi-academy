@@ -4,9 +4,12 @@ import { Colors } from '@/src/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography } from '@/src/constants/Typography';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
@@ -18,8 +21,8 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 64,
-          paddingBottom: 8,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom + 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
