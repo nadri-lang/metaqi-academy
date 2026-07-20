@@ -35,5 +35,5 @@
   "seed_data_creation": "None. Test-created rows (daily_energy 2099-01-02 and newborn_vocation 2099-02-02 prefixed TEST_*) were cleaned up post-run.",
   "retest_needed": false,
   "should_main_agent_self_test": true,
-  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/. Base URL comes from frontend/.env EXPO_PUBLIC_BACKEND_URL (currently https://baazi-wisdom.preview.emergentagent.com). Admin creds: admin@metaqi.com/admin123. User creds: user@test.com/user123. All 7 concepts, moon current (is_premium=false), year 2026, newborn today, wedding agenda + 3 months (Jan/Feb/Mar 2027) are seeded and returning 200. Admin auth uses Authorization: Bearer <access_token>. Frontend UI verification for Fixes 3 and 4 (visual/route-level) still pending."
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/. Base URL comes from frontend/.env EXPO_PUBLIC_BACKEND_URL (currently https://feng-shui-learn.preview.emergentagent.com). Admin creds: admin@metaqi.com/admin123. User creds: user@test.com/user123. All 7 concepts, moon current (is_premium=false), year 2026, newborn today, wedding agenda + 3 months (Jan/Feb/Mar 2027) are seeded and returning 200. Admin auth uses Authorization: Bearer <access_token>. Frontend UI verification for Fixes 3 and 4 (visual/route-level) still pending."
 }

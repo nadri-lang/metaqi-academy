@@ -42,7 +42,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const loadLanguage = async () => {
     try {
-      const stored = await storage.get('app_language', null);
+      const stored = await storage.getItem('app_language', null);
       if (stored === 'es' || stored === 'en') {
         setLanguageState(stored);
       } else {
@@ -62,7 +62,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
-    await storage.set('app_language', lang);
+    await storage.setItem('app_language', lang);
   };
 
   const t = (key: TranslationKey): string => {

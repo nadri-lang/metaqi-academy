@@ -38,11 +38,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="articles"
+        name="chinese-metaphysics"
         options={{
-          title: t('tabs.daily_energy'),
+          title: t('tabs.metaphysics'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="sunny" size={size} color={color} />
+            <Ionicons name="book" size={size} color={color} />
           ),
         }}
       />
@@ -52,15 +52,6 @@ export default function TabsLayout() {
           title: t('tabs.courses'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="agendas"
-        options={{
-          title: t('tabs.agendas'),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
           ),
         }}
       />
@@ -80,6 +71,19 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+        }}
+      />
+      {/* Hide old screens from tab bar */}
+      <Tabs.Screen
+        name="articles"
+        options={{
+          href: null, // Hides from tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="agendas"
+        options={{
+          href: null, // Hides from tab bar
         }}
       />
     </Tabs>

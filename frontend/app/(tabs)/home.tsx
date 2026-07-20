@@ -23,19 +23,6 @@ interface DailyEnergy {
   date: string;
   title: string;
   title_en?: string;
-  content: string;
-  content_en?: string;
-  animal?: string;
-}
-
-interface Concept {
-  id: string;
-  slug: string;
-  title: string;
-  title_en?: string;
-  short_description: string;
-  icon: string;
-  color: string;
 }
 
 interface NewbornVocation {
@@ -45,16 +32,13 @@ interface NewbornVocation {
   title_en?: string;
   content: string;
   content_en?: string;
-  talents: string[];
-  vocations: string[];
 }
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { t, localizeContent, language } = useLanguage();
+  const { t, localizeContent, language, setLanguage } = useLanguage();
   const router = useRouter();
   const [dailyEnergy, setDailyEnergy] = useState<DailyEnergy | null>(null);
-  const [concepts, setConcepts] = useState<Concept[]>([]);
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,14 +49,12 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     try {
-      const [dailyRes, conceptsRes, vocationRes] = await Promise.allSettled([
+      const [dailyRes, vocationRes] = await Promise.allSettled([
         api.get('/energy/daily'),
-        api.get('/concepts'),
         api.get('/newborn-vocation/today'),
       ]);
 
       if (dailyRes.status === 'fulfilled') setDailyEnergy(dailyRes.value.data);
-      if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.data);
       if (vocationRes.status === 'fulfilled') setNewbornVocation(vocationRes.value.data);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -87,16 +69,8 @@ export default function HomeScreen() {
     loadData();
   };
 
-  const handleSaveFavorite = async (itemType: string, itemId: string) => {
-    if (!user) {
-      router.push('/(auth)/login');
-      return;
-    }
-    try {
-      await api.post('/favorites', { item_type: itemType, item_id: itemId });
-    } catch (e) {
-      console.error(e);
-    }
+  const toggleLanguage = () => {
+    setLanguage(language === 'es' ? 'en' : 'es');
   };
 
   if (loading) {
@@ -116,12 +90,12 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header with Logo and Language Selector */}
         <LinearGradient colors={Gradients.navy} style={styles.header}>
           <View style={styles.headerContent}>
             <View>
               <Text style={styles.logo}>MetaQi</Text>
-              <Text style={styles.subtitle}>Academy</Text>
+              <Text style={styles.subtitle}>{t('home.academy')}</Text>
             </View>
             {!user && (
               <TouchableOpacity
@@ -136,35 +110,42 @@ export default function HomeScreen() {
           {user && (
             <Text style={styles.greeting}>{t('home.welcome')}, {user.name}</Text>
           )}
+          
+          {/* Language Selector - Very Visible */}
+          <View style={styles.languageSelectorContainer}>
+            <TouchableOpacity
+              testID="language-selector"
+              style={styles.languageSelector}
+              onPress={toggleLanguage}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.languageFlag}>{language === 'es' ? '🇪🇸' : '🇬🇧'}</Text>
+              <Text style={styles.languageText}>
+                {language === 'es' ? 'ES' : 'EN'}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
         </LinearGradient>
 
-        {/* Daily Energy Summary Card - Button to detail */}
+        {/* 1. Botón Dorado - Energía del Día */}
         {dailyEnergy && (
           <View style={styles.section}>
             <TouchableOpacity
-              testID="daily-energy-card"
-              style={styles.dailyEnergyCard}
-              onPress={() => router.push('/(tabs)/articles')}
+              testID="daily-energy-button"
+              style={styles.goldenButton}
+              onPress={() => router.push('/energy-detail')}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={Gradients.gold}
-                style={styles.dailyEnergyGradient}
-              >
-                <View style={styles.dailyIconContainer}>
+              <LinearGradient colors={Gradients.gold} style={styles.goldenGradient}>
+                <View style={styles.goldenIconContainer}>
                   <Ionicons name="sunny" size={32} color={Colors.primary} />
                 </View>
-                <View style={styles.dailyEnergyContent}>
-                  <Text style={styles.dailyEnergyLabel}>{t('home.daily_energy')}</Text>
-                  <Text style={styles.dailyEnergyTitle} numberOfLines={2}>
+                <View style={styles.goldenContent}>
+                  <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
+                  <Text style={styles.goldenTitle} numberOfLines={2}>
                     {localizeContent(dailyEnergy.title, dailyEnergy.title_en)}
                   </Text>
-                  {dailyEnergy.animal && (
-                    <View style={styles.animalBadge}>
-                      <Ionicons name="paw" size={12} color={Colors.primary} />
-                      <Text style={styles.animalText}>{dailyEnergy.animal}</Text>
-                    </View>
-                  )}
                 </View>
                 <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
               </LinearGradient>
@@ -172,119 +153,91 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Concepts Section - MAIN CONTENT */}
-        {concepts.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>{t('home.discover')}</Text>
-            <Text style={styles.sectionTitleLarge}>{t('home.metaphysics')}</Text>
+        {/* 2. Botón - Energía del Mes */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            testID="month-energy-button"
+            style={styles.energyButton}
+            onPress={() => router.push('/month-energy-detail')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.energyIconContainer}>
+              <Ionicons name="calendar" size={28} color={Colors.accent} />
+            </View>
+            <View style={styles.energyContent}>
+              <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+          </TouchableOpacity>
+        </View>
 
-            {concepts.map((concept, index) => (
-              <TouchableOpacity
-                key={concept.id}
-                testID={`home-concept-${concept.slug}`}
-                style={styles.conceptCard}
-                onPress={() => router.push(`/concept/${concept.slug}`)}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
-                  <Ionicons name={concept.icon as any} size={22} color={concept.color} />
-                </View>
-                <View style={styles.conceptTextContainer}>
-                  <Text style={styles.conceptTitle}>
-                    {localizeContent(concept.title, concept.title_en)}
-                  </Text>
-                  <Text style={styles.conceptDesc} numberOfLines={2}>
-                    {concept.short_description}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
-              </TouchableOpacity>
-            ))}
+        {/* 3. Botón - Energía del Año */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            testID="year-energy-button"
+            style={styles.energyButton}
+            onPress={() => router.push('/year-energy-detail')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.energyIconContainer}>
+              <Ionicons name="sparkles" size={28} color={Colors.jade} />
+            </View>
+            <View style={styles.energyContent}>
+              <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 4. Sección - Agenda de Bodas del Mes (Gratis) */}
+        <View style={styles.section}>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="heart" size={24} color={Colors.accent} />
+              <Text style={styles.cardTitle}>{t('home.wedding_agenda')}</Text>
+            </View>
+            <Text style={styles.cardSubtitle}>{t('home.wedding_agenda_subtitle')}</Text>
+            <Text style={styles.cardContent}>
+              {language === 'es' 
+                ? 'Descubre los días más auspiciosos de este mes para celebrar bodas según la metafísica china.' 
+                : 'Discover the most auspicious days of this month to celebrate weddings according to Chinese metaphysics.'}
+            </Text>
+            
+            <TouchableOpacity
+              testID="wedding-agenda-cta"
+              style={styles.ctaButton}
+              onPress={() => router.push('/(tabs)/services')}
+            >
+              <Text style={styles.ctaButtonText}>{t('home.wedding_agenda_full')}</Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
 
-        {/* Newborn Vocation */}
+        {/* 5. Sección - Vocación del Bebé Nacido Hoy (Gratis) */}
         {newbornVocation && (
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="star" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>{t('home.newborn_vocation')}</Text>
-            </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {localizeContent(newbornVocation.title, newbornVocation.title_en)}
-              </Text>
-              <Text style={styles.cardContent}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="star" size={24} color={Colors.jade} />
+                <Text style={styles.cardTitle}>{t('home.newborn_vocation')}</Text>
+              </View>
+              <Text style={styles.cardSubtitle}>{t('home.newborn_vocation_subtitle')}</Text>
+              <Text style={styles.cardContent} numberOfLines={3}>
                 {localizeContent(newbornVocation.content, newbornVocation.content_en)}
               </Text>
-
-              {newbornVocation.talents.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>{t('home.natural_talents')}</Text>
-                  {newbornVocation.talents.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.accent }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {newbornVocation.vocations.length > 0 && (
-                <View style={styles.listSection}>
-                  <Text style={styles.listTitle}>{t('home.favorable_vocations')}</Text>
-                  {newbornVocation.vocations.map((item, index) => (
-                    <View key={index} style={styles.listItem}>
-                      <View style={[styles.bullet, { backgroundColor: Colors.jade }]} />
-                      <Text style={styles.listText}>{item}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              <TouchableOpacity
-                testID="vocation-favorite-btn"
-                style={styles.saveButton}
-                onPress={() => handleSaveFavorite('newborn_vocation', newbornVocation.id)}
-              >
-                <Ionicons name={user ? "heart" : "heart-outline"} size={18} color={Colors.accent} />
-                <Text style={styles.saveButtonText}>
-                  {user ? t('home.save_favorite') : t('home.login_to_save')}
-                </Text>
-              </TouchableOpacity>
 
               <TouchableOpacity
                 testID="vocation-personalized-cta"
                 style={styles.ctaButton}
                 onPress={() => router.push('/(tabs)/services')}
               >
-                <Text style={styles.ctaButtonText}>{t('home.personalized_analysis')}</Text>
+                <Text style={styles.ctaButtonText}>{t('home.personalized_reading')}</Text>
                 <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
         )}
-
-        {/* Descubre Metafísica China - Button at the END */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="discover-metaphysics-btn"
-            style={styles.discoverButton}
-            onPress={() => router.push('/concepts')}
-          >
-            <LinearGradient colors={Gradients.navy} style={styles.discoverGradient}>
-              <View style={styles.discoverIconContainer}>
-                <Ionicons name="book" size={28} color={Colors.accent} />
-              </View>
-              <View style={styles.discoverTextContainer}>
-                <Text style={styles.discoverLabel}>{t('home.discover')}</Text>
-                <Text style={styles.discoverTitle}>{t('home.metaphysics')}</Text>
-                <Text style={styles.discoverSubtitle}>{t('home.metaphysics_subtitle')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.accent} />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
@@ -303,7 +256,8 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.md,
   },
   headerContent: {
     flexDirection: 'row',
@@ -341,120 +295,104 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.primary,
   },
+  // Language Selector - Very Visible
+  languageSelectorContainer: {
+    marginTop: Spacing.lg,
+    alignItems: 'center',
+  },
+  languageSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary + '30',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+  },
+  languageFlag: {
+    fontSize: 24,
+  },
+  languageText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
+  },
   section: {
     paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.xl,
+    marginTop: Spacing.lg,
   },
-  sectionLabel: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
-    color: Colors.textLight,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: Spacing.xs,
-  },
-  sectionTitleLarge: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography['2xl'],
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
-    color: Colors.textPrimary,
-    marginLeft: Spacing.sm,
-    flex: 1,
-  },
-  // Daily Energy Card (button style)
-  dailyEnergyCard: {
+  // Golden Button - Energía del Día
+  goldenButton: {
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  dailyEnergyGradient: {
+  goldenGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
+    padding: Spacing.lg,
     gap: Spacing.md,
   },
-  dailyIconContainer: {
-    width: 56,
-    height: 56,
+  goldenIconContainer: {
+    width: 64,
+    height: 64,
     borderRadius: 16,
     backgroundColor: Colors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  dailyEnergyContent: {
+  goldenContent: {
     flex: 1,
   },
-  dailyEnergyLabel: {
+  goldenLabel: {
     fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
+    fontSize: Typography.sm,
     color: Colors.primary,
-    opacity: 0.7,
-    letterSpacing: 2,
+    opacity: 0.8,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  dailyEnergyTitle: {
+  goldenTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.base,
+    fontSize: Typography.lg,
     color: Colors.primary,
-    lineHeight: 22,
+    lineHeight: 24,
   },
-  animalBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    gap: 4,
-  },
-  animalText: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
-    color: Colors.primary,
-    opacity: 0.9,
-  },
-  // Concept Cards (list style)
-  conceptCard: {
+  // Energy Buttons (Month, Year)
+  energyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    padding: Spacing.lg,
     gap: Spacing.md,
   },
-  conceptIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+  energyIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: Colors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  conceptTextContainer: {
+  energyContent: {
     flex: 1,
   },
-  conceptTitle: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
+  energyLabel: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
     color: Colors.textPrimary,
-    marginBottom: 4,
   },
-  conceptDesc: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.xs,
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  // Card generic
+  // Card
   card: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
@@ -462,10 +400,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     padding: Spacing.lg,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    gap: Spacing.sm,
+  },
   cardTitle: {
     fontFamily: Typography.serifBold,
     fontSize: Typography.xl,
     color: Colors.textPrimary,
+    flex: 1,
+  },
+  cardSubtitle: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.textLight,
     marginBottom: Spacing.md,
   },
   cardContent: {
@@ -473,48 +423,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 24,
-  },
-  listSection: { marginTop: Spacing.lg },
-  listTitle: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 8,
-    marginRight: Spacing.sm,
-  },
-  listText: {
-    flex: 1,
-    fontFamily: Typography.sans,
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.accent,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  saveButtonText: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.accent,
+    marginBottom: Spacing.md,
   },
   ctaButton: {
     flexDirection: 'row',
@@ -530,44 +439,5 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.primary,
-  },
-  discoverButton: {
-    borderRadius: BorderRadius.xl,
-    overflow: 'hidden',
-  },
-  discoverGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    gap: Spacing.md,
-  },
-  discoverIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: Colors.accent + '30',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  discoverTextContainer: { flex: 1 },
-  discoverLabel: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
-    color: Colors.accent,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  discoverTitle: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
-    color: Colors.white,
-    marginBottom: 2,
-  },
-  discoverSubtitle: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.xs,
-    color: Colors.white,
-    opacity: 0.7,
   },
 });

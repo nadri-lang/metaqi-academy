@@ -9,7 +9,7 @@ import json
 from typing import Optional, Dict, Any
 
 # Base URL from frontend .env
-BASE_URL = "https://baazi-wisdom.preview.emergentagent.com/api"
+BASE_URL = "https://feng-shui-learn.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 ADMIN_EMAIL = "admin@metaqi.com"

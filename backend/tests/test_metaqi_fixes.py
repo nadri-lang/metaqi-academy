@@ -13,7 +13,7 @@ import os
 import requests
 import pytest
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://baazi-wisdom.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://feng-shui-learn.preview.emergentagent.com").rstrip("/")
 
 
 # -------------------- Fix 1: Concepts --------------------

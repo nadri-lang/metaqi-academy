@@ -1,0 +1,144 @@
+<analysis>**original_problem_statement**: 
+Create an educational mobile app called MetaQi Academy for Chinese metaphysics (Qi Men Dun Jia, BaZi, Feng Shui, I Ching). 
+**PRODUCT REQUIREMENTS:**
+- **Design:** Luxury Minimal Oriental (Apple + Hermès + Muji style). Colors: Midnight Navy, Imperial Gold, Ivory, Jade Green. Fonts: Cormorant Garamond, Inter. 
+- **Features:** Free and Premium content, User roles (Admin, Editor, Free, Premium), Daily/Monthly/Yearly energy readings, Courses (videos, PDFs), Premium Agendas (Wedding, Business), Custom Services (BaZi reading, Newborn Vocation, etc.), FAQ.
+- **Tech specifics:** Native Expo app, guest mode access, multi-language support (ES/EN).
+
+**User's preferred language**: The user alternates frequently between **Spanish** and **Romanian**. 
+**INSTRUCT FOR NEXT AGENT**: You MUST automatically detect the language used in the user's latest message (Spanish or Romanian) and respond in that exact language. Note that the application UI and internal translations () are strictly in Spanish and English.
+
+**what currently exists?** 
+A fully functional Full-Stack MVP. Backend is running FastAPI with MongoDB, JWT Auth, and seeded content. Frontend is a React Native Expo app with a luxury minimal design, implementing a 6-tab bottom navigation. The app allows guest access (no forced login), features an  translation system (ES/EN), custom service listings with promotional pricing, a detailed FAQ accordion, and Admin CMS screens for updating daily energy and vocations.
+
+**Last working item**: 
+- Last item agent was working: Compacting the Home screen to only show a summary card for Energía del Día, moving Month/Year energy off the Home screen, adding multi-language (i18n-js) support with a profile selector, and adding Back buttons to the Auth screens.
+- Status: COMPLETED
+- Agent Testing Done: Y
+- Which testing method agent to use? Screenshot tool (Frontend tested).
+- User Testing Done: N
+
+**All Pending/In progress Issue list**: 
+None currently blocking.
+
+**In progress Task List**: 
+None currently in progress. 
+
+**Upcoming and Future Tasks**
+- **Task 1:** Manual Payments / Checkout System (P0)
+   - Implement the manual payment flow (Revolut, Bizum, Bank Transfer) for Courses, Services, and Agendas.
+   - Admin verification flow to approve payments and grant premium access.
+- **Task 2:** OpenAI GPT Integration (P1)
+   - Implement AI for personalized recommendations and content generation.
+   - **Must** use  with Universal Emergent Key.
+- **Task 3:** Push Notifications (P1)
+   - Implement Firebase push notifications.
+   - **Must** notify the user that a native build +  is required to test this.
+- **Task 4:** Admin CMS Expansion for Multi-language (P2)
+   - The current CMS screens (Daily Energy, Vocation) only save raw strings. Update the Admin editors to support saving ES/EN translations dynamically.
+
+**Completed work in this session**
+- Project initialization and DB schema setup (DONE)
+- JWT Authentication & User Roles (DONE)
+- Luxury Minimal Frontend layout & Tab Navigation (DONE)
+- Seeded DB with Concepts, FAQ, Custom Services, and Energy records (DONE)
+- Guest mode implementation: removed forced login, protected premium/purchase routes (DONE)
+- Services screen with offer pricing logic (DONE)
+- FAQ screen with Accordion UI (DONE)
+- Replaced Energía Lunar with Energía del Mes and Activaciones with Estrategias Qi Men (DONE)
+- i18n Multi-language configuration (Spanish/English) and language switcher (DONE)
+
+**Earlier issues found/mentioned but not fixed**
+- Issue 1:  library version mismatch in backend.
+   - Debug checklist: Check  or  for .
+   - Why to solve this issue and what will be achieved with this?: Seed scripts previously threw an error during execution. While the app runs, this might cause silent failures during new user registration or password verification.
+   - Should Test frontend/backend/both after fix: Backend
+   - Is recurring issue? N
+
+**Known issue recurrence from previous fork**
+- Issue recurrence in previous fork: None (Initial Session).
+- Recurrence count: 0
+- Status: NOT STARTED
+
+**Code Architecture**
+- :  (FastAPI endpoints),  (Pydantic & MongoDB models),  (JWT),  & .
+- : Expo Router screens. 
+  - : ,  (Energía Día), , , , .
+  - : , .
+  - : , , 
+- :  (Colors, Typography),  (AuthContext, LanguageContext),  (es.ts, en.ts),  (api.ts).
+
+**Key Technical Concepts**
+- React Native Expo (Frontend)
+- FastAPI (Backend API)
+- MongoDB (Database)
+- Context API (State management for Auth and Language)
+- i18n-js & expo-localization (Translations)
+
+**key DB schema**
+- : {email, hashed_password, role}
+- : {date, title, animal, bazi, recommendations, feng_shui, qimen, favorable_hours}
+-  / : {month/year, title, content, is_free}
+- : {slug, title, short_description, full_content}
+- : {id, title, price, is_offer, original_price, description, features}
+- : {category, question, answer}
+- : {agenda_id, month, title, content, is_free}
+
+**changes in tech stack**
+- Added  and  for multi-language support.
+
+**All files of reference**
+-  (Refactored to be a summary, using translations)
+-  (Displays full Daily Energy details)
+-  (Contains Login CTA, Language Switcher, Admin Panel link)
+-  &  (Translation dictionaries)
+-  &  (Updated with Back buttons)
+-  (Core backend API)
+
+**Areas that need refactoring**
+- The Admin Panel () currently manages hardcoded field inputs. It needs to be updated to integrate seamlessly with the newly added multi-language database structure to allow the admin to post daily updates in both English and Spanish.
+
+**key api endpoints**
+- , 
+- , , 
+- , , 
+- , 
+
+**Critical Info for New Agent**
+- **Language Switch:** User messages frequently bounce between Romanian and Spanish. Always reply in the language they used in their latest message. 
+- **Terminology Strictness:** The user strictly requested Energía del Mes (do not use Energía Lunar) and Estrategias Qi Men (do not use Activaciones). Maintain these terms in the UI and DB.
+- **Guest Access:** The app must remain fully explorable without an account. Only actions like Favorites, Premium Courses, Service Requests, and Purchasing require Login.
+
+**documents and test reports created in this job**
+- 
+- 
+- 
+- 
+
+**Last 10 User Messages and any pending HUMAN messages**
+1. User asked to add specific FAQ text mapping categories (Metafísica, Qi Men, etc.). (COMPLETED)
+2. User requested correction: change Energia Lunar to Energia del Mes. (COMPLETED)
+3. User (System reminder) strictly demanded using  to verify bug fix. (COMPLETED)
+4. User requested renaming Activaciones to Estrategias Qimen and changing the Articles tab to Energía del Día with scrolling content. (COMPLETED)
+5. User recharged credits. (COMPLETED)
+6. User requested optimizing the Home screen to only show a small card for Energía del Día, hiding Month/Year energy from home, supporting multi-language (ES/EN) with a profile selector, and adding a 'Back' button on the Login/Register screens. (COMPLETED)
+
+**Project Health Check:**
+- Broken: None. 
+- Mocked: Payments are mocked/manual via descriptive text. 
+
+**3rd Party Integrations**
+- OpenAI GPT-4o (Planned) — uses Emergent LLM Key.
+- Firebase Push Notifications (Planned) — requires  from User.
+
+**Testing status**
+- Testing agent used after significant changes: YES
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: 
+- Known regressions: None
+
+**Credentials to test flow:**
+- Admin:  / 
+
+**What agent forgot to execute**
+- The agent successfully implemented the requested multi-language frontend logic, but did not update the database models or admin endpoints to store fields dynamically in both English and Spanish (right now, English fallback translations in DB are static from the seed script).</analysis>
