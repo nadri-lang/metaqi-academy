@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
+  Share,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -86,6 +88,27 @@ export default function HomeScreen() {
     setLanguageModalVisible(false);
   };
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message: 'Descubre MetaQi Academy - Tu guía de metafísica china | Discover MetaQi Academy - Your Chinese metaphysics guide',
+        title: 'MetaQi Academy',
+      });
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          console.log('Shared');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -124,7 +147,7 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>{t('home.welcome')}, {user.name}</Text>
           )}
           
-          {/* Language Selector - Very Visible */}
+          {/* Language Selector & Share Button */}
           <View style={styles.languageSelectorContainer}>
             <TouchableOpacity
               testID="language-selector"
@@ -135,6 +158,16 @@ export default function HomeScreen() {
               <Text style={styles.languageFlag}>{currentLanguage.flag}</Text>
               <Text style={styles.languageText}>{currentLanguage.label}</Text>
               <Ionicons name="chevron-down" size={16} color={Colors.white} />
+            </TouchableOpacity>
+            
+            {/* Share Button */}
+            <TouchableOpacity
+              testID="share-button"
+              style={styles.shareButton}
+              onPress={handleShare}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="share-outline" size={22} color={Colors.white} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -364,10 +397,13 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.primary,
   },
-  // Language Selector - Very Visible
+  // Language Selector & Share Button
   languageSelectorContainer: {
     marginTop: Spacing.lg,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
   },
   languageSelector: {
     flexDirection: 'row',
@@ -379,6 +415,16 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.accent + '40',
+  },
+  shareButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primary + '30',
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   languageFlag: {
     fontSize: 24,

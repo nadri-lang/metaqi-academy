@@ -142,6 +142,11 @@ export default {
     offer_badge: 'OFERTA',
     request_service: 'Solicitar por',
     login_to_request: 'Inicia sesión para solicitar',
+    wedding_agenda_2027: 'Agenda de Bodas 2027',
+    wedding_agenda_2027_desc: 'Accede a todos los días más auspiciosos del año completo para celebrar bodas según la metafísica china',
+    purchase: 'Comprar',
+    reserve: 'Reservar',
+    contact_admin: 'Contactar',
   },
   courses: {
     label: 'Aprende',

@@ -142,6 +142,11 @@ export default {
     offer_badge: 'OFFER',
     request_service: 'Request for',
     login_to_request: 'Sign in to request',
+    wedding_agenda_2027: 'Wedding Agenda 2027',
+    wedding_agenda_2027_desc: 'Access all the most auspicious days of the full year to celebrate weddings according to Chinese metaphysics',
+    purchase: 'Purchase',
+    reserve: 'Reserve',
+    contact_admin: 'Contact',
   },
   courses: {
     label: 'Learn',
