@@ -28,6 +28,7 @@ export default {
     wedding_agenda_full_subtitle: 'Accede al año completo',
     view_details: 'Ver detalles',
     newborn_vocation: 'Vocación del Bebé Nacido Hoy',
+    newborn_vocation_button: 'Vocación del Bebé',
     newborn_vocation_subtitle: 'Descubre el destino del bebé de hoy',
     personalized_reading: 'Lectura Personalizada',
     personalized_reading_subtitle: 'Solicita un análisis completo',

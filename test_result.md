@@ -273,15 +273,18 @@ frontend:
   
   - task: "Home Screen with Daily/Moon Energy"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/(tabs)/home.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Home screen displays daily and moon energy with luxury minimal design, pull-to-refresh, premium lock for moon energy"
+      - working: true
+        agent: "testing"
+        comment: "Home screen tested successfully. Language selector visible, all buttons present in correct order: 1) Language selector, 2) Daily Energy (gold), 3) Month Energy, 4) Wedding Agenda, 5) Vocación del Bebé (jade gradient), 6) Year Energy (at the end). Navigation to all detail screens works correctly."
   
   - task: "Profile Screen"
     implemented: true
@@ -297,20 +300,47 @@ frontend:
   
   - task: "Design System (Colors, Typography, Components)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/constants/"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Luxury minimal oriental design system with navy/gold color scheme, Cormorant Garamond + Inter fonts"
+      - working: true
+        agent: "testing"
+        comment: "Design system verified through UI testing. Gold gradients on Daily Energy button, navy gradients on detail screens, jade gradients on Vocación del Bebé button. All styling consistent with luxury minimal oriental design."
+  
+  - task: "Back Button on Empty Detail Screens"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/energy-detail.tsx, /app/frontend/app/month-energy-detail.tsx, /app/frontend/app/year-energy-detail.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "USER VERIFICATION: All three detail screens (/energy-detail, /month-energy-detail, /year-energy-detail) display back button with proper gradient styling when no data is available. Back buttons navigate correctly to previous screen. Gold gradient on energy-detail, navy gradient on month/year detail screens."
+  
+  - task: "Vocación del Bebé Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/newborn-vocation-detail.tsx, /app/frontend/app/(tabs)/home.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "USER VERIFICATION: New 'Vocación del Bebé' button visible on home screen with jade/green gradient design. Button navigates to /newborn-vocation-detail screen. Detail screen has back button that works correctly. Feature fully functional."
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
@@ -357,3 +387,31 @@ agent_communication:
       
       All tested endpoints are working correctly with proper authentication and data validation.
       Test credentials working: admin@metaqi.com / admin123 and user@test.com / user123
+  - agent: "testing"
+    message: |
+      USER-REQUESTED UI VERIFICATION COMPLETED - All 3 tests PASSED ✅
+      
+      TEST 1 - Back buttons on empty detail screens: ✅ PASSED
+      - /energy-detail: Back button visible with GOLD gradient, navigates correctly
+      - /month-energy-detail: Back button visible with NAVY gradient, navigates correctly
+      - /year-energy-detail: Back button visible with NAVY gradient, navigates correctly
+      
+      TEST 2 - Vocación del Bebé feature: ✅ PASSED
+      - Button visible on home with jade/green gradient design
+      - Navigates to /newborn-vocation-detail correctly
+      - Detail screen has back button that works
+      
+      TEST 3 - Element order on home: ✅ PASSED
+      Order verified (top to bottom):
+      1. Language selector (below "ACADEMY")
+      2. Botón dorado "Energía del Día"
+      3. Botón "Energía del Mes"
+      4. Sección "Agenda de Bodas del Mes"
+      5. Botón "Vocación del Bebé"
+      6. Botón "Energía del Año" (AT THE END)
+      
+      ⚠️ BACKEND API ISSUE DETECTED (does not affect UI):
+      - /api/energy/daily returns 404
+      - /api/energy/month returns 404 (backend has /energy/moon/current instead)
+      - /api/newborn-vocation/today returns 404
+      Frontend handles errors gracefully with empty states.

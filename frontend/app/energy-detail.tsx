@@ -81,13 +81,28 @@ export default function EnergyDetailScreen() {
 
   if (!data) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
+        <LinearGradient colors={Gradients.gold} style={styles.header}>
+          <SafeAreaView edges={['top']}>
+            <View style={styles.headerContent}>
+              <TouchableOpacity
+                testID="back-button"
+                style={styles.backButton}
+                onPress={() => router.back()}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
+                <Text style={styles.backButtonText}>{t('common.back')}</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
         <View style={styles.emptyState}>
           <Ionicons name="sunny-outline" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>{t('daily.no_content')}</Text>
           <Text style={styles.emptyText}>{t('daily.come_back_later')}</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

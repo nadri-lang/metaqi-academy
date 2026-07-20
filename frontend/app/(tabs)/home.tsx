@@ -231,25 +231,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 3. Botón - Energía del Año */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="year-energy-button"
-            style={styles.energyButton}
-            onPress={() => router.push('/year-energy-detail')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.energyIconContainer}>
-              <Ionicons name="sparkles" size={28} color={Colors.jade} />
-            </View>
-            <View style={styles.energyContent}>
-              <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 4. Sección - Agenda de Bodas del Mes (Gratis) */}
+        {/* 3. Sección - Agenda de Bodas del Mes (Gratis) */}
         <View style={styles.section}>
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -274,30 +256,47 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* 5. Sección - Vocación del Bebé Nacido Hoy (Gratis) */}
-        {newbornVocation && (
-          <View style={styles.section}>
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="star" size={24} color={Colors.jade} />
-                <Text style={styles.cardTitle}>{t('home.newborn_vocation')}</Text>
+        {/* 4. Botón - Vocación del Bebé */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            testID="vocation-button"
+            style={styles.vocationButton}
+            onPress={() => router.push('/newborn-vocation-detail')}
+            activeOpacity={0.85}
+          >
+            <LinearGradient 
+              colors={[Colors.jade + '30', Colors.jade + '10']} 
+              style={styles.vocationGradient}
+            >
+              <View style={styles.vocationIconContainer}>
+                <Ionicons name="star" size={32} color={Colors.jade} />
               </View>
-              <Text style={styles.cardSubtitle}>{t('home.newborn_vocation_subtitle')}</Text>
-              <Text style={styles.cardContent} numberOfLines={3}>
-                {localizeContent(newbornVocation.content, newbornVocation.content_en)}
-              </Text>
+              <View style={styles.vocationContent}>
+                <Text style={styles.vocationLabel}>{t('home.newborn_vocation_button')}</Text>
+                <Text style={styles.vocationSubtitle}>{t('home.newborn_vocation_subtitle')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={Colors.jade} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
-              <TouchableOpacity
-                testID="vocation-personalized-cta"
-                style={styles.ctaButton}
-                onPress={() => router.push('/(tabs)/services')}
-              >
-                <Text style={styles.ctaButtonText}>{t('home.personalized_reading')}</Text>
-                <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
-              </TouchableOpacity>
+        {/* 5. Botón - Energía del Año (AL FINAL) */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            testID="year-energy-button"
+            style={styles.energyButton}
+            onPress={() => router.push('/year-energy-detail')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.energyIconContainer}>
+              <Ionicons name="sparkles" size={28} color={Colors.jade} />
             </View>
-          </View>
-        )}
+            <View style={styles.energyContent}>
+              <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+          </TouchableOpacity>
+        </View>
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
@@ -499,6 +498,49 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.primary,
+  },
+  // Vocation Button
+  vocationButton: {
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    shadowColor: Colors.jade,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  vocationGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.jade + '30',
+    borderRadius: BorderRadius.xl,
+  },
+  vocationIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: Colors.jade + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vocationContent: {
+    flex: 1,
+  },
+  vocationLabel: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.jade,
+    lineHeight: 24,
+    marginBottom: 4,
+  },
+  vocationSubtitle: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   // Language Modal
   modalOverlay: {
