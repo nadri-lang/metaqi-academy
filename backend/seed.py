@@ -182,8 +182,8 @@ async def seed_database():
         services = [
             {
                 "id": str(uuid.uuid4()),
-                "title": "Lectura BaZi Personal",
-                "title_en": "Personal BaZi Reading",
+                "title": "Análisis Carta Natal BaZi",
+                "title_en": "BaZi Birth Chart Analysis",
                 "title_zh": "八字命理分析",
                 "description": "Análisis completo de tu carta BaZi para conocer tu destino, talentos y oportunidades.",
                 "description_en": "Complete analysis of your BaZi chart to understand your destiny, talents and opportunities.",
@@ -194,7 +194,9 @@ async def seed_database():
                     "Recomendaciones personalizadas",
                     "Informe PDF de 20 páginas"
                 ],
-                "price": 150.0,
+                "price": 99.99,
+                "original_price": 150.0,
+                "is_offer": True,
                 "form_fields": [
                     {"name": "birth_date", "type": "date", "label": "Fecha de nacimiento", "required": True},
                     {"name": "birth_time", "type": "time", "label": "Hora de nacimiento", "required": True},
@@ -205,14 +207,14 @@ async def seed_database():
             },
             {
                 "id": str(uuid.uuid4()),
-                "title": "Lectura Qi Men Dun Jia",
-                "title_en": "Qi Men Dun Jia Reading",
-                "title_zh": "奇门遁甲预测",
-                "description": "Consulta estratégica usando Qi Men para tomar decisiones importantes.",
-                "description_en": "Strategic consultation using Qi Men for important decisions.",
-                "description_zh": "使用奇门遁甲进行重要决策的战略咨询。",
+                "title": "Lectura Qi Men - Palacio de Vida",
+                "title_en": "Qi Men - Life Palace Reading",
+                "title_zh": "奇门遁甲命宫预测",
+                "description": "Consulta estratégica usando Qi Men Dun Jia para analizar tu Palacio de Vida y tomar decisiones importantes.",
+                "description_en": "Strategic consultation using Qi Men Dun Jia to analyze your Life Palace and make important decisions.",
+                "description_zh": "使用奇门遁甲分析命宫并进行重要决策的战略咨询。",
                 "includes": [
-                    "Análisis de la situación actual",
+                    "Análisis del Palacio de Vida",
                     "Mejor momento para actuar",
                     "Direcciones favorables",
                     "Estrategias recomendadas"
@@ -247,12 +249,12 @@ async def seed_database():
             },
             {
                 "id": str(uuid.uuid4()),
-                "title": "Análisis Vocacional Recién Nacido",
-                "title_en": "Newborn Vocational Analysis",
-                "title_zh": "新生儿职业分析",
-                "description": "Descubre los talentos y vocación de tu bebé a través de su carta BaZi.",
-                "description_en": "Discover your baby's talents and vocation through their BaZi chart.",
-                "description_zh": "通过八字命盘发现您宝宝的才能和职业方向。",
+                "title": "Análisis del Talento del Bebé",
+                "title_en": "Baby Talent Analysis",
+                "title_zh": "婴儿天赋分析",
+                "description": "Descubre los talentos y potencial único de tu bebé a través de su carta BaZi.",
+                "description_en": "Discover your baby's unique talents and potential through their BaZi chart.",
+                "description_zh": "通过八字命盘发现您宝宝的独特才能和潜力。",
                 "includes": [
                     "Análisis BaZi del bebé",
                     "Talentos naturales",
