@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
-import { useLanguage } from '@/src/context/LanguageContext';
+import { useLanguage, Language } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -42,6 +43,17 @@ export default function HomeScreen() {
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+
+  const languages = [
+    { code: 'es' as Language, flag: '🇪🇸', label: 'ES' },
+    { code: 'en' as Language, flag: '🇬🇧', label: 'EN' },
+    { code: 'fr' as Language, flag: '🇫🇷', label: 'FR' },
+    { code: 'de' as Language, flag: '🇩🇪', label: 'DE' },
+    { code: 'ro' as Language, flag: '🇷🇴', label: 'RO' },
+  ];
+
+  const currentLanguage = languages.find(lang => lang.code === language) || languages[0];
 
   useEffect(() => {
     loadData();
@@ -69,8 +81,9 @@ export default function HomeScreen() {
     loadData();
   };
 
-  const toggleLanguage = () => {
-    setLanguage(language === 'es' ? 'en' : 'es');
+  const handleLanguageSelect = async (langCode: Language) => {
+    await setLanguage(langCode);
+    setLanguageModalVisible(false);
   };
 
   if (loading) {
@@ -116,42 +129,89 @@ export default function HomeScreen() {
             <TouchableOpacity
               testID="language-selector"
               style={styles.languageSelector}
-              onPress={toggleLanguage}
+              onPress={() => setLanguageModalVisible(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.languageFlag}>{language === 'es' ? '🇪🇸' : '🇬🇧'}</Text>
-              <Text style={styles.languageText}>
-                {language === 'es' ? 'ES' : 'EN'}
-              </Text>
+              <Text style={styles.languageFlag}>{currentLanguage.flag}</Text>
+              <Text style={styles.languageText}>{currentLanguage.label}</Text>
               <Ionicons name="chevron-down" size={16} color={Colors.white} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
 
+        {/* Language Selection Modal */}
+        <Modal
+          visible={languageModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setLanguageModalVisible(false)}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay} 
+            activeOpacity={1}
+            onPress={() => setLanguageModalVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('profile.select_language')}</Text>
+                <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={Colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+              {languages.map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  testID={`language-option-${lang.code}`}
+                  style={[
+                    styles.languageOption,
+                    language === lang.code && styles.languageOptionActive
+                  ]}
+                  onPress={() => handleLanguageSelect(lang.code)}
+                >
+                  <Text style={styles.languageOptionFlag}>{lang.flag}</Text>
+                  <Text style={[
+                    styles.languageOptionText,
+                    language === lang.code && styles.languageOptionTextActive
+                  ]}>
+                    {lang.label}
+                  </Text>
+                  {language === lang.code && (
+                    <Ionicons name="checkmark" size={20} color={Colors.accent} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
         {/* 1. Botón Dorado - Energía del Día */}
-        {dailyEnergy && (
-          <View style={styles.section}>
-            <TouchableOpacity
-              testID="daily-energy-button"
-              style={styles.goldenButton}
-              onPress={() => router.push('/energy-detail')}
-              activeOpacity={0.85}
-            >
-              <LinearGradient colors={Gradients.gold} style={styles.goldenGradient}>
-                <View style={styles.goldenIconContainer}>
-                  <Ionicons name="sunny" size={32} color={Colors.primary} />
-                </View>
-                <View style={styles.goldenContent}>
-                  <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
+        <View style={styles.section}>
+          <TouchableOpacity
+            testID="daily-energy-button"
+            style={styles.goldenButton}
+            onPress={() => router.push('/energy-detail')}
+            activeOpacity={0.85}
+          >
+            <LinearGradient colors={Gradients.gold} style={styles.goldenGradient}>
+              <View style={styles.goldenIconContainer}>
+                <Ionicons name="sunny" size={32} color={Colors.primary} />
+              </View>
+              <View style={styles.goldenContent}>
+                <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
+                {dailyEnergy ? (
                   <Text style={styles.goldenTitle} numberOfLines={2}>
                     {localizeContent(dailyEnergy.title, dailyEnergy.title_en)}
                   </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        )}
+                ) : (
+                  <Text style={styles.goldenTitle} numberOfLines={2}>
+                    {t('home.daily_energy_subtitle')}
+                  </Text>
+                )}
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* 2. Botón - Energía del Mes */}
         <View style={styles.section}>
@@ -439,5 +499,56 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.primary,
+  },
+  // Language Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    width: '100%',
+    maxWidth: 320,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  modalTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.xl,
+    color: Colors.textPrimary,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+    gap: Spacing.md,
+  },
+  languageOptionActive: {
+    backgroundColor: Colors.accent + '15',
+  },
+  languageOptionFlag: {
+    fontSize: 28,
+  },
+  languageOptionText: {
+    flex: 1,
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  languageOptionTextActive: {
+    color: Colors.accent,
   },
 });

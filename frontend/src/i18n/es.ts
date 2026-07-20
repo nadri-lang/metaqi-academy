@@ -126,6 +126,9 @@ export default {
     logout_confirm: '¿Estás seguro de que quieres cerrar sesión?',
     language_es: 'Español',
     language_en: 'English',
+    language_fr: 'Français',
+    language_de: 'Deutsch',
+    language_ro: 'Română',
     select_language: 'Seleccionar idioma',
   },
   services: {

@@ -126,6 +126,9 @@ export default {
     logout_confirm: 'Are you sure you want to sign out?',
     language_es: 'Español',
     language_en: 'English',
+    language_fr: 'Français',
+    language_de: 'Deutsch',
+    language_ro: 'Română',
     select_language: 'Select language',
   },
   services: {

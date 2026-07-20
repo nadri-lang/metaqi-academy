@@ -3,10 +3,13 @@ import { storage } from '@/src/utils/storage';
 import * as Localization from 'expo-localization';
 import es from '@/src/i18n/es';
 import en from '@/src/i18n/en';
+import fr from '@/src/i18n/fr';
+import de from '@/src/i18n/de';
+import ro from '@/src/i18n/ro';
 
-export type Language = 'es' | 'en';
+export type Language = 'es' | 'en' | 'fr' | 'de' | 'ro';
 
-const translations = { es, en };
+const translations = { es, en, fr, de, ro };
 
 type TranslationKey = string;
 
@@ -43,7 +46,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loadLanguage = async () => {
     try {
       const stored = await storage.getItem('app_language', null);
-      if (stored === 'es' || stored === 'en') {
+      if (stored === 'es' || stored === 'en' || stored === 'fr' || stored === 'de' || stored === 'ro') {
         setLanguageState(stored);
       } else {
         // Detect device language
@@ -51,6 +54,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const deviceLang = locales?.[0]?.languageCode;
         if (deviceLang === 'en') {
           setLanguageState('en');
+        } else if (deviceLang === 'fr') {
+          setLanguageState('fr');
+        } else if (deviceLang === 'de') {
+          setLanguageState('de');
+        } else if (deviceLang === 'ro') {
+          setLanguageState('ro');
         } else {
           setLanguageState('es');
         }
