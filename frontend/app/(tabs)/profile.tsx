@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -19,9 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const { t, language, setLanguage } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -40,60 +39,14 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleLanguageChange = async (lang: 'es' | 'en') => {
-    await setLanguage(lang);
-    setLanguageModalVisible(false);
+  const handleContact = () => {
+    Linking.openURL('mailto:r.scala1108@gmail.com?subject=Contacto desde MetaQi Academy');
   };
-
-  const LanguageSelector = () => (
-    <Modal
-      visible={languageModalVisible}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setLanguageModalVisible(false)}
-    >
-      <TouchableOpacity
-        testID="lang-modal-backdrop"
-        style={styles.modalBackdrop}
-        activeOpacity={1}
-        onPress={() => setLanguageModalVisible(false)}
-      >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{t('profile.select_language')}</Text>
-
-          <TouchableOpacity
-            testID="lang-option-es"
-            style={[styles.langOption, language === 'es' && styles.langOptionActive]}
-            onPress={() => handleLanguageChange('es')}
-          >
-            <Text style={styles.langFlag}>🇪🇸</Text>
-            <Text style={styles.langLabel}>Español</Text>
-            {language === 'es' && (
-              <Ionicons name="checkmark-circle" size={22} color={Colors.accent} />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            testID="lang-option-en"
-            style={[styles.langOption, language === 'en' && styles.langOptionActive]}
-            onPress={() => handleLanguageChange('en')}
-          >
-            <Text style={styles.langFlag}>🇬🇧</Text>
-            <Text style={styles.langLabel}>English</Text>
-            {language === 'en' && (
-              <Ionicons name="checkmark-circle" size={22} color={Colors.accent} />
-            )}
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
 
   // Not logged in view
   if (!user) {
     return (
       <View style={styles.container}>
-        <LanguageSelector />
         <LinearGradient colors={Gradients.navy} style={styles.header}>
           <SafeAreaView edges={['top']}>
             <View style={styles.headerContent}>
@@ -198,7 +151,6 @@ export default function ProfileScreen() {
   // Logged in view
   return (
     <View style={styles.container}>
-      <LanguageSelector />
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.userHeader}>
@@ -268,19 +220,6 @@ export default function ProfileScreen() {
             <Text style={styles.menuText}>{t('profile.my_requests')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.menuItem} 
-            testID="menu-language"
-            onPress={() => setLanguageModalVisible(true)}
-          >
-            <Ionicons name="language" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.language')}</Text>
-            <Text style={styles.menuValue}>
-              {language === 'es' ? '🇪🇸 Español' : '🇬🇧 English'}
-            </Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.menuSection}>
@@ -303,7 +242,11 @@ export default function ProfileScreen() {
             <Text style={styles.menuText}>{t('profile.faq')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem} testID="menu-contact">
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            testID="menu-contact"
+            onPress={handleContact}
+          >
             <Ionicons name="mail" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>{t('profile.contact')}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />

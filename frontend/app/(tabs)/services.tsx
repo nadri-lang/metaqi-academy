@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 interface CustomService {
   id: string;
@@ -30,6 +31,7 @@ interface CustomService {
 export default function ServicesScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [services, setServices] = useState<CustomService[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,14 +69,57 @@ export default function ServicesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={Gradients.navy} style={styles.header}>
-        <Text style={styles.headerLabel}>Servicios</Text>
-        <Text style={styles.headerTitle}>Consultas Personalizadas</Text>
+        <Text style={styles.headerLabel}>{t('services.title')}</Text>
+        <Text style={styles.headerTitle}>{t('services.subtitle')}</Text>
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.introText}>
-          Servicios exclusivos realizados por expertos en metafísica china
+          {t('services.description')}
         </Text>
+
+        {/* Tarjeta Especial: Agenda de Bodas 2027 */}
+        <View style={styles.specialCard} testID="wedding-agenda-2027-card">
+          <LinearGradient colors={Gradients.navy} style={styles.specialCardGradient}>
+            <View style={styles.specialCardHeader}>
+              <View style={styles.specialIconWrapper}>
+                <Ionicons name="heart" size={28} color={Colors.accent} />
+              </View>
+              <View style={styles.specialBadge}>
+                <Text style={styles.specialBadgeText}>2027</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.specialTitle}>{t('services.wedding_agenda_2027')}</Text>
+            <Text style={styles.specialDesc}>
+              {t('services.wedding_agenda_2027_desc')}
+            </Text>
+
+            <View style={styles.specialFeatures}>
+              <View style={styles.specialFeatureItem}>
+                <Ionicons name="calendar" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>365 días analizados</Text>
+              </View>
+              <View style={styles.specialFeatureItem}>
+                <Ionicons name="star" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>Fechas más auspiciosas</Text>
+              </View>
+              <View style={styles.specialFeatureItem}>
+                <Ionicons name="book" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>Guía completa</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              testID="wedding-agenda-purchase-btn"
+              style={styles.specialButton}
+              onPress={() => router.push('/wedding-agenda-detail')}
+            >
+              <Text style={styles.specialButtonText}>Ver Detalles</Text>
+              <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
 
         {services.map((service) => (
           <View key={service.id} style={styles.card} testID={`service-card-${service.id}`}>
@@ -275,5 +320,90 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.primary,
     marginRight: Spacing.sm,
+  },
+  // Special Card - Agenda de Bodas 2027
+  specialCard: {
+    marginBottom: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  specialCardGradient: {
+    padding: Spacing.xl,
+    borderWidth: 2,
+    borderColor: Colors.accent + '40',
+    borderRadius: BorderRadius.xl,
+  },
+  specialCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  specialIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: Colors.accent + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  specialBadge: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  specialBadgeText: {
+    fontFamily: Typography.sansBold,
+    fontSize: Typography.sm,
+    color: Colors.primary,
+  },
+  specialTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography['2xl'],
+    color: Colors.accent,
+    marginBottom: Spacing.sm,
+  },
+  specialDesc: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.white,
+    lineHeight: 24,
+    marginBottom: Spacing.lg,
+    opacity: 0.9,
+  },
+  specialFeatures: {
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  specialFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  specialFeatureText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.white,
+    opacity: 0.8,
+  },
+  specialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+  },
+  specialButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.primary,
   },
 });
