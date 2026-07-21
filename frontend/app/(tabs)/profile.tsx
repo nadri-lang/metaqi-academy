@@ -112,32 +112,9 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Language Selector - Guest */}
-          <TouchableOpacity
-            testID="guest-language-btn"
-            style={styles.languageButton}
-            onPress={() => setLanguageModalVisible(true)}
-          >
-            <Ionicons name="language" size={20} color={Colors.textSecondary} />
-            <Text style={styles.languageButtonText}>{t('profile.language')}</Text>
-            <Text style={styles.languageValue}>
-              {language === 'es' ? '🇪🇸 Español' : '🇬🇧 English'}
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
-          </TouchableOpacity>
-
           {/* Info Section */}
           <View style={styles.infoSection}>
-            <TouchableOpacity 
-              style={styles.infoItem} 
-              testID="info-faq-btn"
-              onPress={() => router.push('/faq')}
-            >
-              <Ionicons name="help-circle" size={20} color={Colors.textSecondary} />
-              <Text style={styles.infoText}>{t('profile.faq')}</Text>
-              <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.infoItem} testID="info-contact-btn">
+            <TouchableOpacity style={styles.infoItem} testID="info-contact-btn" onPress={handleContact}>
               <Ionicons name="mail" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>{t('profile.contact')}</Text>
               <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
@@ -233,15 +210,6 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity 
-            style={styles.menuItem} 
-            testID="menu-faq"
-            onPress={() => router.push('/faq')}
-          >
-            <Ionicons name="help-circle" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.faq')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
           <TouchableOpacity 
             style={styles.menuItem} 
             testID="menu-contact"
@@ -510,77 +478,5 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: 10,
     color: Colors.accent,
-  },
-  languageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  languageButtonText: {
-    flex: 1,
-    fontFamily: Typography.sans,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
-  },
-  languageValue: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
-  },
-  menuValue: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
-    marginRight: Spacing.xs,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
-  },
-  modalContent: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    width: '100%',
-    maxWidth: 340,
-  },
-  modalTitle: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
-  },
-  langOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    marginBottom: Spacing.sm,
-    gap: Spacing.md,
-  },
-  langOptionActive: {
-    borderColor: Colors.accent,
-    backgroundColor: Colors.accent + '10',
-  },
-  langFlag: {
-    fontSize: 24,
-  },
-  langLabel: {
-    flex: 1,
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
   },
 });

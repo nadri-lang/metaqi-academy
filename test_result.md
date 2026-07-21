@@ -288,15 +288,24 @@ frontend:
   
   - task: "Profile Screen"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/(tabs)/profile.tsx"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Profile screen with user info, menu options, logout functionality"
+      - working: false
+        agent: "user"
+        comment: "BUG REPORTED: Screen breaks when user NOT logged in due to references to undefined variables (language, setLanguageModalVisible). Language selector and FAQ entries causing errors."
+      - working: true
+        agent: "main"
+        comment: "BUG FIX APPLIED: Removed Language Selector (testID='guest-language-btn'), removed both FAQ entries (testID='info-faq-btn' and testID='menu-faq'), cleaned up unused styles. Ready for testing."
+      - working: true
+        agent: "testing"
+        comment: "BUG FIX VERIFIED ✅ - Both guest and logged-in views working correctly. TEST 1 (Guest): Screen loads without errors, no language selector, no FAQ button, Contact button present. TEST 2 (Logged-in): Screen loads without errors, no language selector, no FAQ menu, all expected menu items present (Favorites, Progress, Purchases, Requests, Contact, Admin Panel). Console analysis: NO errors related to 'language', 'setLanguageModalVisible', or undefined variables. Bug completely resolved."
   
   - task: "Design System (Colors, Typography, Components)"
     implemented: true
@@ -415,3 +424,36 @@ agent_communication:
       - /api/energy/month returns 404 (backend has /energy/moon/current instead)
       - /api/newborn-vocation/today returns 404
       Frontend handles errors gracefully with empty states.
+  - agent: "testing"
+    message: |
+      PROFILE SCREEN BUG FIX VERIFICATION COMPLETED ✅
+      
+      User reported bug: Profile screen breaking when NOT logged in due to undefined variables (language, setLanguageModalVisible).
+      
+      Main agent applied fixes:
+      - Removed Language Selector (testID="guest-language-btn")
+      - Removed FAQ entries (testID="info-faq-btn" and testID="menu-faq")
+      - Cleaned up unused styles
+      
+      VERIFICATION RESULTS - ALL TESTS PASSED ✅
+      
+      TEST 1 - Guest View (No Login): ✅ PASSED
+      - Screen loads without errors
+      - NO language selector button (verified: 0 found)
+      - NO FAQ button (verified: 0 found)
+      - Contact button present and functional
+      - Login and Register buttons visible
+      
+      TEST 2 - Logged-In View (admin@metaqi.com): ✅ PASSED
+      - Screen loads without errors
+      - NO language selector (verified: 0 found)
+      - NO FAQ menu item (verified: 0 found)
+      - All expected menu items present: Favorites, Progress, Purchases, Requests, Contact, About Us (admin), Admin Panel
+      - Logout button visible and functional
+      
+      TEST 3 - Console Error Analysis: ✅ PASSED
+      - NO errors related to 'language is not defined'
+      - NO errors related to 'setLanguageModalVisible is not defined'
+      - NO undefined variable errors
+      
+      CONCLUSION: Bug completely resolved. Profile screen works correctly in both guest and logged-in states.
