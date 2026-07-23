@@ -26,6 +26,7 @@ from models import (
     InfoPage, InfoPageCreate,
     Settings, SettingsUpdate,
     UserRole,
+    MonthEnergy, MonthEnergyCreate,
     YearEnergy, YearEnergyCreate,
     NewbornVocation, NewbornVocationCreate,
     Concept, ConceptCreate,
@@ -649,6 +650,28 @@ async def create_concept(
     await db.concepts.insert_one(concept_dict)
     return Concept(**concept_dict)
 
+# ============= MONTH ENERGY =============
+
+@api_router.get("/energy/month", response_model=MonthEnergy)
+async def get_month_energy():
+    now = datetime.utcnow()
+    month_str = now.strftime("%Y-%m")
+    energy = await db.month_energy.find_one({"month": month_str})
+    if not energy:
+        raise HTTPException(status_code=404, detail="No month energy data")
+    return MonthEnergy(**energy)
+
+@api_router.post("/admin/month-energy", response_model=MonthEnergy)
+async def create_month_energy(
+    energy_data: MonthEnergyCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    energy_dict = energy_data.model_dump()
+    energy_dict["id"] = str(uuid.uuid4())
+    energy_dict["created_at"] = datetime.utcnow()
+    await db.month_energy.insert_one(energy_dict)
+    return MonthEnergy(**energy_dict)
+
 # ============= YEAR ENERGY =============
 
 @api_router.get("/energy/year/current", response_model=YearEnergy)
@@ -664,7 +687,7 @@ async def get_year_energies():
     energies = await db.year_energy.find().sort("year", -1).to_list(50)
     return [YearEnergy(**e) for e in energies]
 
-@api_router.post("/energy/year", response_model=YearEnergy)
+@api_router.post("/admin/year-energy", response_model=YearEnergy)
 async def create_year_energy(
     energy_data: YearEnergyCreate,
     current_user: dict = Depends(get_current_admin_user)
@@ -685,7 +708,7 @@ async def get_today_newborn_vocation():
         raise HTTPException(status_code=404, detail="No newborn vocation for today")
     return NewbornVocation(**vocation)
 
-@api_router.post("/newborn-vocation", response_model=NewbornVocation)
+@api_router.post("/admin/newborn-vocation", response_model=NewbornVocation)
 async def create_newborn_vocation(
     vocation_data: NewbornVocationCreate,
     current_user: dict = Depends(get_current_admin_user)

@@ -59,6 +59,20 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-concepts',
   },
   {
+    title: 'Energía del Mes',
+    description: 'Actualizar energía mensual',
+    icon: 'calendar',
+    route: '/admin/month-energy',
+    testID: 'admin-month-energy',
+  },
+  {
+    title: 'Energía del Año',
+    description: 'Actualizar energía anual',
+    icon: 'sparkles-outline',
+    route: '/admin/year-energy',
+    testID: 'admin-year-energy',
+  },
+  {
     title: 'Artículos',
     description: 'Gestionar artículos',
     icon: 'document-text',

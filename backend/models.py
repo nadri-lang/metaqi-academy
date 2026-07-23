@@ -425,6 +425,25 @@ class InfoPageCreate(BaseModel):
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
 
+# Month Energy
+class MonthEnergy(BaseModel):
+    id: str
+    month: str  # Format: YYYY-MM
+    title: str
+    title_en: Optional[str] = None
+    content: str
+    content_en: Optional[str] = None
+    is_free: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class MonthEnergyCreate(BaseModel):
+    month: str
+    title: str
+    title_en: Optional[str] = None
+    content: str
+    content_en: Optional[str] = None
+    is_free: bool = True
+
 # Year Energy - Simple concept with YouTube link
 class YearEnergy(BaseModel):
     id: str
