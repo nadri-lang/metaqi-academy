@@ -131,10 +131,24 @@ async def create_daily_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     energy_dict = energy_data.model_dump()
-    energy_dict["id"] = str(uuid.uuid4())
-    energy_dict["created_at"] = datetime.utcnow()
     
-    await db.daily_energy.insert_one(energy_dict)
+    # Check if already exists
+    existing = await db.daily_energy.find_one({"date": energy_data.date})
+    
+    if existing:
+        # Update existing entry
+        energy_dict["id"] = existing["id"]
+        energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        await db.daily_energy.update_one(
+            {"date": energy_data.date},
+            {"$set": energy_dict}
+        )
+    else:
+        # Create new entry
+        energy_dict["id"] = str(uuid.uuid4())
+        energy_dict["created_at"] = datetime.utcnow()
+        await db.daily_energy.insert_one(energy_dict)
+    
     return DailyEnergy(**energy_dict)
 
 # ============= MOON ENERGY ENDPOINTS =============
@@ -667,9 +681,27 @@ async def create_month_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     energy_dict = energy_data.model_dump()
-    energy_dict["id"] = str(uuid.uuid4())
-    energy_dict["created_at"] = datetime.utcnow()
-    await db.month_energy.insert_one(energy_dict)
+    
+    # Check if already exists for this month/year
+    existing = await db.month_energy.find_one({
+        "month": energy_data.month,
+        "year": energy_data.year
+    })
+    
+    if existing:
+        # Update existing entry
+        energy_dict["id"] = existing["id"]
+        energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        await db.month_energy.update_one(
+            {"month": energy_data.month, "year": energy_data.year},
+            {"$set": energy_dict}
+        )
+    else:
+        # Create new entry
+        energy_dict["id"] = str(uuid.uuid4())
+        energy_dict["created_at"] = datetime.utcnow()
+        await db.month_energy.insert_one(energy_dict)
+    
     return MonthEnergy(**energy_dict)
 
 # ============= YEAR ENERGY =============
@@ -693,9 +725,24 @@ async def create_year_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     energy_dict = energy_data.model_dump()
-    energy_dict["id"] = str(uuid.uuid4())
-    energy_dict["created_at"] = datetime.utcnow()
-    await db.year_energy.insert_one(energy_dict)
+    
+    # Check if already exists for this year
+    existing = await db.year_energy.find_one({"year": energy_data.year})
+    
+    if existing:
+        # Update existing entry
+        energy_dict["id"] = existing["id"]
+        energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        await db.year_energy.update_one(
+            {"year": energy_data.year},
+            {"$set": energy_dict}
+        )
+    else:
+        # Create new entry
+        energy_dict["id"] = str(uuid.uuid4())
+        energy_dict["created_at"] = datetime.utcnow()
+        await db.year_energy.insert_one(energy_dict)
+    
     return YearEnergy(**energy_dict)
 
 # ============= NEWBORN VOCATION (Daily general) =============
@@ -714,9 +761,24 @@ async def create_newborn_vocation(
     current_user: dict = Depends(get_current_admin_user)
 ):
     vocation_dict = vocation_data.model_dump()
-    vocation_dict["id"] = str(uuid.uuid4())
-    vocation_dict["created_at"] = datetime.utcnow()
-    await db.newborn_vocation.insert_one(vocation_dict)
+    
+    # Check if already exists for this date
+    existing = await db.newborn_vocation.find_one({"date": vocation_data.date})
+    
+    if existing:
+        # Update existing entry
+        vocation_dict["id"] = existing["id"]
+        vocation_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        await db.newborn_vocation.update_one(
+            {"date": vocation_data.date},
+            {"$set": vocation_dict}
+        )
+    else:
+        # Create new entry
+        vocation_dict["id"] = str(uuid.uuid4())
+        vocation_dict["created_at"] = datetime.utcnow()
+        await db.newborn_vocation.insert_one(vocation_dict)
+    
     return NewbornVocation(**vocation_dict)
 
 # ============= AGENDA MONTHS (Content sections per month) =============
@@ -742,8 +804,25 @@ async def create_wedding_agenda(
     current_user: dict = Depends(get_current_admin_user)
 ):
     month_dict = month_data.model_dump()
-    month_dict["id"] = str(uuid.uuid4())
-    await db.agenda_months.insert_one(month_dict)
+    
+    # Check if already exists for this agenda_id and month
+    existing = await db.agenda_months.find_one({
+        "agenda_id": month_data.agenda_id,
+        "month": month_data.month
+    })
+    
+    if existing:
+        # Update existing entry
+        month_dict["id"] = existing["id"]
+        await db.agenda_months.update_one(
+            {"agenda_id": month_data.agenda_id, "month": month_data.month},
+            {"$set": month_dict}
+        )
+    else:
+        # Create new entry
+        month_dict["id"] = str(uuid.uuid4())
+        await db.agenda_months.insert_one(month_dict)
+    
     return AgendaMonth(**month_dict)
 
 # ============= FAQ =============

@@ -140,6 +140,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "GET /api/energy/daily tested successfully. Returns today's energy data with date, title, content, and recommendations. No authentication required."
+      - working: true
+        agent: "testing"
+        comment: "ADMIN DAILY ENERGY CRUD OPERATIONS TESTED - All 6 tests PASSED ✅ (100% success rate). Test 1: Admin login (nnikholk@gmail.com) - SUCCESS, JWT token obtained. Test 2: Create daily energy for future date (2026-07-28) - SUCCESS, entry created with ID edbef3a0-bb7e-4734-9ced-d1d5ebdd80a6. Test 3: Verify created energy - SUCCESS, data matches expected values (title: 'Energía del Día - Prosperidad', animal: 'Dragón de Agua'). Test 4: Update existing daily energy (same date) - SUCCESS, upsert worked correctly, same ID maintained. Test 5: Verify update - SUCCESS, data updated correctly (title: 'Energía del Día - Prosperidad ACTUALIZADA', animal: 'Tigre de Madera'). Test 6: MongoDB duplicate check - SUCCESS, exactly 1 document found for date 2026-07-28, no duplicates created. UPSERT FUNCTIONALITY VERIFIED: POST /api/energy/daily correctly updates existing entries instead of creating duplicates. Code review confirms same upsert pattern implemented in: POST /api/admin/month-energy, POST /api/admin/year-energy, POST /api/admin/newborn-vocation, POST /api/admin/wedding-agenda."
   
   - task: "Moon Energy API"
     implemented: true
@@ -499,3 +502,54 @@ agent_communication:
       Note: This is a data issue, not an authentication or API issue. The endpoint works correctly when data exists.
       
       CONCLUSION: All authentication flows working perfectly. Admin login with nnikholk@gmail.com / admin123 works as expected.
+  - agent: "testing"
+    message: |
+      ADMIN DAILY ENERGY CRUD OPERATIONS TEST COMPLETED - 6/6 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the upsert functionality for POST /api/energy/daily and related endpoints.
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - SUCCESS
+         - JWT token obtained successfully
+         - Token type: bearer, Role: admin
+      
+      ✅ Test 2: Create Daily Energy for Future Date (2026-07-28) - SUCCESS
+         - POST /api/energy/daily with full payload
+         - Entry created with ID: edbef3a0-bb7e-4734-9ced-d1d5ebdd80a6
+         - Title: "Energía del Día - Prosperidad"
+         - Animal: "Dragón de Agua"
+         - Recommendations: 2 items
+      
+      ✅ Test 3: Verify Created Energy - SUCCESS
+         - GET /api/energy/daily?date=2026-07-28
+         - Data matches expected values
+         - All fields present and correct
+      
+      ✅ Test 4: Update Existing Daily Energy (Same Date) - SUCCESS
+         - POST /api/energy/daily with updated payload for 2026-07-28
+         - UPSERT WORKED: Same ID maintained (edbef3a0-bb7e-4734-9ced-d1d5ebdd80a6)
+         - Title updated to: "Energía del Día - Prosperidad ACTUALIZADA"
+         - Animal updated to: "Tigre de Madera"
+         - No duplicate created
+      
+      ✅ Test 5: Verify Update Worked - SUCCESS
+         - GET /api/energy/daily?date=2026-07-28
+         - Title correctly shows: "Energía del Día - Prosperidad ACTUALIZADA"
+         - Animal correctly shows: "Tigre de Madera"
+         - Recommendations updated to: ["Nueva recomendación"]
+      
+      ✅ Test 6: MongoDB Duplicate Check - SUCCESS
+         - Direct MongoDB query for date "2026-07-28"
+         - Result: Exactly 1 document found
+         - Document ID: edbef3a0-bb7e-4734-9ced-d1d5ebdd80a6
+         - NO DUPLICATES CREATED
+      
+      CODE REVIEW - UPSERT IMPLEMENTATION VERIFIED:
+      All admin energy endpoints implement the same upsert pattern (check if exists, update if yes, insert if no):
+      ✅ POST /api/energy/daily (lines 128-152) - TESTED AND WORKING
+      ✅ POST /api/admin/month-energy (lines 678-705) - Code reviewed, upsert logic present
+      ✅ POST /api/admin/year-energy (lines 722-746) - Code reviewed, upsert logic present
+      ✅ POST /api/admin/newborn-vocation (lines 758-782) - Code reviewed, upsert logic present
+      ✅ POST /api/admin/wedding-agenda (lines 801-826) - Code reviewed, upsert logic present
+      
+      CONCLUSION: The upsert fix is working perfectly. Admins can now create new entries for future dates and update existing entries without creating duplicates. No "duplicate key" errors will occur.
