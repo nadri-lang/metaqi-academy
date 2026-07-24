@@ -151,6 +151,55 @@ async def create_daily_energy(
     
     return DailyEnergy(**energy_dict)
 
+@api_router.delete("/admin/cleanup/old-daily-energy")
+async def cleanup_old_daily_energy(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete all daily energy records with dates older than yesterday"""
+    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    
+    result = await db.daily_energy.delete_many({"date": {"$lt": yesterday}})
+    
+    return {
+        "message": f"Deleted {result.deleted_count} old daily energy records",
+        "deleted_count": result.deleted_count
+    }
+
+@api_router.delete("/admin/cleanup/old-month-energy")
+async def cleanup_old_month_energy(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete all month energy records except the current month"""
+    now = datetime.utcnow()
+    current_month = now.month
+    current_year = now.year
+    
+    result = await db.month_energy.delete_many({
+        "$or": [
+            {"year": {"$lt": current_year}},
+            {"year": current_year, "month": {"$lt": current_month}}
+        ]
+    })
+    
+    return {
+        "message": f"Deleted {result.deleted_count} old month energy records",
+        "deleted_count": result.deleted_count
+    }
+
+@api_router.delete("/admin/cleanup/old-year-energy")
+async def cleanup_old_year_energy(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete all year energy records except the current year"""
+    current_year = datetime.utcnow().year
+    
+    result = await db.year_energy.delete_many({"year": {"$lt": current_year}})
+    
+    return {
+        "message": f"Deleted {result.deleted_count} old year energy records",
+        "deleted_count": result.deleted_count
+    }
+
 # ============= MOON ENERGY ENDPOINTS =============
 
 @api_router.get("/energy/moon/current", response_model=MoonEnergy)
@@ -682,18 +731,15 @@ async def create_month_energy(
 ):
     energy_dict = energy_data.model_dump()
     
-    # Check if already exists for this month/year
-    existing = await db.month_energy.find_one({
-        "month": energy_data.month,
-        "year": energy_data.year
-    })
+    # Check if already exists for this month
+    existing = await db.month_energy.find_one({"month": energy_data.month})
     
     if existing:
         # Update existing entry
         energy_dict["id"] = existing["id"]
         energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
         await db.month_energy.update_one(
-            {"month": energy_data.month, "year": energy_data.year},
+            {"month": energy_data.month},
             {"$set": energy_dict}
         )
     else:
@@ -701,6 +747,20 @@ async def create_month_energy(
         energy_dict["id"] = str(uuid.uuid4())
         energy_dict["created_at"] = datetime.utcnow()
         await db.month_energy.insert_one(energy_dict)
+    
+    # Auto-cleanup: Delete old month energy records (keep only current/future)
+    # Parse the month string to compare dates
+    try:
+        year, month_num = map(int, energy_data.month.split('-'))
+        # Delete all months before this one
+        all_months = await db.month_energy.find({}).to_list(1000)
+        for old_month in all_months:
+            if old_month["month"] != energy_data.month:
+                old_year, old_month_num = map(int, old_month["month"].split('-'))
+                if old_year < year or (old_year == year and old_month_num < month_num):
+                    await db.month_energy.delete_one({"_id": old_month["_id"]})
+    except Exception:
+        pass  # If parsing fails, skip cleanup
     
     return MonthEnergy(**energy_dict)
 
@@ -742,6 +802,9 @@ async def create_year_energy(
         energy_dict["id"] = str(uuid.uuid4())
         energy_dict["created_at"] = datetime.utcnow()
         await db.year_energy.insert_one(energy_dict)
+    
+    # Auto-cleanup: Delete old year energy records (keep only current year)
+    await db.year_energy.delete_many({"year": {"$lt": energy_data.year}})
     
     return YearEnergy(**energy_dict)
 
