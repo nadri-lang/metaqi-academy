@@ -254,11 +254,11 @@ export default function EnergyDetailScreen() {
           </View>
         )}
 
-        {/* Luna */}
+        {/* Animal del Día */}
         {data.animal && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="moon" size={22} color={Colors.accent} />
+              <Ionicons name="sparkles" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>{t('daily.moon')}</Text>
             </View>
             <Text style={styles.sectionSubtitle}>{t('daily.animal')}</Text>
