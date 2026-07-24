@@ -12,10 +12,10 @@ from typing import Optional, Dict, Any
 BASE_URL = "https://feng-shui-learn.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
-ADMIN_EMAIL = "admin@metaqi.com"
+ADMIN_EMAIL = "nnikholk@gmail.com"
 ADMIN_PASSWORD = "admin123"
-TEST_USER_EMAIL = "user@test.com"
-TEST_USER_PASSWORD = "user123"
+TEST_USER_EMAIL = "testuser@example.com"
+TEST_USER_PASSWORD = "test123"
 
 # Global variables to store tokens
 admin_token: Optional[str] = None
@@ -122,8 +122,72 @@ def test_login_admin():
         print_result(False, f"Admin login error: {str(e)}")
         return False
 
+def test_login_admin_wrong_password():
+    """Test 3: POST /api/auth/login - Login with admin email but wrong password"""
+    print_test_header("Login as Admin with Wrong Password")
+    
+    try:
+        payload = {
+            "email": ADMIN_EMAIL,
+            "password": "wrongpassword"
+        }
+        
+        response = requests.post(f"{BASE_URL}/auth/login", json=payload)
+        
+        if response.status_code == 401:
+            print_result(True, "Wrong password correctly rejected with 401", {
+                "status_code": response.status_code,
+                "detail": response.json().get("detail") if response.text else None
+            })
+            return True
+        else:
+            print_result(False, f"Wrong password should return 401, got {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Wrong password test error: {str(e)}")
+        return False
+
+def test_register_duplicate_email():
+    """Test 4: POST /api/auth/register - Try to register with existing admin email"""
+    print_test_header("Register Duplicate Email")
+    
+    try:
+        payload = {
+            "name": "Duplicate User",
+            "email": ADMIN_EMAIL,  # Use admin email which already exists
+            "password": "somepassword",
+            "language": "es",
+            "role": "free_member"
+        }
+        
+        response = requests.post(f"{BASE_URL}/auth/register", json=payload)
+        
+        if response.status_code == 400:
+            detail = response.json().get("detail", "")
+            if "already registered" in detail.lower():
+                print_result(True, "Duplicate email correctly rejected with 400", {
+                    "status_code": response.status_code,
+                    "detail": detail
+                })
+                return True
+            else:
+                print_result(False, f"Got 400 but wrong error message: {detail}")
+                return False
+        else:
+            print_result(False, f"Duplicate email should return 400, got {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Duplicate email test error: {str(e)}")
+        return False
+
 def test_login_test_user():
-    """Test 3: POST /api/auth/login - Login with test user credentials"""
+    """Test 5: POST /api/auth/login - Login with test user credentials"""
     print_test_header("Login as Test User")
     
     try:
@@ -158,7 +222,7 @@ def test_login_test_user():
         return False
 
 def test_get_me_valid_token():
-    """Test 4a: GET /api/auth/me - Verify token authentication with valid token"""
+    """Test 6a: GET /api/auth/me - Verify token authentication with valid token"""
     print_test_header("Get Current User (Valid Token)")
     
     if not test_user_token:
@@ -191,7 +255,7 @@ def test_get_me_valid_token():
         return False
 
 def test_get_me_invalid_token():
-    """Test 4b: GET /api/auth/me - Verify token authentication with invalid token"""
+    """Test 6b: GET /api/auth/me - Verify token authentication with invalid token"""
     print_test_header("Get Current User (Invalid Token)")
     
     try:
@@ -217,7 +281,7 @@ def test_get_me_invalid_token():
         return False
 
 def test_get_daily_energy():
-    """Test 5: GET /api/energy/daily - Get today's energy (no auth required)"""
+    """Test 7: GET /api/energy/daily - Get today's energy (no auth required)"""
     print_test_header("Get Daily Energy")
     
     try:
@@ -248,7 +312,7 @@ def test_get_daily_energy():
         return False
 
 def test_get_moon_energy():
-    """Test 6: GET /api/energy/moon/current - Get current month moon energy"""
+    """Test 8: GET /api/energy/moon/current - Get current month moon energy"""
     print_test_header("Get Current Moon Energy")
     
     try:
@@ -280,7 +344,7 @@ def test_get_moon_energy():
         return False
 
 def test_get_categories():
-    """Test 7: GET /api/categories - List all categories"""
+    """Test 9: GET /api/categories - List all categories"""
     print_test_header("Get Categories")
     
     try:
@@ -304,7 +368,7 @@ def test_get_categories():
         return False
 
 def test_get_services():
-    """Test 8: GET /api/services - List custom services"""
+    """Test 10: GET /api/services - List custom services"""
     print_test_header("Get Custom Services")
     
     try:
@@ -328,7 +392,7 @@ def test_get_services():
         return False
 
 def test_add_favorite():
-    """Test 9: POST /api/favorites - Add favorite (requires auth)"""
+    """Test 11: POST /api/favorites - Add favorite (requires auth)"""
     print_test_header("Add Favorite")
     
     if not test_user_token:
@@ -367,7 +431,7 @@ def test_add_favorite():
         return False
 
 def test_get_favorites():
-    """Test 10: GET /api/favorites - Get user favorites (requires auth)"""
+    """Test 12: GET /api/favorites - Get user favorites (requires auth)"""
     print_test_header("Get User Favorites")
     
     if not test_user_token:
@@ -429,20 +493,22 @@ def run_all_tests():
     print(f"Admin User: {ADMIN_EMAIL}")
     print("="*80)
     
-    # Priority tests
-    test_register_user()
-    test_login_admin()
-    test_login_test_user()
-    test_get_me_valid_token()
-    test_get_me_invalid_token()
-    test_get_daily_energy()
-    test_get_moon_energy()
+    # PRIORITY AUTH TESTS (as requested in review)
+    test_register_user()  # Test 1: Register new user
+    test_login_admin()  # Test 2: Admin login with correct password (PRIORITY)
+    test_login_admin_wrong_password()  # Test 3: Admin login with wrong password
+    test_register_duplicate_email()  # Test 4: Register duplicate email
+    test_login_test_user()  # Test 5: Login test user
+    test_get_me_valid_token()  # Test 6a: Verify valid token
+    test_get_me_invalid_token()  # Test 6b: Verify invalid token rejected
     
     # Secondary tests
-    test_get_categories()
-    test_get_services()
-    test_add_favorite()
-    test_get_favorites()
+    test_get_daily_energy()  # Test 7
+    test_get_moon_energy()  # Test 8
+    test_get_categories()  # Test 9
+    test_get_services()  # Test 10
+    test_add_favorite()  # Test 11
+    test_get_favorites()  # Test 12
     
     # Print summary
     print_summary()
