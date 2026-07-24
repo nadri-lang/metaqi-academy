@@ -19,12 +19,12 @@ async def seed_database():
     print("🌱 Seeding database...")
     
     # Create admin user
-    admin_exists = await db.users.find_one({"email": "admin@metaqi.com"})
+    admin_exists = await db.users.find_one({"email": "nnikholk@gmail.com"})
     if not admin_exists:
         admin = {
             "id": str(uuid.uuid4()),
-            "name": "Admin MetaQi",
-            "email": "admin@metaqi.com",
+            "name": "Nikhol Admin",
+            "email": "nnikholk@gmail.com",
             "hashed_password": get_password_hash("admin123"),
             "language": "es",
             "role": "admin",
@@ -33,7 +33,7 @@ async def seed_database():
             "last_login": None
         }
         await db.users.insert_one(admin)
-        print("✅ Admin user created: admin@metaqi.com / admin123")
+        print("✅ Admin user created: nnikholk@gmail.com / admin123")
     
     # Create categories
     categories_exist = await db.categories.count_documents({})
@@ -340,7 +340,7 @@ async def seed_database():
     
     print("\\n✅ Database seeding completed!")
     print("\\n📝 Admin credentials:")
-    print("   Email: admin@metaqi.com")
+    print("   Email: nnikholk@gmail.com")
     print("   Password: admin123")
     
     client.close()

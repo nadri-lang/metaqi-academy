@@ -736,6 +736,16 @@ async def create_agenda_month(
     await db.agenda_months.insert_one(month_dict)
     return AgendaMonth(**month_dict)
 
+@api_router.post("/admin/wedding-agenda", response_model=AgendaMonth)
+async def create_wedding_agenda(
+    month_data: AgendaMonthCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    month_dict = month_data.model_dump()
+    month_dict["id"] = str(uuid.uuid4())
+    await db.agenda_months.insert_one(month_dict)
+    return AgendaMonth(**month_dict)
+
 # ============= FAQ =============
 
 @api_router.get("/faq", response_model=List[FAQCategory])

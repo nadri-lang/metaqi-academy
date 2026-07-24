@@ -73,6 +73,13 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-year-energy',
   },
   {
+    title: 'Agenda de Bodas',
+    description: 'Gestionar fechas auspiciosas',
+    icon: 'heart',
+    route: '/admin/wedding-agenda',
+    testID: 'admin-wedding-agenda',
+  },
+  {
     title: 'Artículos',
     description: 'Gestionar artículos',
     icon: 'document-text',
