@@ -578,3 +578,62 @@ class SettingsUpdate(BaseModel):
     primary_color: Optional[str] = None
     accent_color: Optional[str] = None
     social_media: Optional[Dict[str, str]] = None
+
+# User Extended Models (Teléfono, Apodo)
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    nickname: Optional[str] = None
+    language: Optional[str] = None
+
+class UserExtended(UserResponse):
+    phone: Optional[str] = None
+    nickname: Optional[str] = None
+
+# Productos y Compras
+class ProductType(str, Enum):
+    AGENDA_TRIMESTER = "agenda_trimester"
+    COURSE = "course"
+    SERVICE = "service"
+
+class Product(BaseModel):
+    id: str
+    product_type: ProductType
+    name: str
+    description: str
+    price: float
+    metadata: Dict[str, Any] = {}  # e.g., {"trimester": "Q1", "year": 2027}
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ProductCreate(BaseModel):
+    product_type: ProductType
+    name: str
+    description: str
+    price: float
+    metadata: Dict[str, Any] = {}
+
+class Purchase(BaseModel):
+    id: str
+    user_id: str
+    product_id: str
+    product_name: str
+    product_type: ProductType
+    price: float
+    payment_method: str  # "bizum", "revolut", "paypal"
+    payment_proof: Optional[str] = None  # URL o base64 del comprobante
+    status: PaymentStatus = PaymentStatus.PENDING
+    metadata: Dict[str, Any] = {}
+    purchased_at: datetime = Field(default_factory=datetime.utcnow)
+    activated_at: Optional[datetime] = None
+    activated_by: Optional[str] = None  # admin_id
+
+class PurchaseCreate(BaseModel):
+    product_id: str
+    payment_method: str
+    payment_proof: Optional[str] = None
+
+class PurchaseUpdate(BaseModel):
+    status: Optional[PaymentStatus] = None
+    activated_at: Optional[datetime] = None
+    activated_by: Optional[str] = None
