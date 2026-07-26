@@ -40,10 +40,19 @@ export default function YearEnergyDetailScreen() {
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/year');
+      const response = await api.get('/energy/year/current');
       setData(response.data);
     } catch (error) {
       console.error('Error loading year energy:', error);
+      // If no current year, try to get the latest
+      try {
+        const listResponse = await api.get('/energy/year');
+        if (listResponse.data && listResponse.data.length > 0) {
+          setData(listResponse.data[0]);
+        }
+      } catch (err) {
+        console.error('Error loading year energy list:', err);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
