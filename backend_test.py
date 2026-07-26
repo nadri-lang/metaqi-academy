@@ -462,6 +462,275 @@ def test_get_favorites():
         print_result(False, f"Get favorites error: {str(e)}")
         return False
 
+def test_get_wedding_agenda_months():
+    """Test 13: GET /api/agendas/wedding-agenda/months - Get all wedding agenda months (Public endpoint)"""
+    print_test_header("Get Wedding Agenda Months (Public)")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/agendas/wedding-agenda/months")
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Check if we have data
+            if len(data) == 0:
+                print_result(False, "No wedding agenda data found in database", {
+                    "count": 0,
+                    "expected": "At least 2 documents (July 2026 and August 2026)"
+                })
+                return False
+            
+            # Verify data structure
+            first_item = data[0] if data else {}
+            has_required_fields = all(key in first_item for key in ["id", "agenda_id", "month", "year", "title", "content"])
+            
+            # Check for July 2026 and August 2026
+            july_2026 = next((item for item in data if item.get("month") == 7 and item.get("year") == 2026), None)
+            august_2026 = next((item for item in data if item.get("month") == 8 and item.get("year") == 2026), None)
+            
+            print_result(True, "Wedding agenda months retrieved successfully", {
+                "count": len(data),
+                "has_required_fields": has_required_fields,
+                "july_2026_exists": july_2026 is not None,
+                "august_2026_exists": august_2026 is not None,
+                "july_2026_title": july_2026.get("title") if july_2026 else None,
+                "sample_data": data[0] if data else None
+            })
+            return True
+        elif response.status_code == 404:
+            print_result(False, "Wedding agenda endpoint returned 404", {
+                "response": response.text
+            })
+            return False
+        else:
+            print_result(False, f"Wedding agenda request failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Wedding agenda error: {str(e)}")
+        return False
+
+def test_verify_wedding_agenda_content():
+    """Test 14: Verify Wedding Agenda Content - Check specific data"""
+    print_test_header("Verify Wedding Agenda Content")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/agendas/wedding-agenda/months")
+        
+        if response.status_code != 200:
+            print_result(False, "Cannot verify content - API request failed")
+            return False
+        
+        data = response.json()
+        
+        # Look for "Amor y compromiso en julio" document
+        amor_doc = next((item for item in data if "Amor y compromiso" in item.get("title", "")), None)
+        
+        # Check July 2026 data
+        july_2026 = next((item for item in data if item.get("month") == 7 and item.get("year") == 2026), None)
+        
+        checks = {
+            "amor_y_compromiso_exists": amor_doc is not None,
+            "july_2026_exists": july_2026 is not None,
+            "july_2026_has_content": july_2026.get("content") if july_2026 else None,
+            "july_2026_content_not_empty": bool(july_2026.get("content")) if july_2026 else False
+        }
+        
+        all_checks_passed = all([
+            checks["amor_y_compromiso_exists"],
+            checks["july_2026_exists"],
+            checks["july_2026_content_not_empty"]
+        ])
+        
+        print_result(all_checks_passed, "Wedding agenda content verification", {
+            "checks": checks,
+            "july_2026_title": july_2026.get("title") if july_2026 else None,
+            "july_2026_content_length": len(july_2026.get("content", "")) if july_2026 else 0
+        })
+        return all_checks_passed
+            
+    except Exception as e:
+        print_result(False, f"Content verification error: {str(e)}")
+        return False
+
+def test_admin_create_wedding_agenda():
+    """Test 15: POST /api/admin/wedding-agenda - Admin creates new wedding agenda month"""
+    print_test_header("Admin Create Wedding Agenda (September 2026)")
+    
+    if not admin_token:
+        print_result(False, "No admin token available - must login first")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        payload = {
+            "agenda_id": "wedding-agenda",
+            "month": 9,
+            "year": 2026,
+            "title": "Septiembre 2026 Test",
+            "content": "Contenido de prueba para verificar que la conexión funciona",
+            "favorable_days": [],
+            "is_free": False,
+            "order": 3
+        }
+        
+        response = requests.post(f"{BASE_URL}/admin/wedding-agenda", json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            has_required_fields = all(key in data for key in ["id", "agenda_id", "month", "year", "title", "content"])
+            
+            print_result(True, "Wedding agenda created successfully", {
+                "id": data.get("id"),
+                "agenda_id": data.get("agenda_id"),
+                "month": data.get("month"),
+                "year": data.get("year"),
+                "title": data.get("title"),
+                "has_required_fields": has_required_fields
+            })
+            return True
+        else:
+            print_result(False, f"Create wedding agenda failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Create wedding agenda error: {str(e)}")
+        return False
+
+def test_verify_new_wedding_agenda_in_list():
+    """Test 16: Verify new wedding agenda appears in GET /api/agendas/wedding-agenda/months"""
+    print_test_header("Verify New Wedding Agenda in List")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/agendas/wedding-agenda/months")
+        
+        if response.status_code != 200:
+            print_result(False, "Cannot verify - API request failed")
+            return False
+        
+        data = response.json()
+        
+        # Look for September 2026 entry
+        september_2026 = next((item for item in data if item.get("month") == 9 and item.get("year") == 2026), None)
+        
+        if september_2026:
+            print_result(True, "September 2026 wedding agenda found in list", {
+                "id": september_2026.get("id"),
+                "title": september_2026.get("title"),
+                "content": september_2026.get("content")[:50] + "..." if september_2026.get("content") else None,
+                "total_months": len(data)
+            })
+            return True
+        else:
+            print_result(False, "September 2026 wedding agenda NOT found in list", {
+                "total_months": len(data),
+                "available_months": [(item.get("month"), item.get("year")) for item in data]
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Verification error: {str(e)}")
+        return False
+
+def test_admin_update_wedding_agenda():
+    """Test 17: POST /api/admin/wedding-agenda - Admin updates existing wedding agenda (Upsert test)"""
+    print_test_header("Admin Update Wedding Agenda (September 2026 - Upsert)")
+    
+    if not admin_token:
+        print_result(False, "No admin token available - must login first")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        # Update the same September 2026 entry
+        payload = {
+            "agenda_id": "wedding-agenda",
+            "month": 9,
+            "year": 2026,
+            "title": "Septiembre 2026 ACTUALIZADO",
+            "content": "Contenido actualizado para verificar que el upsert funciona correctamente",
+            "favorable_days": [1, 5, 10, 15],
+            "is_free": True,
+            "order": 3
+        }
+        
+        response = requests.post(f"{BASE_URL}/admin/wedding-agenda", json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify the title was updated
+            title_updated = data.get("title") == "Septiembre 2026 ACTUALIZADO"
+            
+            print_result(True, "Wedding agenda updated successfully (Upsert working)", {
+                "id": data.get("id"),
+                "title": data.get("title"),
+                "title_updated": title_updated,
+                "favorable_days_count": len(data.get("favorable_days", [])),
+                "is_free": data.get("is_free")
+            })
+            return True
+        else:
+            print_result(False, f"Update wedding agenda failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Update wedding agenda error: {str(e)}")
+        return False
+
+def test_verify_no_duplicates_in_mongodb():
+    """Test 18: Verify no duplicate September 2026 entries exist"""
+    print_test_header("Verify No Duplicates in MongoDB")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/agendas/wedding-agenda/months")
+        
+        if response.status_code != 200:
+            print_result(False, "Cannot verify - API request failed")
+            return False
+        
+        data = response.json()
+        
+        # Count September 2026 entries
+        september_2026_entries = [item for item in data if item.get("month") == 9 and item.get("year") == 2026]
+        
+        if len(september_2026_entries) == 1:
+            print_result(True, "No duplicates found - exactly 1 September 2026 entry", {
+                "count": len(september_2026_entries),
+                "entry_id": september_2026_entries[0].get("id"),
+                "entry_title": september_2026_entries[0].get("title")
+            })
+            return True
+        elif len(september_2026_entries) == 0:
+            print_result(False, "September 2026 entry not found", {
+                "count": 0
+            })
+            return False
+        else:
+            print_result(False, f"DUPLICATE ENTRIES FOUND - {len(september_2026_entries)} September 2026 entries", {
+                "count": len(september_2026_entries),
+                "entries": [{"id": e.get("id"), "title": e.get("title")} for e in september_2026_entries]
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Duplicate check error: {str(e)}")
+        return False
+
 def print_summary():
     """Print test summary"""
     print(f"\n{'='*80}")
@@ -509,6 +778,14 @@ def run_all_tests():
     test_get_services()  # Test 10
     test_add_favorite()  # Test 11
     test_get_favorites()  # Test 12
+    
+    # WEDDING AGENDA DATA FLOW TESTS (User-requested verification)
+    test_get_wedding_agenda_months()  # Test 13: Get all wedding agenda months (Public)
+    test_verify_wedding_agenda_content()  # Test 14: Verify specific content exists
+    test_admin_create_wedding_agenda()  # Test 15: Admin creates September 2026
+    test_verify_new_wedding_agenda_in_list()  # Test 16: Verify September appears in list
+    test_admin_update_wedding_agenda()  # Test 17: Admin updates September (Upsert)
+    test_verify_no_duplicates_in_mongodb()  # Test 18: Verify no duplicates
     
     # Print summary
     print_summary()

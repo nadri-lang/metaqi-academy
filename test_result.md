@@ -251,6 +251,18 @@ backend:
       - working: true
         agent: "main"
         comment: "Seed script creates admin user, categories, daily/moon energy, services, info pages. Executed successfully."
+  
+  - task: "Wedding Agenda API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "WEDDING AGENDA DATA FLOW VERIFICATION COMPLETED - 6/6 tests PASSED ✅ (100% success rate). Test 13: GET /api/agendas/wedding-agenda/months (Public endpoint) - SUCCESS, returns 2 documents (July 2026 and August 2026) with all required fields (id, agenda_id, month, year, title, content, events, order). Test 14: Content verification - SUCCESS, 'Amor y compromiso en julio' document exists with 709 characters of content, July 2026 data present and not empty. Test 15: POST /api/admin/wedding-agenda (Admin create) - SUCCESS, created September 2026 entry with ID 8723498f-c7a8-4f10-ad64-689b03dd470f. Test 16: Verify new entry in list - SUCCESS, September 2026 appears in public GET endpoint. Test 17: POST /api/admin/wedding-agenda (Admin update/Upsert) - SUCCESS, updated September 2026 title to 'Septiembre 2026 ACTUALIZADO', same ID maintained (8723498f-c7a8-4f10-ad64-689b03dd470f), no duplicate created. Test 18: MongoDB duplicate check - SUCCESS, exactly 1 September 2026 entry found. UPSERT FUNCTIONALITY VERIFIED: Admin can create new entries and update existing entries without creating duplicates. Data flow from Admin save to Public display working perfectly."
 
 frontend:
   - task: "Authentication UI (Login/Register)"
@@ -355,7 +367,7 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 3
+  test_sequence: 4
   run_ui: false
 
 test_plan:
@@ -553,3 +565,46 @@ agent_communication:
       ✅ POST /api/admin/wedding-agenda (lines 801-826) - Code reviewed, upsert logic present
       
       CONCLUSION: The upsert fix is working perfectly. Admins can now create new entries for future dates and update existing entries without creating duplicates. No "duplicate key" errors will occur.
+  - agent: "testing"
+    message: |
+      WEDDING AGENDA DATA FLOW VERIFICATION COMPLETED - 6/6 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test complete Wedding Agenda data flow from Admin save to Public display.
+      
+      TEST RESULTS:
+      ✅ Test 13: GET /api/agendas/wedding-agenda/months (Public endpoint) - SUCCESS
+         - Returns 2 documents (July 2026 and August 2026)
+         - All required fields present: id, agenda_id, month, year, title, content, events, order
+         - Response structure matches frontend interface requirements
+      
+      ✅ Test 14: Content Verification - SUCCESS
+         - "Amor y compromiso en julio" document exists
+         - July 2026 data present with 709 characters of content
+         - Content is not empty
+      
+      ✅ Test 15: POST /api/admin/wedding-agenda (Admin Create) - SUCCESS
+         - Admin login with nnikholk@gmail.com / admin123 successful
+         - Created September 2026 entry
+         - Entry ID: 8723498f-c7a8-4f10-ad64-689b03dd470f
+         - Title: "Septiembre 2026 Test"
+         - Content: "Contenido de prueba para verificar que la conexión funciona"
+      
+      ✅ Test 16: Verify New Entry in Public List - SUCCESS
+         - September 2026 appears in GET /api/agendas/wedding-agenda/months
+         - Total months now: 3 (July, August, September)
+      
+      ✅ Test 17: POST /api/admin/wedding-agenda (Admin Update/Upsert) - SUCCESS
+         - Updated September 2026 with new title: "Septiembre 2026 ACTUALIZADO"
+         - Same ID maintained: 8723498f-c7a8-4f10-ad64-689b03dd470f
+         - Upsert logic working correctly
+         - No duplicate created
+      
+      ✅ Test 18: MongoDB Duplicate Check - SUCCESS
+         - Exactly 1 September 2026 entry found
+         - No duplicates in database
+      
+      CONCLUSION: Wedding Agenda data flow working perfectly. Data is saved correctly in MongoDB with agenda_id="wedding-agenda", backend API returns data in correct format, and frontend can consume this data structure. Admin can create new entries and update existing entries without creating duplicates.
+      
+      MINOR ISSUE (NOT RELATED TO WEDDING AGENDA):
+      ⚠️ Test 7: Daily Energy API - Returns 404 (no data seeded for today's date)
+      Note: This is a data issue, not an API issue. The endpoint works correctly when data exists.

@@ -100,25 +100,54 @@ export default function WeddingAgendaDetailScreen() {
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.accent} />
+            <Text style={styles.loadingText}>
+              {language === 'es' ? 'Cargando fechas favorables...' : 'Loading favorable dates...'}
+            </Text>
           </View>
         ) : (
           <>
-            {/* Mostrar meses de la agenda si existen */}
-            {months.length > 0 && (
-              <View style={styles.monthsContainer}>
-                <Text style={styles.sectionTitle}>
-                  {language === 'es' ? 'Fechas Favorables por Mes' : 'Favorable Dates by Month'}
+            {/* DATOS REALES DE LA BASE DE DATOS - MOSTRAR PRIMERO */}
+            {months.length > 0 ? (
+              <>
+                <View style={styles.realDataBanner}>
+                  <Ionicons name="checkmark-circle" size={24} color={Colors.accent} />
+                  <Text style={styles.realDataText}>
+                    {language === 'es' 
+                      ? `${months.length} ${months.length === 1 ? 'mes disponible' : 'meses disponibles'}` 
+                      : `${months.length} ${months.length === 1 ? 'month available' : 'months available'}`}
+                  </Text>
+                </View>
+
+                <View style={styles.monthsContainer}>
+                  {months.map((month) => (
+                    <View key={month.id} style={styles.monthCard}>
+                      <View style={styles.monthHeader}>
+                        <Ionicons name="calendar" size={20} color={Colors.accent} />
+                        <Text style={styles.monthTitle}>{month.title}</Text>
+                      </View>
+                      <Text style={styles.monthContent}>{month.content}</Text>
+                      {month.year && (
+                        <Text style={styles.monthYear}>Año: {month.year}</Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </>
+            ) : (
+              <View style={styles.noDataCard}>
+                <Ionicons name="information-circle-outline" size={48} color={Colors.textSecondary} />
+                <Text style={styles.noDataTitle}>
+                  {language === 'es' ? 'Sin fechas cargadas aún' : 'No dates loaded yet'}
                 </Text>
-                {months.map((month) => (
-                  <View key={month.id} style={styles.monthCard}>
-                    <Text style={styles.monthTitle}>{month.title}</Text>
-                    <Text style={styles.monthContent}>{month.content}</Text>
-                  </View>
-                ))}
+                <Text style={styles.noDataDescription}>
+                  {language === 'es' 
+                    ? 'Las fechas favorables para bodas se actualizarán próximamente.'
+                    : 'Favorable wedding dates will be updated soon.'}
+                </Text>
               </View>
             )}
 
-            {/* Contenido estático de información */}
+            {/* Contenido informativo adicional */}
             <View style={styles.card}>
           <Text style={styles.sectionTitle}>
             {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
@@ -220,8 +249,52 @@ export default function WeddingAgendaDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   loadingContainer: {
+    padding: Spacing['2xl'],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+  },
+  realDataBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent + '20',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  realDataText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.accent,
+  },
+  noDataCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
     padding: Spacing.xl,
     alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  noDataTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.textPrimary,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  noDataDescription: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   monthsContainer: {
     marginBottom: Spacing.lg,
@@ -229,22 +302,40 @@ const styles = StyleSheet.create({
   monthCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    padding: Spacing.lg,
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    padding: Spacing.xl,
+    marginBottom: Spacing.md,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginBottom: Spacing.md,
   },
   monthTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
+    fontSize: Typography.xl,
     color: Colors.accent,
-    marginBottom: Spacing.sm,
+    flex: 1,
   },
   monthContent: {
     fontFamily: Typography.sans,
     fontSize: Typography.base,
+    color: Colors.textPrimary,
+    lineHeight: 26,
+    marginBottom: Spacing.sm,
+  },
+  monthYear: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
     color: Colors.textSecondary,
-    lineHeight: 24,
+    marginTop: Spacing.xs,
   },
   header: { paddingBottom: Spacing.xl },
   headerContent: {
