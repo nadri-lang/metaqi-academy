@@ -40,6 +40,7 @@ from auth import (
     get_current_user,
     get_current_admin_user
 )
+from translation_service import translate_dict, translate_list_of_dicts
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -116,13 +117,35 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 # ============= DAILY ENERGY ENDPOINTS =============
 
 @api_router.get("/energy/daily", response_model=DailyEnergy)
-async def get_daily_energy(date: Optional[str] = None):
+async def get_daily_energy(date: Optional[str] = None, lang: str = "es"):
     if not date:
         date = datetime.utcnow().strftime("%Y-%m-%d")
     
     energy = await db.daily_energy.find_one({"date": date})
     if not energy:
         raise HTTPException(status_code=404, detail="No energy data for this date")
+    
+    # Translate if not Spanish
+    if lang != "es":
+        fields_to_translate = ["title", "content", "animal", "bazi_relationships"]
+        energy = await translate_dict(energy, lang, fields_to_translate)
+        # Translate lists
+        if "recommendations" in energy and energy["recommendations"]:
+            energy["recommendations"] = [await translate_dict({"text": r}, lang, ["text"]) for r in energy["recommendations"]]
+            energy["recommendations"] = [r["text"] for r in energy["recommendations"]]
+        if "avoid" in energy and energy["avoid"]:
+            energy["avoid"] = [await translate_dict({"text": a}, lang, ["text"]) for a in energy["avoid"]]
+            energy["avoid"] = [a["text"] for a in energy["avoid"]]
+        if "feng_shui_sectors" in energy and energy["feng_shui_sectors"]:
+            energy["feng_shui_sectors"] = [await translate_dict({"text": f}, lang, ["text"]) for f in energy["feng_shui_sectors"]]
+            energy["feng_shui_sectors"] = [f["text"] for f in energy["feng_shui_sectors"]]
+        if "qimen_directions" in energy and energy["qimen_directions"]:
+            energy["qimen_directions"] = [await translate_dict({"text": q}, lang, ["text"]) for q in energy["qimen_directions"]]
+            energy["qimen_directions"] = [q["text"] for q in energy["qimen_directions"]]
+        if "favorable_hours" in energy and energy["favorable_hours"]:
+            energy["favorable_hours"] = [await translate_dict({"text": h}, lang, ["text"]) for h in energy["favorable_hours"]]
+            energy["favorable_hours"] = [h["text"] for h in energy["favorable_hours"]]
+    
     return DailyEnergy(**energy)
 
 @api_router.post("/energy/daily", response_model=DailyEnergy)
@@ -716,12 +739,17 @@ async def create_concept(
 # ============= MONTH ENERGY =============
 
 @api_router.get("/energy/month", response_model=MonthEnergy)
-async def get_month_energy():
+async def get_month_energy(lang: str = "es"):
     now = datetime.utcnow()
     month_str = now.strftime("%Y-%m")
     energy = await db.month_energy.find_one({"month": month_str})
     if not energy:
         raise HTTPException(status_code=404, detail="No month energy data")
+    
+    # Translate if not Spanish
+    if lang != "es":
+        energy = await translate_dict(energy, lang, ["title", "content"])
+    
     return MonthEnergy(**energy)
 
 @api_router.post("/admin/month-energy", response_model=MonthEnergy)
@@ -767,16 +795,26 @@ async def create_month_energy(
 # ============= YEAR ENERGY =============
 
 @api_router.get("/energy/year/current", response_model=YearEnergy)
-async def get_current_year_energy():
+async def get_current_year_energy(lang: str = "es"):
     now = datetime.utcnow()
     energy = await db.year_energy.find_one({"year": now.year})
     if not energy:
         raise HTTPException(status_code=404, detail="No year energy data")
+    
+    # Translate if not Spanish
+    if lang != "es":
+        energy = await translate_dict(energy, lang, ["title", "content"])
+    
     return YearEnergy(**energy)
 
 @api_router.get("/energy/year", response_model=List[YearEnergy])
-async def get_year_energies():
+async def get_year_energies(lang: str = "es"):
     energies = await db.year_energy.find().sort("year", -1).to_list(50)
+    
+    # Translate if not Spanish
+    if lang != "es":
+        energies = await translate_list_of_dicts(energies, lang, ["title", "content"])
+    
     return [YearEnergy(**e) for e in energies]
 
 @api_router.post("/admin/year-energy", response_model=YearEnergy)
@@ -811,11 +849,16 @@ async def create_year_energy(
 # ============= NEWBORN VOCATION (Daily general) =============
 
 @api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
-async def get_today_newborn_vocation():
+async def get_today_newborn_vocation(lang: str = "es"):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     vocation = await db.newborn_vocation.find_one({"date": today})
     if not vocation:
         raise HTTPException(status_code=404, detail="No newborn vocation for today")
+    
+    # Translate if not Spanish
+    if lang != "es":
+        vocation = await translate_dict(vocation, lang, ["title", "content", "element", "personality", "career_paths"])
+    
     return NewbornVocation(**vocation)
 
 @api_router.post("/admin/newborn-vocation", response_model=NewbornVocation)
@@ -847,8 +890,13 @@ async def create_newborn_vocation(
 # ============= AGENDA MONTHS (Content sections per month) =============
 
 @api_router.get("/agendas/{agenda_id}/months", response_model=List[AgendaMonth])
-async def get_agenda_months(agenda_id: str):
+async def get_agenda_months(agenda_id: str, lang: str = "es"):
     months = await db.agenda_months.find({"agenda_id": agenda_id}).sort("order", 1).to_list(100)
+    
+    # Translate if not Spanish
+    if lang != "es":
+        months = await translate_list_of_dicts(months, lang, ["title", "content"])
+    
     return [AgendaMonth(**m) for m in months]
 
 @api_router.post("/agenda-months", response_model=AgendaMonth)

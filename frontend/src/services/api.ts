@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { storage } from '@/src/utils/storage';
+import * as Localization from 'expo-localization';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL + '/api';
 
@@ -10,13 +11,25 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and language
 api.interceptors.request.use(
   async (config) => {
     const token = await storage.secureGet('auth_token', null);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add language parameter to GET requests
+    const savedLanguage = await storage.secureGet('app_language', null);
+    const currentLang = savedLanguage || Localization.locale.split('-')[0] || 'es';
+    
+    if (config.method === 'get') {
+      config.params = {
+        ...config.params,
+        lang: currentLang,
+      };
+    }
+    
     return config;
   },
   (error) => {
