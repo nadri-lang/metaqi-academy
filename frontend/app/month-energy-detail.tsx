@@ -41,7 +41,13 @@ export default function MonthEnergyDetailScreen() {
   const load = async () => {
     try {
       const response = await api.get('/energy/month');
-      setData(response.data);
+      // /energy/month devuelve una lista, tomar el primer elemento
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        setData(response.data[0]);
+      } else if (response.data && !Array.isArray(response.data)) {
+        // Si por alguna razón devuelve un objeto único
+        setData(response.data);
+      }
     } catch (error) {
       console.error('Error loading month energy:', error);
     } finally {

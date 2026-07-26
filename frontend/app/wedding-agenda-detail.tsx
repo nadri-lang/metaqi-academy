@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -14,10 +16,47 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
+import api from '@/src/services/api';
+
+interface AgendaMonth {
+  id: string;
+  agenda_id: string;
+  month: number;
+  year: number;
+  title: string;
+  content: string;
+  events?: any[];
+}
 
 export default function WeddingAgendaDetailScreen() {
   const router = useRouter();
   const { t, language } = useLanguage();
+  const [months, setMonths] = useState<AgendaMonth[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadAgenda();
+  }, []);
+
+  const loadAgenda = async () => {
+    try {
+      const response = await api.get('/agendas/wedding-agenda/months');
+      if (response.data && Array.isArray(response.data)) {
+        setMonths(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading wedding agenda:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadAgenda();
+  };
 
   const handleContact = () => {
     Linking.openURL('mailto:r.scala1108@gmail.com?subject=Agenda de Bodas 2027 - Consulta');
@@ -54,8 +93,33 @@ export default function WeddingAgendaDetailScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
+        }
       >
-        <View style={styles.card}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+          </View>
+        ) : (
+          <>
+            {/* Mostrar meses de la agenda si existen */}
+            {months.length > 0 && (
+              <View style={styles.monthsContainer}>
+                <Text style={styles.sectionTitle}>
+                  {language === 'es' ? 'Fechas Favorables por Mes' : 'Favorable Dates by Month'}
+                </Text>
+                {months.map((month) => (
+                  <View key={month.id} style={styles.monthCard}>
+                    <Text style={styles.monthTitle}>{month.title}</Text>
+                    <Text style={styles.monthContent}>{month.content}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Contenido estático de información */}
+            <View style={styles.card}>
           <Text style={styles.sectionTitle}>
             {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
           </Text>
@@ -146,6 +210,8 @@ export default function WeddingAgendaDetailScreen() {
         </TouchableOpacity>
 
         <View style={{ height: Spacing.xl }} />
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -153,6 +219,33 @@ export default function WeddingAgendaDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  loadingContainer: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+  },
+  monthsContainer: {
+    marginBottom: Spacing.lg,
+  },
+  monthCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  monthTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.accent,
+    marginBottom: Spacing.sm,
+  },
+  monthContent: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
+    lineHeight: 24,
+  },
   header: { paddingBottom: Spacing.xl },
   headerContent: {
     paddingHorizontal: Spacing.lg,
