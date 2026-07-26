@@ -266,27 +266,22 @@ export default function HomeScreen() {
 
         {/* 3. Sección - Agenda de Bodas del Mes (Gratis) */}
         <View style={styles.section}>
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="heart" size={24} color={Colors.accent} />
-              <Text style={styles.cardTitle}>{t('home.wedding_agenda')}</Text>
+          <TouchableOpacity
+            testID="wedding-agenda-button"
+            style={styles.energyCard}
+            onPress={() => router.push('/agenda-monthly-free')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.energyIconContainer}>
+              <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
             </View>
-            <Text style={styles.cardSubtitle}>{t('home.wedding_agenda_subtitle')}</Text>
-            <Text style={styles.cardContent}>
-              {language === 'es' 
-                ? 'Descubre los días más auspiciosos de este mes para celebrar bodas según la metafísica china.' 
-                : 'Discover the most auspicious days of this month to celebrate weddings according to Chinese metaphysics.'}
-            </Text>
-            
-            <TouchableOpacity
-              testID="wedding-agenda-cta"
-              style={styles.ctaButton}
-              onPress={() => router.push('/(tabs)/services')}
-            >
-              <Text style={styles.ctaButtonText}>{t('home.wedding_agenda_full')}</Text>
-              <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
+            <View style={styles.energyContent}>
+              <Text style={styles.energyLabel}>
+                {language === 'es' ? 'Agenda de Bodas del Mes' : 'Monthly Wedding Agenda'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+          </TouchableOpacity>
         </View>
 
         {/* 4. Tarjeta - Talento del Bebé (estilo similar a Energía del Día) */}

@@ -180,21 +180,11 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} testID="menu-progress">
-            <Ionicons name="book" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.my_progress')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} testID="menu-purchases">
-            <Ionicons name="receipt" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.my_purchases')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} testID="menu-requests">
-            <Ionicons name="sparkles" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.my_requests')}</Text>
+          <TouchableOpacity style={styles.menuItem} testID="menu-data">
+            <Ionicons name="person-outline" size={22} color={Colors.textSecondary} />
+            <Text style={styles.menuText}>
+              {t('profile.my_data') || (user.language === 'es' ? 'Mis Datos' : 'My Data')}
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
