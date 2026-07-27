@@ -376,6 +376,21 @@ frontend:
       - working: true
         agent: "testing"
         comment: "USER VERIFICATION: New 'Vocación del Bebé' button visible on home screen with jade/green gradient design. Button navigates to /newborn-vocation-detail screen. Detail screen has back button that works correctly. Feature fully functional."
+  
+  - task: "Chinese Metaphysics Screen - Concepts Display"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/(tabs)/chinese-metaphysics.tsx, /app/frontend/src/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL BUG FOUND: Screen was completely empty except for FAQ button. Console error: 'TypeError: Cannot read properties of undefined (reading 'split')' in api.ts line 24. The bug was in the language detection code: 'Localization.locale.split('-')[0]' was failing because Localization.locale is undefined in web environment, preventing concepts from loading."
+      - working: true
+        agent: "testing"
+        comment: "BUG FIX APPLIED & VERIFIED ✅ - Changed 'Localization.locale.split('-')[0]' to 'Localization.locale?.split('-')[0]' in /app/frontend/src/services/api.ts line 24. TEST RESULTS (Mobile 390x844): ✅ All 7 concepts displayed correctly (¿Qué es BaZi?, ¿Qué es Qi Men Dun Jia?, ¿Qué es Feng Shui?, ¿Qué es Tongshu?, ¿Qué son las Estrategias Qi Men?, ¿Qué son los Remedios?, ¿Qué son los Disfraces?). ✅ Each concept card shows: icon with colored background, title, short_description, AND full_description (189-241 chars each). ✅ Full_description content verified: Found all 7 text blocks with Chinese characters (八字, 奇门遁甲, 风水, 通书) and Spanish content ('Ocho Caracteres', 'Viento y Agua', 'Libro del Conocimiento'). ✅ No console errors. ✅ Proper formatting and spacing. The interface change from 'full_content' to 'full_description' is working correctly."
 
 metadata:
   created_by: "main_agent"
@@ -385,7 +400,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Translation System (Year/Month/Daily Energy)"
+    - "Chinese Metaphysics Screen - Concepts Display"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -677,3 +692,47 @@ agent_communication:
       ✅ Translation works for both title AND content fields
       
       CONCLUSION: Translation system is working perfectly. All critical endpoints (year energy, daily energy) translate correctly to French, English, German, and return original Spanish. The month energy issue is due to bad data in the database, not a translation bug.
+  - agent: "testing"
+    message: |
+      CHINESE METAPHYSICS SCREEN - CONCEPTS DISPLAY VERIFICATION COMPLETED ✅
+      
+      USER-REQUESTED TEST: Verify that all 7 concepts display their full content correctly on the Chinese Metaphysics tab.
+      
+      CRITICAL BUG FOUND & FIXED:
+      ❌ Initial Test: Screen was completely empty except for FAQ button
+      🔍 Root Cause: TypeError in /app/frontend/src/services/api.ts line 24
+         - Error: "Cannot read properties of undefined (reading 'split')"
+         - Code: const currentLang = savedLanguage || Localization.locale.split('-')[0] || 'es';
+         - Issue: Localization.locale is undefined in web environment
+      
+      ✅ Fix Applied: Changed to use optional chaining
+         - New code: const currentLang = savedLanguage || Localization.locale?.split('-')[0] || 'es';
+         - File: /app/frontend/src/services/api.ts line 24
+      
+      VERIFICATION TEST RESULTS (Mobile 390x844):
+      ✅ All 7 concepts displayed correctly:
+         1. ¿Qué es BaZi?
+         2. ¿Qué es Qi Men Dun Jia?
+         3. ¿Qué es Feng Shui?
+         4. ¿Qué es Tongshu?
+         5. ¿Qué son las Estrategias Qi Men?
+         6. ¿Qué son los Remedios?
+         7. ¿Qué son los Disfraces?
+      
+      ✅ Each concept card displays complete information:
+         - Icon with colored background (person, compass, home, calendar, flash, shield-checkmark, color-palette)
+         - Title (Spanish)
+         - Short description (1-2 sentences)
+         - Full description (189-241 characters each)
+      
+      ✅ Full_description content verified:
+         - Found all 7 text blocks (150-300 chars)
+         - Chinese characters present: 八字, 奇门遁甲, 风水, 通书
+         - Spanish content present: "Ocho Caracteres", "Viento y Agua", "Libro del Conocimiento"
+         - Sample: "BaZi (八字), literalmente 'Ocho Caracteres', es un sistema milenario de análisis d..."
+      
+      ✅ No console errors
+      ✅ Proper formatting and spacing
+      ✅ Interface change from 'full_content' to 'full_description' working correctly
+      
+      CONCLUSION: The fix resolved the critical bug. All 7 concepts now display with complete content including full_description field. The screen is fully functional.

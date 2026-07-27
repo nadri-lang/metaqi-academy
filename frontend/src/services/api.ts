@@ -21,7 +21,7 @@ api.interceptors.request.use(
     
     // Add language parameter to GET requests
     const savedLanguage = await storage.secureGet('app_language', null);
-    const currentLang = savedLanguage || Localization.locale.split('-')[0] || 'es';
+    const currentLang = savedLanguage || Localization.locale?.split('-')[0] || 'es';
     
     if (config.method === 'get') {
       config.params = {

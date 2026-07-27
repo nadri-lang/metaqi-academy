@@ -54,7 +54,7 @@ export default function AdminConceptsScreen() {
     setSlug(concept.slug);
     setTitle(concept.title);
     setShortDescription(concept.short_description || '');
-    setFullContent(concept.full_content || '');
+    setFullContent(concept.full_description || '');
   };
 
   const handleClear = () => {
@@ -77,7 +77,7 @@ export default function AdminConceptsScreen() {
         slug,
         title,
         short_description: shortDescription,
-        full_content: fullContent,
+        full_description: fullContent,
       };
 
       if (editingId) {

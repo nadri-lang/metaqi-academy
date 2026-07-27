@@ -24,8 +24,7 @@ interface Concept {
   title_en?: string;
   short_description: string;
   short_description_en?: string;
-  full_content: string;
-  full_content_en?: string;
+  full_description: string;
   icon: string;
   color: string;
 }
@@ -34,7 +33,7 @@ interface Concept {
 function ConceptCard({ concept }: { concept: Concept }) {
   const translatedTitle = useTranslate(concept.title);
   const translatedDescription = useTranslate(concept.short_description);
-  const translatedContent = useTranslate(concept.full_content);
+  const translatedContent = useTranslate(concept.full_description);
 
   return (
     <View style={styles.conceptCard}>
@@ -47,7 +46,7 @@ function ConceptCard({ concept }: { concept: Concept }) {
       
       <Text style={styles.conceptDescription}>{translatedDescription}</Text>
 
-      {concept.full_content && (
+      {concept.full_description && (
         <Text style={styles.conceptContent}>{translatedContent}</Text>
       )}
     </View>
