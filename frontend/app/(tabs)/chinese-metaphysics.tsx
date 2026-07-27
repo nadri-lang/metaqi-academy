@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { useTranslate } from '@/src/hooks/useTranslate';
 import api from '@/src/services/api';
 
 interface Concept {
@@ -27,6 +28,30 @@ interface Concept {
   full_content_en?: string;
   icon: string;
   color: string;
+}
+
+// Component to handle translation of a single concept
+function ConceptCard({ concept }: { concept: Concept }) {
+  const translatedTitle = useTranslate(concept.title);
+  const translatedDescription = useTranslate(concept.short_description);
+  const translatedContent = useTranslate(concept.full_content);
+
+  return (
+    <View style={styles.conceptCard}>
+      <View style={styles.conceptHeader}>
+        <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
+          <Ionicons name={concept.icon as any} size={28} color={concept.color} />
+        </View>
+        <Text style={styles.conceptTitle}>{translatedTitle}</Text>
+      </View>
+      
+      <Text style={styles.conceptDescription}>{translatedDescription}</Text>
+
+      {concept.full_content && (
+        <Text style={styles.conceptContent}>{translatedContent}</Text>
+      )}
+    </View>
+  );
 }
 
 export default function ChineseMetaphysicsScreen() {
@@ -80,27 +105,8 @@ export default function ChineseMetaphysicsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Concepts Content */}
-        {concepts.map((concept, index) => (
-          <View key={concept.id} style={styles.conceptCard}>
-            <View style={styles.conceptHeader}>
-              <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
-                <Ionicons name={concept.icon as any} size={28} color={concept.color} />
-              </View>
-              <Text style={styles.conceptTitle}>
-                {localizeContent(concept.title, concept.title_en)}
-              </Text>
-            </View>
-            
-            <Text style={styles.conceptDescription}>
-              {localizeContent(concept.short_description, concept.short_description_en)}
-            </Text>
-
-            {concept.full_content && (
-              <Text style={styles.conceptContent}>
-                {localizeContent(concept.full_content, concept.full_content_en)}
-              </Text>
-            )}
-          </View>
+        {concepts.map((concept) => (
+          <ConceptCard key={concept.id} concept={concept} />
         ))}
 
         {/* FAQ Button at the end */}

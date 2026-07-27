@@ -776,21 +776,20 @@ async def create_month_energy(
         energy_dict["created_at"] = datetime.utcnow()
         await db.month_energy.insert_one(energy_dict)
     
-    # Auto-cleanup: Delete old month energy records (keep only current/future)
-    # Parse the month string to compare dates
-    try:
-        year, month_num = map(int, energy_data.month.split('-'))
-        # Delete all months before this one
-        all_months = await db.month_energy.find({}).to_list(1000)
-        for old_month in all_months:
-            if old_month["month"] != energy_data.month:
-                old_year, old_month_num = map(int, old_month["month"].split('-'))
-                if old_year < year or (old_year == year and old_month_num < month_num):
-                    await db.month_energy.delete_one({"_id": old_month["_id"]})
-    except Exception:
-        pass  # If parsing fails, skip cleanup
+    # NO AUTO-CLEANUP - Month energy is permanent
     
     return MonthEnergy(**energy_dict)
+
+@api_router.delete("/admin/month-energy/{month}")
+async def delete_month_energy(
+    month: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a specific month energy entry. Admin only."""
+    result = await db.month_energy.delete_one({"month": month})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Month energy not found")
+    return {"message": f"Month energy for {month} deleted successfully"}
 
 # ============= YEAR ENERGY =============
 
@@ -841,10 +840,20 @@ async def create_year_energy(
         energy_dict["created_at"] = datetime.utcnow()
         await db.year_energy.insert_one(energy_dict)
     
-    # Auto-cleanup: Delete old year energy records (keep only current year)
-    await db.year_energy.delete_many({"year": {"$lt": energy_data.year}})
+    # NO AUTO-CLEANUP - Year energy is permanent
     
     return YearEnergy(**energy_dict)
+
+@api_router.delete("/admin/year-energy/{year}")
+async def delete_year_energy(
+    year: int,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a specific year energy entry. Admin only."""
+    result = await db.year_energy.delete_one({"year": year})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Year energy not found")
+    return {"message": f"Year energy for {year} deleted successfully"}
 
 # ============= NEWBORN VOCATION (Daily general) =============
 
