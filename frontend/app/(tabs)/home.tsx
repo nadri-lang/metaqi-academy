@@ -59,7 +59,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [language]);
 
   const loadData = async () => {
     try {
@@ -233,7 +233,7 @@ export default function HomeScreen() {
                 <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
                 {dailyEnergy ? (
                   <Text style={styles.goldenTitle} numberOfLines={2}>
-                    {localizeContent(dailyEnergy.title, dailyEnergy.title_en)}
+                    {dailyEnergy.title}
                   </Text>
                 ) : (
                   <Text style={styles.goldenTitle} numberOfLines={2}>

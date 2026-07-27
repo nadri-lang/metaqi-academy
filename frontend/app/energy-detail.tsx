@@ -42,7 +42,7 @@ export default function EnergyDetailScreen() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [language]);
 
   const load = async () => {
     try {

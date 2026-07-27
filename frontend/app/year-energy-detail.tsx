@@ -36,7 +36,7 @@ export default function YearEnergyDetailScreen() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [language]);
 
   const load = async () => {
     try {

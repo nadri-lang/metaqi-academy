@@ -36,7 +36,7 @@ export default function MonthEnergyDetailScreen() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [language]);
 
   const load = async () => {
     try {
