@@ -107,6 +107,19 @@ user_problem_statement: |
   Fase 1: Backend con JWT auth, energías diarias/lunares, sistema de usuarios
   Frontend: Diseño luxury minimal oriental, auth, home con energías
 
+
+  - task: "Translation System (Year/Month/Daily Energy)"
+    implemented: true
+    working: true
+    file: "/app/backend/translation_service.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TRANSLATION SYSTEM VERIFICATION COMPLETED - 5/6 tests PASSED ✅ (83.3% success rate). CRITICAL TESTS ALL PASSED: Test 1: Year Energy French (lang=fr) - SUCCESS, title='Année du Cheval de Feu Yang', content starts with 'L'Année du Cheval de Feu', properly translated from Spanish. Test 2: Year Energy English (lang=en) - SUCCESS, title='Year of the Yang Fire Horse', content properly translated. Test 3: Year Energy German (lang=de) - SUCCESS, title='Jahr des Yang-Feuerpferdes', content properly translated. Test 4: Year Energy Spanish (lang=es) - SUCCESS, returns original Spanish content as expected. Test 5: Daily Energy French (date=2026-07-18, lang=fr) - SUCCESS, title='Énergie du Jour - Harmonie et Équilibre', content='Aujourd'hui, le Chi circule avec douceur...', properly translated. MINOR ISSUE (NOT TRANSLATION BUG): Test 6: Month Energy French - Returns garbage data ('cabra', 'sfdgcvhbjnklñ.,mnbv vbnm,.') from database, translation works but source data is invalid. TRANSLATION FIX VERIFIED: Changed response.content.strip() to response.strip() in translation_service.py (line 70) - WORKING CORRECTLY. All translation endpoints functioning as expected with lang parameter (fr, en, de, es). Backend automatically translates title AND content fields based on lang query parameter."
+
 backend:
   - task: "User Authentication (Register/Login/JWT)"
     implemented: true
@@ -367,14 +380,12 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 4
+  test_sequence: 5
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Articles API"
-    - "Courses API"
-    - "Payments API"
+    - "Translation System (Year/Month/Daily Energy)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -608,3 +619,61 @@ agent_communication:
       MINOR ISSUE (NOT RELATED TO WEDDING AGENDA):
       ⚠️ Test 7: Daily Energy API - Returns 404 (no data seeded for today's date)
       Note: This is a data issue, not an API issue. The endpoint works correctly when data exists.
+  - agent: "testing"
+    message: |
+      TRANSLATION SYSTEM VERIFICATION COMPLETED - 5/6 tests PASSED ✅ (83.3% success rate)
+      
+      USER-REQUESTED TRANSLATION VERIFICATION: Test the automatic translation system for MetaQi Academy content.
+      
+      CRITICAL TESTS - ALL PASSED ✅:
+      
+      ✅ Test 1: Year Energy - French Translation (GET /api/energy/year/current?lang=fr)
+         - Status: 200 OK
+         - Title: "Année du Cheval de Feu Yang" (FRENCH ✓)
+         - Content: "L'Année du Cheval de Feu, du 4 février 2026 au 4 février 2027..." (FRENCH ✓)
+         - Content length: 1333 characters
+         - Translation working correctly from Spanish to French
+      
+      ✅ Test 2: Year Energy - English Translation (GET /api/energy/year/current?lang=en)
+         - Status: 200 OK
+         - Title: "Year of the Yang Fire Horse" (ENGLISH ✓)
+         - Content: "The Year of the Fire Horse, from February 4, 2026 to February 4, 2027..." (ENGLISH ✓)
+         - Content length: 1158 characters
+         - Translation working correctly from Spanish to English
+      
+      ✅ Test 3: Year Energy - German Translation (GET /api/energy/year/current?lang=de)
+         - Status: 200 OK
+         - Title: "Jahr des Yang-Feuerpferdes" (GERMAN ✓)
+         - Content: "Das Jahr des Feuerpferdes, vom 4. Februar 2026 bis zum 4. Februar 2027..." (GERMAN ✓)
+         - Content length: 1318 characters
+         - Translation working correctly from Spanish to German
+      
+      ✅ Test 4: Year Energy - Spanish Original (GET /api/energy/year/current?lang=es)
+         - Status: 200 OK
+         - Title: "Año del Caballo de Fuego Yang" (SPANISH ✓)
+         - Content: "El Año del Caballo de Fuego, del 4 de febrero de 2026..." (SPANISH ✓)
+         - Content length: 1261 characters
+         - Returns original Spanish content as expected
+      
+      ✅ Test 5: Daily Energy - French Translation (GET /api/energy/daily?date=2026-07-18&lang=fr)
+         - Status: 200 OK
+         - Title: "Énergie du Jour - Harmonie et Équilibre" (FRENCH ✓)
+         - Content: "Aujourd'hui, le Chi circule avec douceur, favorisant la communication..." (FRENCH ✓)
+         - Translation working correctly for daily energy
+      
+      MINOR ISSUE (NOT A TRANSLATION BUG):
+      ⚠️ Test 6: Month Energy - French Translation (GET /api/energy/month?lang=fr)
+         - Status: 200 OK
+         - Title: "chèvre" (translated from "cabra")
+         - Content: "sfdgcvhbjnklñ.,mnbv vbnm,." (garbage data)
+         - Issue: Source data in database is invalid/garbage, not a translation problem
+         - Translation system is working, but translating bad source data
+         - Database entry for month 2026-07 contains test/garbage data
+      
+      TRANSLATION FIX VERIFIED:
+      ✅ Changed response.content.strip() to response.strip() in translation_service.py (line 70)
+      ✅ Backend automatically translates content based on lang parameter
+      ✅ All detail screens updated to use translated fields directly
+      ✅ Translation works for both title AND content fields
+      
+      CONCLUSION: Translation system is working perfectly. All critical endpoints (year energy, daily energy) translate correctly to French, English, German, and return original Spanish. The month energy issue is due to bad data in the database, not a translation bug.

@@ -120,7 +120,7 @@ export default function MonthEnergyDetailScreen() {
               </View>
             </View>
             <Text style={styles.headerTitle}>
-              {localizeContent(data.title, data.title_en)}
+              {data.title}
             </Text>
           </View>
         </SafeAreaView>
@@ -135,7 +135,7 @@ export default function MonthEnergyDetailScreen() {
       >
         <View style={styles.card}>
           <Text style={styles.description}>
-            {localizeContent(data.content, data.content_en)}
+            {data.content}
           </Text>
         </View>
 

@@ -67,7 +67,7 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
         
         # Get translation (non-streaming for simplicity)
         response = await chat.send_message(user_message)
-        translated = response.content.strip()
+        translated = response.strip()
         
         # Cache the result
         _translation_cache[cache_key] = translated
