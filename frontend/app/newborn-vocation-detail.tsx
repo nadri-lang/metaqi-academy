@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,43 +28,161 @@ interface NewbornVocation {
   vocations: string[];
 }
 
+interface AvailableDates {
+  available_dates: string[];
+  today: string;
+  range_start: string;
+  range_end: string;
+}
+
+// Helper to get client's local date in YYYY-MM-DD format
+const getClientDate = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to add/subtract days from a date string
+const addDays = (dateStr: string, days: number): string => {
+  const date = new Date(dateStr + 'T12:00:00');
+  date.setDate(date.getDate() + days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function NewbornVocationDetailScreen() {
   const router = useRouter();
-  const { t, localizeContent } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [currentDate, setCurrentDate] = useState<string>(getClientDate());
+  const [clientToday] = useState<string>(getClientDate());
+
+  // Calculate date range (today - 2 days)
+  const rangeStart = addDays(clientToday, -2);
+  const rangeEnd = clientToday;
+
+  // Check if we can navigate to previous/next day
+  const canGoPrevious = currentDate > rangeStart && availableDates.some(d => d < currentDate && d >= rangeStart);
+  const canGoNext = currentDate < rangeEnd && availableDates.some(d => d > currentDate && d <= rangeEnd);
 
   useEffect(() => {
-    load();
+    loadAvailableDates();
   }, []);
 
-  const load = async () => {
+  useEffect(() => {
+    if (currentDate) {
+      loadDataForDate(currentDate);
+    }
+  }, [currentDate, language]);
+
+  const loadAvailableDates = async () => {
     try {
-      const response = await api.get('/newborn-vocation/today');
-      setData(response.data);
+      const response = await api.get('/newborn-vocation/available-dates', {
+        params: { client_date: clientToday }
+      });
+      const dates = response.data.available_dates || [];
+      setAvailableDates(dates);
+      
+      // If today has data, show it. Otherwise, show the most recent available date
+      if (dates.includes(clientToday)) {
+        setCurrentDate(clientToday);
+      } else if (dates.length > 0) {
+        // dates are sorted descending, so first one is most recent
+        setCurrentDate(dates[0]);
+      }
     } catch (error) {
+      console.error('Error loading available dates:', error);
+      // Fallback to loading today's data
+      loadDataForDate(clientToday);
+    }
+  };
+
+  const loadDataForDate = async (date: string) => {
+    setLoading(true);
+    try {
+      const response = await api.get('/newborn-vocation/by-date', {
+        params: { 
+          date: date,
+          client_date: clientToday
+        }
+      });
+      setData(response.data);
+    } catch (error: any) {
       console.error('Error loading newborn vocation:', error);
+      // If specific date fails, try to get any available data
+      if (error.response?.status === 404 || error.response?.status === 403) {
+        try {
+          const fallbackResponse = await api.get('/newborn-vocation/today', {
+            params: { client_date: clientToday }
+          });
+          setData(fallbackResponse.data);
+          if (fallbackResponse.data?.date) {
+            setCurrentDate(fallbackResponse.data.date);
+          }
+        } catch (fallbackError) {
+          setData(null);
+        }
+      } else {
+        setData(null);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    load();
+    loadAvailableDates();
+  }, []);
+
+  const goToPreviousDay = () => {
+    // Find the previous available date
+    const sortedDates = [...availableDates].sort().reverse();
+    const previousDate = sortedDates.find(d => d < currentDate && d >= rangeStart);
+    if (previousDate) {
+      setCurrentDate(previousDate);
+    }
+  };
+
+  const goToNextDay = () => {
+    // Find the next available date
+    const sortedDates = [...availableDates].sort();
+    const nextDate = sortedDates.find(d => d > currentDate && d <= rangeEnd);
+    if (nextDate) {
+      setCurrentDate(nextDate);
+    }
   };
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', {
+    const date = new Date(dateStr + 'T12:00:00');
+    const options: Intl.DateTimeFormatOptions = {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    });
+    };
+    
+    // Use language-appropriate locale
+    const localeMap: { [key: string]: string } = {
+      es: 'es-ES',
+      en: 'en-US',
+      fr: 'fr-FR',
+      de: 'de-DE',
+      ro: 'ro-RO',
+    };
+    
+    return date.toLocaleDateString(localeMap[language] || 'es-ES', options);
   };
+
+  const isToday = currentDate === clientToday;
 
   if (loading) {
     return (
@@ -94,8 +212,15 @@ export default function NewbornVocationDetailScreen() {
         </LinearGradient>
         <View style={styles.emptyState}>
           <Ionicons name="star-outline" size={64} color={Colors.textLight} />
-          <Text style={styles.emptyTitle}>Sin información disponible</Text>
-          <Text style={styles.emptyText}>Vuelve más tarde</Text>
+          <Text style={styles.emptyTitle}>
+            {language === 'es' ? 'Sin información disponible' : 'No information available'}
+          </Text>
+          <Text style={styles.emptyText}>
+            {language === 'es' ? 'Vuelve más tarde' : 'Come back later'}
+          </Text>
+          <Text style={styles.debugText}>
+            {language === 'es' ? `Fecha actual: ${clientToday}` : `Current date: ${clientToday}`}
+          </Text>
         </View>
       </View>
     );
@@ -122,13 +247,61 @@ export default function NewbornVocationDetailScreen() {
                 <Ionicons name="star" size={28} color={Colors.jade} />
               </View>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.headerLabel}>{t('home.newborn_vocation')}</Text>
-                <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
+                <Text style={styles.headerLabel}>{t('home.baby_talent')}</Text>
+                <View style={styles.dateRow}>
+                  <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
+                  {isToday && (
+                    <View style={styles.todayBadge}>
+                      <Text style={styles.todayBadgeText}>
+                        {language === 'es' ? 'HOY' : 'TODAY'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
             <Text style={styles.headerTitle}>
               {data.title}
             </Text>
+
+            {/* Navigation Arrows */}
+            {availableDates.length > 1 && (
+              <View style={styles.navigationRow}>
+                <TouchableOpacity
+                  testID="prev-day-button"
+                  style={[styles.navButton, !canGoPrevious && styles.navButtonDisabled]}
+                  onPress={goToPreviousDay}
+                  disabled={!canGoPrevious}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons 
+                    name="chevron-back" 
+                    size={24} 
+                    color={canGoPrevious ? Colors.white : Colors.white + '40'} 
+                  />
+                  <Text style={[styles.navButtonText, !canGoPrevious && styles.navButtonTextDisabled]}>
+                    {language === 'es' ? 'Día Anterior' : 'Previous Day'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  testID="next-day-button"
+                  style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
+                  onPress={goToNextDay}
+                  disabled={!canGoNext}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.navButtonText, !canGoNext && styles.navButtonTextDisabled]}>
+                    {language === 'es' ? 'Día Siguiente' : 'Next Day'}
+                  </Text>
+                  <Ionicons 
+                    name="chevron-forward" 
+                    size={24} 
+                    color={canGoNext ? Colors.white : Colors.white + '40'} 
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -179,6 +352,29 @@ export default function NewbornVocationDetailScreen() {
           </View>
         )}
 
+        {/* Available dates indicator */}
+        {availableDates.length > 0 && (
+          <View style={styles.datesIndicator}>
+            <Text style={styles.datesIndicatorText}>
+              {language === 'es' 
+                ? `${availableDates.length} día${availableDates.length > 1 ? 's' : ''} disponible${availableDates.length > 1 ? 's' : ''}`
+                : `${availableDates.length} day${availableDates.length > 1 ? 's' : ''} available`
+              }
+            </Text>
+            <View style={styles.dotsContainer}>
+              {availableDates.sort().map((date, idx) => (
+                <View 
+                  key={idx} 
+                  style={[
+                    styles.dot,
+                    date === currentDate && styles.dotActive
+                  ]} 
+                />
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </View>
@@ -211,7 +407,13 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
-  header: { paddingBottom: Spacing.xl },
+  debugText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    marginTop: Spacing.md,
+  },
+  header: { paddingBottom: Spacing.lg },
   headerContent: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
@@ -251,6 +453,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 2,
   },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   headerDate: {
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
@@ -258,11 +465,50 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     textTransform: 'capitalize',
   },
+  todayBadge: {
+    backgroundColor: Colors.jade,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  todayBadgeText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.white,
+    letterSpacing: 1,
+  },
   headerTitle: {
     fontFamily: Typography.serifBold,
     fontSize: Typography['2xl'],
     color: Colors.white,
     lineHeight: 32,
+  },
+  // Navigation arrows
+  navigationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.white + '20',
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  navButtonDisabled: {
+    opacity: 0.4,
+  },
+  navButtonText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.white,
+  },
+  navButtonTextDisabled: {
+    color: Colors.white + '60',
   },
   content: {
     padding: Spacing.lg,
@@ -311,5 +557,30 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
     lineHeight: 22,
+  },
+  // Available dates indicator
+  datesIndicator: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+  },
+  datesIndicatorText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textLight,
+    marginBottom: Spacing.sm,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.textLight + '40',
+  },
+  dotActive: {
+    backgroundColor: Colors.accent,
   },
 });

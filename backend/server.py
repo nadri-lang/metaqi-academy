@@ -877,17 +877,33 @@ async def delete_year_energy(
 # ============= NEWBORN VOCATION (Daily general) =============
 
 @api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
-async def get_today_newborn_vocation(lang: str = "es"):
+async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str] = None):
     """
-    Get newborn vocation for today.
+    Get newborn vocation for today (based on client's date).
     User visibility rules:
-    - Can see: Today + 2 previous days
+    - Can see: Client's today + 2 previous days
     - Cannot see: Future dates (hidden even if admin scheduled them)
-    """
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    two_days_ago = (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%d")
     
-    # Query for today or up to 2 days ago (NOT future dates)
+    Args:
+        lang: Language code for translation
+        client_date: Optional client-side date (YYYY-MM-DD) to handle timezone differences
+    """
+    # Use client's date if provided, otherwise use server UTC date
+    if client_date:
+        try:
+            # Validate the date format
+            datetime.strptime(client_date, "%Y-%m-%d")
+            today = client_date
+        except ValueError:
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+    else:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    # Calculate 2 days before the client's "today"
+    today_dt = datetime.strptime(today, "%Y-%m-%d")
+    two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
+    
+    # Query for today or up to 2 days ago (NOT future dates relative to client)
     # First try to get today's vocation
     vocation = await db.newborn_vocation.find_one({"date": today})
     
@@ -908,14 +924,105 @@ async def get_today_newborn_vocation(lang: str = "es"):
     
     return NewbornVocation(**vocation)
 
+@api_router.get("/newborn-vocation/by-date", response_model=NewbornVocation)
+async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date: Optional[str] = None):
+    """
+    Get newborn vocation for a specific date.
+    Only allows access to dates within the 3-day window (client's today + 2 previous days).
+    
+    Args:
+        date: The date to fetch (YYYY-MM-DD)
+        lang: Language code for translation
+        client_date: Client's current date for validation (YYYY-MM-DD)
+    """
+    # Determine the client's "today" for validation
+    if client_date:
+        try:
+            datetime.strptime(client_date, "%Y-%m-%d")
+            today = client_date
+        except ValueError:
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+    else:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    today_dt = datetime.strptime(today, "%Y-%m-%d")
+    two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
+    
+    # Validate requested date is within allowed range
+    if date > today or date < two_days_ago:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Date {date} is outside the allowed range ({two_days_ago} to {today})"
+        )
+    
+    vocation = await db.newborn_vocation.find_one({"date": date})
+    
+    if not vocation:
+        raise HTTPException(status_code=404, detail=f"No newborn vocation for date {date}")
+    
+    # Translate if not Spanish
+    if lang != "es":
+        vocation = await translate_dict(vocation, lang, ["title", "content", "element", "personality", "career_paths"])
+    
+    return NewbornVocation(**vocation)
+
+@api_router.get("/newborn-vocation/available-dates")
+async def get_available_newborn_vocation_dates(client_date: Optional[str] = None):
+    """
+    Get list of available dates within the 3-day window that have content.
+    Useful for frontend navigation arrows.
+    
+    Returns:
+        - available_dates: List of dates with content
+        - today: The client's today date
+        - range_start: First allowed date (2 days ago)
+        - range_end: Last allowed date (today)
+    """
+    # Determine the client's "today"
+    if client_date:
+        try:
+            datetime.strptime(client_date, "%Y-%m-%d")
+            today = client_date
+        except ValueError:
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+    else:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    today_dt = datetime.strptime(today, "%Y-%m-%d")
+    two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
+    
+    # Get all vocations within allowed range
+    vocations = await db.newborn_vocation.find(
+        {"date": {"$gte": two_days_ago, "$lte": today}}
+    ).sort("date", -1).to_list(10)
+    
+    available_dates = [v["date"] for v in vocations]
+    
+    return {
+        "available_dates": available_dates,
+        "today": today,
+        "range_start": two_days_ago,
+        "range_end": today
+    }
+
 @api_router.get("/newborn-vocation/recent", response_model=List[NewbornVocation])
-async def get_recent_newborn_vocations(lang: str = "es"):
+async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[str] = None):
     """
     Get newborn vocations for today and the 2 previous days.
     Useful for displaying recent history to users.
     """
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    two_days_ago = (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%d")
+    # Determine the client's "today"
+    if client_date:
+        try:
+            datetime.strptime(client_date, "%Y-%m-%d")
+            today = client_date
+        except ValueError:
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+    else:
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    today_dt = datetime.strptime(today, "%Y-%m-%d")
+    two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
     
     # Get vocations within allowed range (today - 2 days), excluding future
     vocations = await db.newborn_vocation.find(

@@ -23,7 +23,16 @@ import { useAuth } from '@/src/context/AuthContext';
 export default function AdminNewbornVocationScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // Get today's date in client's timezone
+  const getClientDate = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [date, setDate] = useState(getClientDate());
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [talents, setTalents] = useState('');
@@ -38,14 +47,20 @@ export default function AdminNewbornVocationScreen() {
 
   const loadExisting = async () => {
     try {
-      const response = await api.get('/newborn-vocation/today');
+      const clientDate = getClientDate();
+      const response = await api.get('/newborn-vocation/today', {
+        params: { client_date: clientDate }
+      });
       const data = response.data;
       setExisting(data);
-      setTitle(data.title);
-      setContent(data.content);
-      setTalents(data.talents.join('\n'));
-      setVocations(data.vocations.join('\n'));
-      setChallenges(data.challenges.join('\n'));
+      // Only auto-fill if the existing data is for today's date
+      if (data.date === clientDate) {
+        setTitle(data.title || '');
+        setContent(data.content || '');
+        setTalents(data.talents?.join('\n') || '');
+        setVocations(data.vocations?.join('\n') || '');
+        setChallenges(data.challenges?.join('\n') || '');
+      }
     } catch (error) {
       setExisting(null);
     }
@@ -68,7 +83,7 @@ export default function AdminNewbornVocationScreen() {
         challenges: challenges.split('\n').filter(c => c.trim()),
       };
 
-      await api.post('/newborn-vocation', payload);
+      await api.post('/admin/newborn-vocation', payload);
       Alert.alert('Éxito', 'Vocación del bebé guardada correctamente');
       loadExisting();
     } catch (error: any) {

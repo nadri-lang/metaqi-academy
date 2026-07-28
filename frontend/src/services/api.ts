@@ -11,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token and language
+// Request interceptor to add auth token, language, and client date
 api.interceptors.request.use(
   async (config) => {
     const token = await storage.secureGet('auth_token', null);
@@ -23,10 +23,20 @@ api.interceptors.request.use(
     const savedLanguage = await storage.getItem('app_language', null);
     const currentLang = savedLanguage || Localization.locale?.split('-')[0] || 'es';
     
+    // Get client's local date in YYYY-MM-DD format
+    const getClientDate = (): string => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
     if (config.method === 'get') {
       config.params = {
         ...config.params,
         lang: currentLang,
+        client_date: getClientDate(), // Always send client's local date
       };
     }
     
