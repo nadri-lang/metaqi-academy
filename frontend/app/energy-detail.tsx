@@ -8,7 +8,6 @@ import {
   RefreshControl,
   TouchableOpacity,
   Modal,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -18,8 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
-
-const { width } = Dimensions.get('window');
 
 interface DailyEnergy {
   id: string;
@@ -323,15 +320,11 @@ export default function EnergyDetailScreen() {
           <Text style={styles.description}>{data.content}</Text>
         </View>
 
-        {/* Horizontal Scroll Buttons */}
+        {/* Vertical Buttons List */}
         <Text style={styles.sectionLabel}>
           {language === 'es' ? 'Información del Día' : 'Day Information'}
         </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.buttonsContainer}
-        >
+        <View style={styles.buttonsContainer}>
           {buttons.map((btn) => (
             <TouchableOpacity
               key={btn.id}
@@ -342,12 +335,11 @@ export default function EnergyDetailScreen() {
               <View style={[styles.buttonIconContainer, { backgroundColor: btn.color + '20' }]}>
                 <Ionicons name={btn.icon as any} size={24} color={btn.color} />
               </View>
-              <Text style={styles.buttonLabel} numberOfLines={2}>
-                {btn.label}
-              </Text>
+              <Text style={styles.buttonLabel}>{btn.label}</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
@@ -495,7 +487,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
   },
-  // Horizontal Buttons
+  // Vertical Buttons
   sectionLabel: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
@@ -505,21 +497,17 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   buttonsContainer: {
-    paddingRight: Spacing.lg,
     gap: Spacing.md,
   },
   infoButton: {
-    width: (width - Spacing.lg * 2 - Spacing.md * 2) / 3,
-    minWidth: 100,
-    maxWidth: 120,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
     padding: Spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 100,
+    paddingVertical: Spacing.lg,
   },
   buttonIconContainer: {
     width: 48,
@@ -527,13 +515,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginRight: Spacing.md,
   },
   buttonLabel: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
+    flex: 1,
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
     color: Colors.textPrimary,
-    textAlign: 'center',
   },
   // Modal Styles
   modalOverlay: {
