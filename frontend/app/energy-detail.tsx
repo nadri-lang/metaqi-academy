@@ -35,7 +35,7 @@ interface DailyEnergy {
 
 export default function EnergyDetailScreen() {
   const router = useRouter();
-  const { t, localizeContent } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<DailyEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

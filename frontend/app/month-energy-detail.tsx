@@ -29,7 +29,7 @@ interface MonthEnergy {
 
 export default function MonthEnergyDetailScreen() {
   const router = useRouter();
-  const { t, localizeContent } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<MonthEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

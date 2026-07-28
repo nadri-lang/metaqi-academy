@@ -29,7 +29,7 @@ interface YearEnergy {
 
 export default function YearEnergyDetailScreen() {
   const router = useRouter();
-  const { t, localizeContent } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<YearEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
