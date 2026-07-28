@@ -277,7 +277,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.energyContent}>
               <Text style={styles.energyLabel}>
-                {language === 'es' ? 'Agenda de Bodas del Mes' : 'Monthly Wedding Agenda'}
+                {t('home.wedding_agenda')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />

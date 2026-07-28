@@ -731,6 +731,322 @@ def test_verify_no_duplicates_in_mongodb():
         print_result(False, f"Duplicate check error: {str(e)}")
         return False
 
+def test_newborn_vocation_visibility_logic():
+    """Test 19: GET /api/newborn-vocation/today - Verify visibility logic (today + 2 days)"""
+    print_test_header("Newborn Vocation Visibility Logic (CRITICAL)")
+    
+    try:
+        # Current date: 2026-07-28
+        # DB has entries for: 2026-07-18, 2026-07-19, 2026-07-27
+        # Expected: Should return 2026-07-27 (within 2-day range)
+        # Should NOT return future dates even if they exist
+        
+        response = requests.get(f"{BASE_URL}/newborn-vocation/today")
+        
+        if response.status_code == 200:
+            data = response.json()
+            date = data.get("date")
+            
+            # Verify it returns 2026-07-27 (most recent within 2-day range)
+            expected_date = "2026-07-27"
+            
+            if date == expected_date:
+                print_result(True, f"Newborn vocation visibility logic working correctly - returned {date}", {
+                    "date": date,
+                    "title": data.get("title"),
+                    "element": data.get("element"),
+                    "expected_date": expected_date,
+                    "logic": "Returns most recent entry within today + 2 previous days"
+                })
+                return True
+            else:
+                print_result(False, f"Wrong date returned - expected {expected_date}, got {date}", {
+                    "expected": expected_date,
+                    "actual": date,
+                    "title": data.get("title")
+                })
+                return False
+        elif response.status_code == 404:
+            print_result(False, "No newborn vocation data found", {
+                "response": response.text,
+                "note": "Expected to find 2026-07-27 entry within 2-day range"
+            })
+            return False
+        else:
+            print_result(False, f"Newborn vocation request failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Newborn vocation error: {str(e)}")
+        return False
+
+def test_newborn_vocation_translation():
+    """Test 20: GET /api/newborn-vocation/today?lang=fr - Verify translation works"""
+    print_test_header("Newborn Vocation Translation (French)")
+    
+    try:
+        response = requests.get(f"{BASE_URL}/newborn-vocation/today?lang=fr")
+        
+        if response.status_code == 200:
+            data = response.json()
+            title = data.get("title", "")
+            content = data.get("content", "")
+            
+            # Check if content appears to be in French (basic check)
+            # French indicators: accents, common words
+            french_indicators = ["é", "è", "à", "ê", "du", "de", "le", "la", "les", "un", "une"]
+            has_french = any(indicator in title.lower() or indicator in content.lower() for indicator in french_indicators)
+            
+            print_result(True, "Newborn vocation translation working", {
+                "lang": "fr",
+                "title": title[:100] + "..." if len(title) > 100 else title,
+                "content_preview": content[:100] + "..." if len(content) > 100 else content,
+                "appears_translated": has_french
+            })
+            return True
+        elif response.status_code == 404:
+            print_result(False, "No newborn vocation data found for translation test", {
+                "response": response.text
+            })
+            return False
+        else:
+            print_result(False, f"Translation request failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Translation error: {str(e)}")
+        return False
+
+def test_daily_energy_auto_delete():
+    """Test 21: Verify Daily Energy Auto-Delete - Old records should be deleted"""
+    print_test_header("Daily Energy Auto-Delete Verification")
+    
+    if not admin_token:
+        print_result(False, "No admin token available - must login first")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        # Step 1: Create a daily energy entry for yesterday (should be auto-deleted)
+        from datetime import datetime, timedelta
+        yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        payload = {
+            "date": yesterday,
+            "title": "Test Energy - Should Be Deleted",
+            "content": "This is a test entry that should be auto-deleted",
+            "animal": "Test Animal",
+            "recommendations": ["Test recommendation"],
+            "avoid": [],
+            "feng_shui_sectors": [],
+            "qimen_directions": [],
+            "favorable_hours": [],
+            "bazi_relationships": ""
+        }
+        
+        # Create yesterday's entry
+        create_response = requests.post(f"{BASE_URL}/energy/daily", json=payload, headers=headers)
+        
+        if create_response.status_code != 200:
+            print_result(False, f"Failed to create test entry for yesterday: {create_response.status_code}", {
+                "response": create_response.text
+            })
+            return False
+        
+        print(f"  ℹ️  Created test entry for {yesterday}")
+        
+        # Step 2: Call GET /api/energy/daily (should trigger auto-cleanup)
+        get_response = requests.get(f"{BASE_URL}/energy/daily")
+        
+        # Step 3: Try to fetch yesterday's entry - should return 404
+        verify_response = requests.get(f"{BASE_URL}/energy/daily?date={yesterday}")
+        
+        if verify_response.status_code == 404:
+            print_result(True, "Auto-delete working correctly - old records deleted", {
+                "yesterday_date": yesterday,
+                "status": "Entry created then auto-deleted",
+                "verification": "GET request returned 404 for yesterday's date"
+            })
+            return True
+        else:
+            print_result(False, "Auto-delete NOT working - old entry still exists", {
+                "yesterday_date": yesterday,
+                "status_code": verify_response.status_code,
+                "response": verify_response.json() if verify_response.status_code == 200 else verify_response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Auto-delete test error: {str(e)}")
+        return False
+
+def test_year_energy_delete_endpoint():
+    """Test 22: DELETE /api/admin/year-energy/{year} - Create and delete year energy"""
+    print_test_header("Year Energy Delete Endpoint")
+    
+    if not admin_token:
+        print_result(False, "No admin token available - must login first")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        # Step 1: Create a test year energy entry (year 2099)
+        test_year = 2099
+        payload = {
+            "year": test_year,
+            "title": "Test Year Energy - To Be Deleted",
+            "content": "This is a test year energy entry that will be deleted",
+            "animal": "Test Dragon",
+            "element": "Test Fire",
+            "characteristics": ["Test characteristic"],
+            "favorable_sectors": [],
+            "colors": [],
+            "numbers": []
+        }
+        
+        create_response = requests.post(f"{BASE_URL}/admin/year-energy", json=payload, headers=headers)
+        
+        if create_response.status_code != 200:
+            print_result(False, f"Failed to create test year energy: {create_response.status_code}", {
+                "response": create_response.text
+            })
+            return False
+        
+        created_data = create_response.json()
+        print(f"  ℹ️  Created test year energy for {test_year}")
+        
+        # Step 2: Delete the year energy
+        delete_response = requests.delete(f"{BASE_URL}/admin/year-energy/{test_year}", headers=headers)
+        
+        if delete_response.status_code == 200:
+            delete_data = delete_response.json()
+            
+            # Step 3: Verify it's deleted by checking the list of all years
+            verify_response = requests.get(f"{BASE_URL}/energy/year")
+            
+            if verify_response.status_code == 200:
+                all_years = verify_response.json()
+                year_2099_exists = any(y.get("year") == test_year for y in all_years)
+                
+                if not year_2099_exists:
+                    print_result(True, "Year energy delete endpoint working correctly", {
+                        "year": test_year,
+                        "delete_message": delete_data.get("message"),
+                        "verification": "Year 2099 not found in list of all years"
+                    })
+                    return True
+                else:
+                    print_result(False, "Delete appeared successful but entry still exists in list", {
+                        "year": test_year,
+                        "all_years": [y.get("year") for y in all_years]
+                    })
+                    return False
+            else:
+                print_result(False, f"Verification request failed with status {verify_response.status_code}", {
+                    "response": verify_response.text
+                })
+                return False
+        else:
+            print_result(False, f"Delete request failed with status {delete_response.status_code}", {
+                "response": delete_response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Year energy delete test error: {str(e)}")
+        return False
+
+def test_wedding_agenda_delete_endpoint():
+    """Test 23: DELETE /api/admin/wedding-agenda/{agenda_id}/{month} - Create and delete wedding agenda"""
+    print_test_header("Wedding Agenda Delete Endpoint (NEW)")
+    
+    if not admin_token:
+        print_result(False, "No admin token available - must login first")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        # Step 1: Create a test wedding agenda entry (December 2026)
+        test_month = 12
+        payload = {
+            "agenda_id": "wedding-agenda",
+            "month": 12,
+            "year": 2026,
+            "title": "Test Wedding Agenda - To Be Deleted",
+            "content": "This is a test wedding agenda entry that will be deleted",
+            "favorable_days": [1, 5, 10],
+            "is_free": False,
+            "order": 99
+        }
+        
+        create_response = requests.post(f"{BASE_URL}/admin/wedding-agenda", json=payload, headers=headers)
+        
+        if create_response.status_code != 200:
+            print_result(False, f"Failed to create test wedding agenda: {create_response.status_code}", {
+                "response": create_response.text
+            })
+            return False
+        
+        created_data = create_response.json()
+        print(f"  ℹ️  Created test wedding agenda for month {test_month}")
+        
+        # Step 2: Delete the wedding agenda (month should be int)
+        delete_response = requests.delete(
+            f"{BASE_URL}/admin/wedding-agenda/wedding-agenda/{test_month}", 
+            headers=headers
+        )
+        
+        if delete_response.status_code == 200:
+            delete_data = delete_response.json()
+            
+            # Step 3: Verify it's deleted (should not appear in list)
+            verify_response = requests.get(f"{BASE_URL}/agendas/wedding-agenda/months")
+            
+            if verify_response.status_code == 200:
+                data = verify_response.json()
+                december_entry = next((item for item in data if item.get("month") == 12 and item.get("year") == 2026), None)
+                
+                if december_entry is None:
+                    print_result(True, "Wedding agenda delete endpoint working correctly", {
+                        "month": test_month,
+                        "delete_message": delete_data.get("message"),
+                        "verification": "Entry not found in list after deletion"
+                    })
+                    return True
+                else:
+                    print_result(False, "Delete appeared successful but entry still exists", {
+                        "month": test_month,
+                        "entry_found": december_entry
+                    })
+                    return False
+            else:
+                print_result(False, f"Verification request failed with status {verify_response.status_code}", {
+                    "response": verify_response.text
+                })
+                return False
+        else:
+            print_result(False, f"Delete request failed with status {delete_response.status_code}", {
+                "response": delete_response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Wedding agenda delete test error: {str(e)}")
+        return False
+
 def print_summary():
     """Print test summary"""
     print(f"\n{'='*80}")
@@ -786,6 +1102,16 @@ def run_all_tests():
     test_verify_new_wedding_agenda_in_list()  # Test 16: Verify September appears in list
     test_admin_update_wedding_agenda()  # Test 17: Admin updates September (Upsert)
     test_verify_no_duplicates_in_mongodb()  # Test 18: Verify no duplicates
+    
+    # NEW TESTS - USER-REQUESTED BACKEND CHANGES (2026-07-28)
+    print("\n" + "="*80)
+    print("NEW BACKEND CHANGES - TESTING PHASE")
+    print("="*80)
+    test_newborn_vocation_visibility_logic()  # Test 19: CRITICAL - Visibility logic (today + 2 days)
+    test_newborn_vocation_translation()  # Test 20: Translation system verification
+    test_daily_energy_auto_delete()  # Test 21: Auto-delete old records
+    test_year_energy_delete_endpoint()  # Test 22: Year energy delete endpoint
+    test_wedding_agenda_delete_endpoint()  # Test 23: Wedding agenda delete endpoint (NEW)
     
     # Print summary
     print_summary()

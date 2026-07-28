@@ -28,6 +28,8 @@ export default {
     wedding_agenda_full_subtitle: 'Accédez à l\'année complète',
     view_details: 'Voir les détails',
     newborn_vocation: 'Vocation du Bébé Né Aujourd\'hui',
+    baby_talent: 'Les Talents du Bébé Né Aujourd\'hui',
+    baby_talent_subtitle: 'Découvrez le potentiel unique',
     newborn_vocation_subtitle: 'Découvrez le destin du bébé d\'aujourd\'hui',
     personalized_reading: 'Lecture Personnalisée',
     personalized_reading_subtitle: 'Demandez une analyse complète',
@@ -39,6 +41,8 @@ export default {
     personalized_analysis: 'Analyse personnalisée de votre bébé',
     natural_talents: 'Talents naturels',
     favorable_vocations: 'Vocations favorables',
+    free_content: 'Contenu Gratuit',
+    free_monthly_content: 'Contenu Gratuit du Mois',
   },
   daily: {
     title: 'Énergie du Jour',

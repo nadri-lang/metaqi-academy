@@ -28,7 +28,7 @@ export default {
     wedding_agenda_full_subtitle: 'Accede al año completo',
     view_details: 'Ver detalles',
     newborn_vocation: 'Vocación del Bebé Nacido Hoy',
-    baby_talent: 'Talento del Bebé',
+    baby_talent: 'Los Talentos del Bebé Nacido Hoy',
     baby_talent_subtitle: 'Descubre el potencial único',
     newborn_vocation_button: 'Vocación del Bebé',
     newborn_vocation_subtitle: 'Descubre el destino del bebé de hoy',
@@ -42,6 +42,8 @@ export default {
     personalized_analysis: 'Análisis personalizado de tu bebé',
     natural_talents: 'Talentos naturales',
     favorable_vocations: 'Vocaciones favorables',
+    free_content: 'Contenido Gratuito',
+    free_monthly_content: 'Contenido Gratuito del Mes',
   },
   daily: {
     title: 'Energía del Día',

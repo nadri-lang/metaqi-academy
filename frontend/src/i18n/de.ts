@@ -28,6 +28,8 @@ export default {
     wedding_agenda_full_subtitle: 'Zugriff auf das ganze Jahr',
     view_details: 'Details anzeigen',
     newborn_vocation: 'Berufung des heute geborenen Babys',
+    baby_talent: 'Die Talente des heute geborenen Babys',
+    baby_talent_subtitle: 'Entdecken Sie einzigartiges Potenzial',
     newborn_vocation_subtitle: 'Entdecken Sie das Schicksal des heutigen Babys',
     personalized_reading: 'Personalisierte Lesung',
     personalized_reading_subtitle: 'Fordern Sie eine vollständige Analyse an',
@@ -39,6 +41,8 @@ export default {
     personalized_analysis: 'Personalisierte Analyse Ihres Babys',
     natural_talents: 'Natürliche Talente',
     favorable_vocations: 'Günstige Berufe',
+    free_content: 'Kostenloser Inhalt',
+    free_monthly_content: 'Kostenloser Monatsinhalt',
   },
   daily: {
     title: 'Tagesenergie',

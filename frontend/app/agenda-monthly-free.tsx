@@ -82,10 +82,10 @@ export default function AgendaMonthlyFreeScreen() {
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>
-                  {language === 'es' ? 'Agenda de Bodas del Mes' : 'Monthly Wedding Agenda'}
+                  {t('home.wedding_agenda')}
                 </Text>
                 <Text style={styles.headerSubtitle}>
-                  {language === 'es' ? 'Contenido Gratuito' : 'Free Content'}
+                  {t('home.free_content')}
                 </Text>
               </View>
             </View>
@@ -104,7 +104,7 @@ export default function AgendaMonthlyFreeScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.accent} />
             <Text style={styles.loadingText}>
-              {language === 'es' ? 'Cargando...' : 'Loading...'}
+              {t('common.loading')}
             </Text>
           </View>
         ) : data ? (
@@ -112,7 +112,7 @@ export default function AgendaMonthlyFreeScreen() {
             <View style={styles.freeBanner}>
               <Ionicons name="gift-outline" size={24} color={Colors.accent} />
               <Text style={styles.freeBannerText}>
-                {language === 'es' ? 'Contenido Gratuito del Mes' : 'Free Monthly Content'}
+                {t('home.free_monthly_content')}
               </Text>
             </View>
 

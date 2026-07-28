@@ -28,6 +28,8 @@ export default {
     wedding_agenda_full_subtitle: 'Accesează anul complet',
     view_details: 'Vezi detalii',
     newborn_vocation: 'Vocația Bebelușului Născut Astăzi',
+    baby_talent: 'Talentele Bebelușului Născut Astăzi',
+    baby_talent_subtitle: 'Descoperă potențialul unic',
     newborn_vocation_subtitle: 'Descoperă destinul bebelușului de astăzi',
     personalized_reading: 'Lectură Personalizată',
     personalized_reading_subtitle: 'Solicită o analiză completă',
@@ -39,6 +41,8 @@ export default {
     personalized_analysis: 'Analiză personalizată a bebelușului tău',
     natural_talents: 'Talente naturale',
     favorable_vocations: 'Vocații favorabile',
+    free_content: 'Conținut Gratuit',
+    free_monthly_content: 'Conținut Gratuit al Lunii',
   },
   daily: {
     title: 'Energia Zilei',

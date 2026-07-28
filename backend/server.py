@@ -118,8 +118,16 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/energy/daily", response_model=DailyEnergy)
 async def get_daily_energy(date: Optional[str] = None, lang: str = "es"):
+    """
+    Get daily energy for today only.
+    Auto-cleanup: Old daily energy records are automatically deleted.
+    User can ONLY see current day's content - no history.
+    """
     if not date:
         date = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    # Auto-cleanup old records before fetching
+    await auto_cleanup_old_daily_energy()
     
     energy = await db.daily_energy.find_one({"date": date})
     if not energy:
@@ -178,15 +186,26 @@ async def create_daily_energy(
 async def cleanup_old_daily_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Delete all daily energy records with dates older than yesterday"""
-    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    """Delete all daily energy records with dates older than today (manual trigger)"""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
     
-    result = await db.daily_energy.delete_many({"date": {"$lt": yesterday}})
+    result = await db.daily_energy.delete_many({"date": {"$lt": today}})
     
     return {
         "message": f"Deleted {result.deleted_count} old daily energy records",
         "deleted_count": result.deleted_count
     }
+
+async def auto_cleanup_old_daily_energy():
+    """
+    Automatic cleanup: Delete daily energy records from yesterday and before.
+    Called at midnight (00:00) - user only sees current day's content.
+    No history is kept for Daily Energy.
+    """
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    result = await db.daily_energy.delete_many({"date": {"$lt": today}})
+    if result.deleted_count > 0:
+        logger.info(f"Auto-cleanup: Deleted {result.deleted_count} old daily energy records")
 
 @api_router.delete("/admin/cleanup/old-month-energy")
 async def cleanup_old_month_energy(
@@ -859,10 +878,29 @@ async def delete_year_energy(
 
 @api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
 async def get_today_newborn_vocation(lang: str = "es"):
+    """
+    Get newborn vocation for today.
+    User visibility rules:
+    - Can see: Today + 2 previous days
+    - Cannot see: Future dates (hidden even if admin scheduled them)
+    """
     today = datetime.utcnow().strftime("%Y-%m-%d")
+    two_days_ago = (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%d")
+    
+    # Query for today or up to 2 days ago (NOT future dates)
+    # First try to get today's vocation
     vocation = await db.newborn_vocation.find_one({"date": today})
+    
     if not vocation:
-        raise HTTPException(status_code=404, detail="No newborn vocation for today")
+        # Fallback: get the most recent vocation within the allowed range (today - 2 days)
+        # But NEVER show future dates
+        vocation = await db.newborn_vocation.find_one(
+            {"date": {"$gte": two_days_ago, "$lte": today}},
+            sort=[("date", -1)]  # Most recent first
+        )
+    
+    if not vocation:
+        raise HTTPException(status_code=404, detail="No newborn vocation available")
     
     # Translate if not Spanish
     if lang != "es":
@@ -870,11 +908,35 @@ async def get_today_newborn_vocation(lang: str = "es"):
     
     return NewbornVocation(**vocation)
 
+@api_router.get("/newborn-vocation/recent", response_model=List[NewbornVocation])
+async def get_recent_newborn_vocations(lang: str = "es"):
+    """
+    Get newborn vocations for today and the 2 previous days.
+    Useful for displaying recent history to users.
+    """
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    two_days_ago = (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%d")
+    
+    # Get vocations within allowed range (today - 2 days), excluding future
+    vocations = await db.newborn_vocation.find(
+        {"date": {"$gte": two_days_ago, "$lte": today}}
+    ).sort("date", -1).to_list(3)
+    
+    # Translate if not Spanish
+    if lang != "es":
+        vocations = await translate_list_of_dicts(vocations, lang, ["title", "content", "element", "personality", "career_paths"])
+    
+    return [NewbornVocation(**v) for v in vocations]
+
 @api_router.post("/admin/newborn-vocation", response_model=NewbornVocation)
 async def create_newborn_vocation(
     vocation_data: NewbornVocationCreate,
     current_user: dict = Depends(get_current_admin_user)
 ):
+    """
+    Admin can create/update vocations for any date (including future dates for scheduling).
+    However, users will only see today + 2 previous days.
+    """
     vocation_dict = vocation_data.model_dump()
     
     # Check if already exists for this date
@@ -944,6 +1006,21 @@ async def create_wedding_agenda(
         await db.agenda_months.insert_one(month_dict)
     
     return AgendaMonth(**month_dict)
+
+@api_router.delete("/admin/wedding-agenda/{agenda_id}/{month}")
+async def delete_wedding_agenda(
+    agenda_id: str,
+    month: int,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a specific wedding agenda entry. Admin only."""
+    result = await db.agenda_months.delete_one({
+        "agenda_id": agenda_id,
+        "month": month
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Wedding agenda entry not found")
+    return {"message": f"Wedding agenda for {month} deleted successfully"}
 
 # ============= FAQ =============
 

@@ -22,6 +22,7 @@ import api from '@/src/services/api';
 export default function WeddingAgendaAdminScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   // Form state
   const [month, setMonth] = useState('');
@@ -64,6 +65,44 @@ export default function WeddingAgendaAdminScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = () => {
+    if (!month) {
+      Alert.alert('Error', 'Selecciona un mes primero');
+      return;
+    }
+
+    Alert.alert(
+      '⚠️ Confirmar Eliminación',
+      `¿Estás seguro de que quieres eliminar la Agenda de Bodas (Mes ${month})? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await api.delete(`/admin/wedding-agenda/wedding-agenda/${month}`);
+              Alert.alert('Éxito', 'Contenido eliminado correctamente');
+              // Clear form
+              setMonth('');
+              setYear('');
+              setTitleEs('');
+              setTitleEn('');
+              setContentEs('');
+              setContentEn('');
+              setFavorableDays('');
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -193,6 +232,22 @@ export default function WeddingAgendaAdminScreen() {
               </>
             )}
           </TouchableOpacity>
+
+          {/* Delete Button */}
+          <TouchableOpacity
+            style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+            onPress={handleDelete}
+            disabled={deleting || !month}
+          >
+            {deleting ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <>
+                <Ionicons name="trash" size={20} color={Colors.white} />
+                <Text style={styles.deleteButtonText}>Eliminar Contenido Actual</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Extra space at bottom for button visibility */}
@@ -270,7 +325,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     gap: Spacing.sm,
     marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
   },
   submitButtonDisabled: {
     opacity: 0.6,
@@ -279,5 +333,24 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DC2626',
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  deleteButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
 });
