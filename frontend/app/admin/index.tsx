@@ -66,6 +66,13 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-concepts',
   },
   {
+    title: 'Configuración de la App',
+    description: 'Email, WhatsApp, textos promocionales',
+    icon: 'settings',
+    route: '/admin/app-config',
+    testID: 'admin-app-config',
+  },
+  {
     title: 'Cursos',
     description: 'Gestionar cursos y lecciones',
     icon: 'school',
