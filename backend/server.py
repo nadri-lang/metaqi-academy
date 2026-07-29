@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 from datetime import datetime, timedelta
 import uuid
+import re
 
 from models import (
     UserCreate, UserResponse, Token, LoginRequest,
@@ -755,7 +756,56 @@ async def create_concept(
     await db.concepts.insert_one(concept_dict)
     return Concept(**concept_dict)
 
+@api_router.put("/concepts/{concept_id}", response_model=Concept)
+async def update_concept(
+    concept_id: str,
+    concept_data: ConceptCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update an existing concept (BaZi, Qi Men, TongShu, etc.)"""
+    # Find the existing concept
+    existing = await db.concepts.find_one({"id": concept_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Concept not found")
+    
+    # Update the concept
+    concept_dict = concept_data.model_dump()
+    concept_dict["id"] = concept_id  # Keep the same ID
+    
+    result = await db.concepts.update_one(
+        {"id": concept_id},
+        {"$set": concept_dict}
+    )
+    
+    if result.modified_count == 0 and result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Concept not found")
+    
+    # Return the updated concept
+    updated_concept = await db.concepts.find_one({"id": concept_id})
+    return Concept(**updated_concept)
+
+@api_router.delete("/concepts/{concept_id}")
+async def delete_concept(
+    concept_id: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a concept"""
+    result = await db.concepts.delete_one({"id": concept_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Concept not found")
+    return {"message": "Concept deleted successfully"}
+
 # ============= MONTH ENERGY =============
+
+def normalize_month_key(raw: str) -> str:
+    """Canonicalize a month key to YYYY-MM so formatting drift (e.g. "2026 - 08"
+    vs "2026-08") can never defeat the upsert match in create_month_energy and
+    silently create a duplicate row instead of updating the existing one."""
+    m = re.match(r'\s*(\d{4})\s*-\s*(\d{1,2})\s*$', raw)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}"
+    return raw.strip()
+
 
 @api_router.get("/energy/month", response_model=MonthEnergy)
 async def get_month_energy(lang: str = "es"):
@@ -777,16 +827,18 @@ async def create_month_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     energy_dict = energy_data.model_dump()
+    normalized_month = normalize_month_key(energy_data.month)
+    energy_dict["month"] = normalized_month
     
-    # Check if already exists for this month
-    existing = await db.month_energy.find_one({"month": energy_data.month})
+    # Check if already exists for this month (normalized key)
+    existing = await db.month_energy.find_one({"month": normalized_month})
     
     if existing:
         # Update existing entry
         energy_dict["id"] = existing["id"]
         energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
         await db.month_energy.update_one(
-            {"month": energy_data.month},
+            {"month": normalized_month},
             {"$set": energy_dict}
         )
     else:
@@ -805,7 +857,7 @@ async def delete_month_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     """Delete a specific month energy entry. Admin only."""
-    result = await db.month_energy.delete_one({"month": month})
+    result = await db.month_energy.delete_one({"month": normalize_month_key(month)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Month energy not found")
     return {"message": f"Month energy for {month} deleted successfully"}
