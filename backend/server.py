@@ -34,6 +34,7 @@ from models import (
     AgendaMonth, AgendaMonthCreate,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
+    Purchase, PurchaseCreate, PurchaseUpdate,
 )
 from auth import (
     get_password_hash, 
@@ -1212,6 +1213,54 @@ async def create_faq_item(
     item_dict["id"] = str(uuid.uuid4())
     await db.faq_items.insert_one(item_dict)
     return FAQItem(**item_dict)
+
+# ============= PURCHASES / MIS COMPRAS =============
+
+@api_router.get("/purchases/my-purchases", response_model=List[Purchase])
+async def get_my_purchases(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all purchases for the authenticated user (activated courses with video links)"""
+    purchases = await db.purchases.find({
+        "user_id": current_user["id"],
+        "status": "activated"  # Only show activated purchases
+    }).sort("purchased_at", -1).to_list(100)
+    
+    return [Purchase(**p) for p in purchases]
+
+@api_router.get("/admin/purchases", response_model=List[Purchase])
+async def get_all_purchases(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Admin: Get all purchases (pending and activated)"""
+    purchases = await db.purchases.find().sort("purchased_at", -1).to_list(1000)
+    return [Purchase(**p) for p in purchases]
+
+@api_router.put("/admin/purchases/{purchase_id}", response_model=Purchase)
+async def update_purchase(
+    purchase_id: str,
+    update_data: PurchaseUpdate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Admin: Update purchase (activate and add video URL)"""
+    existing = await db.purchases.find_one({"id": purchase_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    
+    # If activating, set activated_at and activated_by
+    if update_data.status == "activated":
+        update_dict["activated_at"] = datetime.utcnow()
+        update_dict["activated_by"] = current_user["id"]
+    
+    await db.purchases.update_one(
+        {"id": purchase_id},
+        {"$set": update_dict}
+    )
+    
+    updated_purchase = await db.purchases.find_one({"id": purchase_id})
+    return Purchase(**updated_purchase)
 
 # ============= APP CONFIGURATION =============
 

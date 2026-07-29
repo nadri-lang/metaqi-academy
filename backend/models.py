@@ -623,6 +623,7 @@ class Purchase(BaseModel):
     payment_method: str  # "bizum", "revolut", "paypal"
     payment_proof: Optional[str] = None  # URL o base64 del comprobante
     status: PaymentStatus = PaymentStatus.PENDING
+    video_url: Optional[str] = None  # URL del vídeo del curso (admin lo añade)
     metadata: Dict[str, Any] = {}
     purchased_at: datetime = Field(default_factory=datetime.utcnow)
     activated_at: Optional[datetime] = None
@@ -635,6 +636,7 @@ class PurchaseCreate(BaseModel):
 
 class PurchaseUpdate(BaseModel):
     status: Optional[PaymentStatus] = None
+    video_url: Optional[str] = None
     activated_at: Optional[datetime] = None
     activated_by: Optional[str] = None
 
