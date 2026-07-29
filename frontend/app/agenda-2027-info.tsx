@@ -200,8 +200,8 @@ export default function WeddingAgenda2027Screen() {
                     
                     <Text style={styles.modalDescription}>
                       {language === 'es'
-                        ? `Esta es una agenda personalizada con los días favorables para ceremonias de unión para el trimestre ${selectedQuarter.datesEs}.`
-                        : `This is a personalized agenda with favorable days for union ceremonies for the quarter ${selectedQuarter.datesEn}.`}
+                        ? 'Esta agenda contiene una selección exclusiva de los días más favorables de este trimestre para elegir la fecha de tu boda, una ceremonia de unión, una petición de mano, un compromiso o una declaración de amor. Todas las fechas han sido seleccionadas según los principios de la metafísica china para ayudarte a escoger el momento más propicio.'
+                        : 'This agenda contains an exclusive selection of the most favorable days of this quarter to choose the date for your wedding, a union ceremony, a marriage proposal, an engagement or a declaration of love. All dates have been selected according to the principles of Chinese metaphysics to help you choose the most propitious moment.'}
                     </Text>
 
                     {/* Features */}
