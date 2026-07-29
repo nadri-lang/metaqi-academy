@@ -41,7 +41,10 @@ export default function WeddingAgendaDetailScreen() {
 
   const loadAgenda = async () => {
     try {
-      const response = await api.get('/agendas/wedding-agenda/months');
+      // Obtener solo contenido DE PAGO (is_free=false)
+      const response = await api.get('/agendas/wedding-agenda/months', {
+        params: { is_free: false }
+      });
       if (response.data && Array.isArray(response.data)) {
         setMonths(response.data);
       }

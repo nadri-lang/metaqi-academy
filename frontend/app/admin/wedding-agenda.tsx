@@ -32,6 +32,7 @@ export default function WeddingAgendaAdminScreen() {
   const [contentEs, setContentEs] = useState('');
   const [contentEn, setContentEn] = useState('');
   const [favorableDays, setFavorableDays] = useState('');
+  const [isFree, setIsFree] = useState(true);  // TRUE = Gratis (HOME), FALSE = Pago (SERVICIOS)
 
   const handleSubmit = async () => {
     if (!month || !year || !titleEs || !contentEs) {
@@ -50,7 +51,7 @@ export default function WeddingAgendaAdminScreen() {
         content: contentEs,
         content_en: contentEn || contentEs,
         favorable_days: favorableDays.split(',').map(d => d.trim()).filter(d => d),
-        is_free: false,
+        is_free: isFree,  // Añadir el campo is_free
       };
 
       await api.post('/admin/wedding-agenda', data);
@@ -179,6 +180,34 @@ export default function WeddingAgendaAdminScreen() {
               placeholder="Weddings in January 2027"
               placeholderTextColor={Colors.textLight}
             />
+          </View>
+
+          {/* Selector de tipo: Gratis o Pago */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Tipo de Contenido *</Text>
+            <View style={styles.radioGroup}>
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setIsFree(true)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.radio}>
+                  {isFree && <View style={styles.radioSelected} />}
+                </View>
+                <Text style={styles.radioLabel}>Gratis (aparece en HOME)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setIsFree(false)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.radio}>
+                  {!isFree && <View style={styles.radioSelected} />}
+                </View>
+                <Text style={styles.radioLabel}>Pago (aparece en SERVICIOS)</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.field}>
@@ -315,6 +344,34 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  radioGroup: {
+    gap: Spacing.md,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioSelected: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.accent,
+  },
+  radioLabel: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
   },
   submitButton: {
     flexDirection: 'row',

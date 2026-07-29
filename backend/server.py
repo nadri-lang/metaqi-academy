@@ -1122,8 +1122,22 @@ async def create_newborn_vocation(
 # ============= AGENDA MONTHS (Content sections per month) =============
 
 @api_router.get("/agendas/{agenda_id}/months", response_model=List[AgendaMonth])
-async def get_agenda_months(agenda_id: str, lang: str = "es"):
-    months = await db.agenda_months.find({"agenda_id": agenda_id}).sort("order", 1).to_list(100)
+async def get_agenda_months(
+    agenda_id: str, 
+    lang: str = "es",
+    is_free: Optional[bool] = None
+):
+    """
+    Get agenda months, optionally filtered by is_free status.
+    - is_free=true: Only free content (for HOME screen)
+    - is_free=false: Only paid content (for SERVICIOS screen)
+    - is_free=None: All content (admin use)
+    """
+    query = {"agenda_id": agenda_id}
+    if is_free is not None:
+        query["is_free"] = is_free
+    
+    months = await db.agenda_months.find(query).sort("order", 1).to_list(100)
     
     # Translate if not Spanish
     if lang != "es":

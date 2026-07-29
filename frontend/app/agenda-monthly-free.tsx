@@ -39,8 +39,10 @@ export default function AgendaMonthlyFreeScreen() {
 
   const loadData = async () => {
     try {
-      // Obtener el mes actual
-      const response = await api.get('/agendas/wedding-agenda/months');
+      // Obtener solo contenido GRATUITO (is_free=true)
+      const response = await api.get('/agendas/wedding-agenda/months', {
+        params: { is_free: true }
+      });
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         // Tomar el primer mes disponible como contenido gratuito
         setData(response.data[0]);

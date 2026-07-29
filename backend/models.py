@@ -528,6 +528,7 @@ class AgendaMonth(BaseModel):
     content: str  # Main content for the month
     events: List[Dict[str, Any]] = []  # List of events/dates with details
     order: int = 0
+    is_free: bool = True  # True = gratis (HOME), False = pago (SERVICIOS)
 
 class AgendaMonthCreate(BaseModel):
     agenda_id: str
@@ -537,6 +538,7 @@ class AgendaMonthCreate(BaseModel):
     content: str
     events: List[Dict[str, Any]] = []
     order: int = 0
+    is_free: bool = True  # True = gratis, False = pago
 
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):
