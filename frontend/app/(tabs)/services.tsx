@@ -113,7 +113,7 @@ export default function ServicesScreen() {
             <TouchableOpacity
               testID="wedding-agenda-purchase-btn"
               style={styles.specialButton}
-              onPress={() => router.push('/wedding-agenda-detail')}
+              onPress={() => router.push('/agenda-2027-info')}
             >
               <Text style={styles.specialButtonText}>Ver Detalles</Text>
               <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
