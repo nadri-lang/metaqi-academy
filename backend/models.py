@@ -637,3 +637,32 @@ class PurchaseUpdate(BaseModel):
     status: Optional[PaymentStatus] = None
     activated_at: Optional[datetime] = None
     activated_by: Optional[str] = None
+
+# App Configuration Models
+class AppConfig(BaseModel):
+    """
+    Global app configuration for editable content like contact info, 
+    promotional texts, etc.
+    """
+    id: str = "app_config"  # Singleton - only one config document
+    # Contact Information
+    contact_email: str = "nnikholk@gmail.com"
+    contact_whatsapp: str = "34640510085"
+    
+    # Wedding Agenda 2027 - Promotional Texts
+    agenda_2027_title_es: str = "AGENDA DE BODAS 2027"
+    agenda_2027_title_en: str = "WEDDING AGENDA 2027"
+    agenda_2027_description_es: str = "Se muestran solo los mejores días para bodas, ceremonias y pedidas de mano, evaluados según Feng Shui, BaZi y Qi Men Dun Jia."
+    agenda_2027_description_en: str = "Only the best days for weddings, ceremonies and marriage proposals are shown, evaluated according to Feng Shui, BaZi and Qi Men Dun Jia."
+    
+    # Other configurable texts can be added here
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class AppConfigUpdate(BaseModel):
+    """Fields that can be updated in app configuration"""
+    contact_email: Optional[str] = None
+    contact_whatsapp: Optional[str] = None
+    agenda_2027_title_es: Optional[str] = None
+    agenda_2027_title_en: Optional[str] = None
+    agenda_2027_description_es: Optional[str] = None
+    agenda_2027_description_en: Optional[str] = None

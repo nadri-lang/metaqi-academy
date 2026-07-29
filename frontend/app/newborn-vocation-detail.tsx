@@ -242,27 +242,22 @@ export default function NewbornVocationDetailScreen() {
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
             
-            <View style={styles.iconRow}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="star" size={28} color={Colors.jade} />
-              </View>
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.headerLabel}>{t('home.baby_talent')}</Text>
-                <View style={styles.dateRow}>
-                  <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
-                  {isToday && (
-                    <View style={styles.todayBadge}>
-                      <Text style={styles.todayBadgeText}>
-                        {language === 'es' ? 'HOY' : 'TODAY'}
-                      </Text>
-                    </View>
-                  )}
+            {/* SIMPLIFIED HEADER - Single title with date */}
+            <View style={styles.simplifiedHeader}>
+              <Text style={styles.simplifiedTitle}>
+                {language === 'es' 
+                  ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
+                  : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
+                }
+              </Text>
+              {isToday && (
+                <View style={styles.todayBadge}>
+                  <Text style={styles.todayBadgeText}>
+                    {language === 'es' ? 'HOY' : 'TODAY'}
+                  </Text>
                 </View>
-              </View>
+              )}
             </View>
-            <Text style={styles.headerTitle}>
-              {data.title}
-            </Text>
 
             {/* Navigation Arrows */}
             {availableDates.length > 1 && (
@@ -429,6 +424,20 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.white,
+  },
+  // Simplified Header for Baby Vocation
+  simplifiedHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: Spacing.lg,
+  },
+  simplifiedTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.white,
+    textAlign: 'center',
+    lineHeight: 28,
+    marginBottom: Spacing.sm,
   },
   iconRow: {
     flexDirection: 'row',

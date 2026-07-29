@@ -81,20 +81,17 @@ export default function Agenda2027InfoScreen() {
         {/* Qué incluye */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>
-            {language === 'es' ? '¿Qué incluye la Agenda 2027?' : 'What\'s included in the 2027 Agenda?'}
+            {language === 'es' ? 'AGENDA DE BODAS 2027' : 'WEDDING AGENDA 2027'}
           </Text>
 
           <View style={styles.featuresList}>
             <View style={styles.featureItem}>
               <Ionicons name="calendar" size={24} color={Colors.accent} />
               <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>
-                  {language === 'es' ? '365 Días Analizados' : '365 Days Analyzed'}
-                </Text>
                 <Text style={styles.featureDesc}>
                   {language === 'es'
-                    ? 'Todos los días del año 2027 evaluados según Feng Shui, BaZi y Qi Men Dun Jia'
-                    : 'All days of 2027 evaluated according to Feng Shui, BaZi and Qi Men Dun Jia'}
+                    ? 'Se muestran solo los mejores días para bodas, ceremonias y pedidas de mano, evaluados según Feng Shui, BaZi y Qi Men Dun Jia.'
+                    : 'Only the best days for weddings, ceremonies and marriage proposals are shown, evaluated according to Feng Shui, BaZi and Qi Men Dun Jia.'}
                 </Text>
               </View>
             </View>
@@ -123,20 +120,6 @@ export default function Agenda2027InfoScreen() {
                   {language === 'es'
                     ? 'Orientaciones ideales para ceremonias y celebraciones según Qi Men'
                     : 'Ideal orientations for ceremonies and celebrations according to Qi Men'}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.featureItem}>
-              <Ionicons name="book" size={24} color={Colors.accent} />
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>
-                  {language === 'es' ? 'Guía Completa' : 'Complete Guide'}
-                </Text>
-                <Text style={styles.featureDesc}>
-                  {language === 'es'
-                    ? 'Recomendaciones detalladas para cada mes del año'
-                    : 'Detailed recommendations for each month of the year'}
                 </Text>
               </View>
             </View>

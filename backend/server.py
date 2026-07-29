@@ -33,6 +33,7 @@ from models import (
     Concept, ConceptCreate,
     AgendaMonth, AgendaMonthCreate,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
+    AppConfig, AppConfigUpdate,
 )
 from auth import (
     get_password_hash, 
@@ -1211,6 +1212,47 @@ async def create_faq_item(
     item_dict["id"] = str(uuid.uuid4())
     await db.faq_items.insert_one(item_dict)
     return FAQItem(**item_dict)
+
+# ============= APP CONFIGURATION =============
+
+@api_router.get("/app-config", response_model=AppConfig)
+async def get_app_config():
+    """Get app configuration (public endpoint for contact info and promotional texts)"""
+    config = await db.app_config.find_one({"id": "app_config"})
+    if not config:
+        # Return default config if not found
+        default_config = AppConfig()
+        await db.app_config.insert_one(default_config.model_dump())
+        return default_config
+    return AppConfig(**config)
+
+@api_router.put("/admin/app-config", response_model=AppConfig)
+async def update_app_config(
+    config_data: AppConfigUpdate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update app configuration (admin only)"""
+    # Get existing config or create default
+    existing = await db.app_config.find_one({"id": "app_config"})
+    if not existing:
+        # Create default config
+        default_config = AppConfig()
+        await db.app_config.insert_one(default_config.model_dump())
+        existing = default_config.model_dump()
+    
+    # Update only provided fields
+    update_dict = {k: v for k, v in config_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.utcnow()
+    
+    if update_dict:
+        await db.app_config.update_one(
+            {"id": "app_config"},
+            {"$set": update_dict}
+        )
+    
+    # Return updated config
+    updated_config = await db.app_config.find_one({"id": "app_config"})
+    return AppConfig(**updated_config)
 
 # Include router
 app.include_router(api_router)

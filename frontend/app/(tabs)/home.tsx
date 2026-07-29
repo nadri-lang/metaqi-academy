@@ -250,17 +250,19 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <TouchableOpacity
             testID="month-energy-button"
-            style={styles.energyButton}
+            style={styles.styledEnergyButton}
             onPress={() => router.push('/month-energy-detail')}
             activeOpacity={0.85}
           >
-            <View style={styles.energyIconContainer}>
-              <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+            <View style={styles.styledEnergyContainer}>
+              <View style={styles.energyIconContainer}>
+                <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+              </View>
+              <View style={styles.energyContent}>
+                <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
             </View>
-            <View style={styles.energyContent}>
-              <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
 
@@ -268,19 +270,21 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <TouchableOpacity
             testID="wedding-agenda-button"
-            style={styles.energyCard}
+            style={styles.styledEnergyButton}
             onPress={() => router.push('/agenda-monthly-free')}
-            activeOpacity={0.7}
+            activeOpacity={0.85}
           >
-            <View style={styles.energyIconContainer}>
-              <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+            <View style={styles.styledEnergyContainer}>
+              <View style={styles.energyIconContainer}>
+                <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+              </View>
+              <View style={styles.energyContent}>
+                <Text style={styles.energyLabel}>
+                  {t('home.wedding_agenda')}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
             </View>
-            <View style={styles.energyContent}>
-              <Text style={styles.energyLabel}>
-                {t('home.wedding_agenda')}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
 
@@ -319,20 +323,22 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <TouchableOpacity
             testID="year-energy-button"
-            style={styles.energyButton}
+            style={styles.styledEnergyButton}
             onPress={() => router.push('/year-energy-detail')}
             activeOpacity={0.85}
           >
-            <View style={styles.energyIconContainer}>
-              <Ionicons name="sparkles-outline" size={28} color={Colors.accent} />
-            </View>
-            <View style={styles.energyContent}>
-              <View style={styles.yearEnergyRow}>
-                <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
-                <Text style={styles.yearBadge}>2026</Text>
+            <View style={styles.styledEnergyContainer}>
+              <View style={styles.energyIconContainer}>
+                <Ionicons name="sparkles-outline" size={28} color={Colors.accent} />
               </View>
+              <View style={styles.energyContent}>
+                <View style={styles.yearEnergyRow}>
+                  <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
+                  <Text style={styles.yearBadge}>2026</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
             </View>
-            <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
 
@@ -474,6 +480,25 @@ const styles = StyleSheet.create({
     fontSize: Typography.lg,
     color: Colors.primary,
     lineHeight: 24,
+  },
+  // Energy Buttons (Month, Year, Wedding Agenda) - WITH BLUE BORDER & GOLDEN SHADOW
+  styledEnergyButton: {
+    borderRadius: BorderRadius.xl,
+    shadowColor: Colors.accent, // Golden shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  styledEnergyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2, // Thicker border
+    borderColor: Colors.primary, // Dark blue outline (azul oscuro de la app)
+    padding: Spacing.lg,
+    gap: Spacing.md,
   },
   // Energy Buttons (Month, Year)
   energyButton: {
