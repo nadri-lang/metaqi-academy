@@ -26,7 +26,7 @@ const ADMIN_SECTIONS: AdminSection[] = [
   {
     title: 'Energía del Día',
     description: 'Programar días por adelantado',
-    icon: 'sunny',
+    icon: 'white-balance-sunny',
     route: '/admin/daily-energy',
     testID: 'admin-daily-energy',
   },
@@ -40,7 +40,7 @@ const ADMIN_SECTIONS: AdminSection[] = [
   {
     title: 'Energía del Año',
     description: 'Actualizar año actual',
-    icon: 'sparkles',
+    icon: 'shimmer',
     route: '/admin/year-energy',
     testID: 'admin-year-energy',
   },
@@ -61,14 +61,28 @@ const ADMIN_SECTIONS: AdminSection[] = [
   {
     title: 'Conceptos Metafísica',
     description: 'BaZi, Qi Men, Feng Shui...',
-    icon: 'book',
+    icon: 'book-open-variant',
     route: '/admin/concepts',
     testID: 'admin-concepts',
   },
   {
+    title: 'Servicio BaZi',
+    description: 'Configurar título, descripción, precio',
+    icon: 'yin-yang',
+    route: '/admin/bazi-service',
+    testID: 'admin-bazi-service',
+  },
+  {
+    title: 'Informes BaZi',
+    description: 'Escribir informes personalizados',
+    icon: 'file-document-edit',
+    route: '/admin/bazi-reports',
+    testID: 'admin-bazi-reports',
+  },
+  {
     title: 'Configuración de la App',
     description: 'Email, WhatsApp, textos promocionales',
-    icon: 'settings',
+    icon: 'cog',
     route: '/admin/app-config',
     testID: 'admin-app-config',
   },
@@ -89,7 +103,7 @@ const ADMIN_SECTIONS: AdminSection[] = [
   {
     title: 'Usuarios',
     description: 'Administrar usuarios',
-    icon: 'people',
+    icon: 'account-group',
     route: '/admin/users',
     testID: 'admin-users',
   },

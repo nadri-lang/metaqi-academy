@@ -35,6 +35,8 @@ from models import (
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
     Purchase, PurchaseCreate, PurchaseUpdate,
+    BaziServiceConfig, BaziServiceConfigUpdate,
+    BaziReport, BaziReportCreate, BaziReportUpdate,
 )
 from auth import (
     get_password_hash, 
@@ -1319,6 +1321,154 @@ async def update_app_config(
     # Return updated config
     updated_config = await db.app_config.find_one({"id": "app_config"})
     return AppConfig(**updated_config)
+
+# ==================== BAZI SERVICE CONFIG ENDPOINTS ====================
+
+@api_router.get("/bazi-service/config")
+async def get_bazi_service_config(lang: str = "es"):
+    """Get BaZi service configuration (public)"""
+    config = await db.bazi_service_config.find_one({"id": "bazi_service_config"})
+    if not config:
+        # Create default config
+        default = BaziServiceConfig()
+        await db.bazi_service_config.insert_one(default.model_dump())
+        config = default.model_dump()
+    else:
+        config = {k: v for k, v in config.items() if k != "_id"}
+    
+    # Translate title and description
+    if lang != "es":
+        config = await translate_dict(config, lang, ["title", "description"])
+    
+    return BaziServiceConfig(**config)
+
+@api_router.put("/admin/bazi-service/config")
+async def update_bazi_service_config(
+    config_data: BaziServiceConfigUpdate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update BaZi service configuration (admin only)"""
+    existing = await db.bazi_service_config.find_one({"id": "bazi_service_config"})
+    if not existing:
+        default = BaziServiceConfig()
+        await db.bazi_service_config.insert_one(default.model_dump())
+        existing = default.model_dump()
+    
+    update_dict = {k: v for k, v in config_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.utcnow()
+    
+    if update_dict:
+        await db.bazi_service_config.update_one(
+            {"id": "bazi_service_config"},
+            {"$set": update_dict}
+        )
+    
+    updated = await db.bazi_service_config.find_one({"id": "bazi_service_config"})
+    return BaziServiceConfig(**updated)
+
+# ==================== BAZI REPORT ENDPOINTS ====================
+
+@api_router.get("/admin/bazi-reports")
+async def get_all_bazi_reports(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Get all BaZi reports (admin only)"""
+    reports = await db.bazi_reports.find().to_list(100)
+    # Remove _id from each report
+    return [{k: v for k, v in r.items() if k != "_id"} for r in reports]
+
+@api_router.get("/admin/bazi-reports/search")
+async def search_user_for_report(
+    email: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Search for a user by email to create/edit their report (admin only)"""
+    user = await db.users.find_one({"email": email.lower().strip()})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Check if user already has a report
+    report = await db.bazi_reports.find_one({"user_id": user["id"]})
+    report_clean = {k: v for k, v in report.items() if k != "_id"} if report else None
+    
+    return {
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "name": user.get("name", "")
+        },
+        "report": report_clean
+    }
+
+@api_router.post("/admin/bazi-reports")
+async def create_bazi_report(
+    report_data: BaziReportCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Create a new BaZi report for a user (admin only)"""
+    # Find user by email
+    user = await db.users.find_one({"email": report_data.user_email.lower().strip()})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Check if report already exists
+    existing = await db.bazi_reports.find_one({"user_id": user["id"]})
+    if existing:
+        raise HTTPException(status_code=400, detail="El usuario ya tiene un informe. Use PUT para actualizarlo.")
+    
+    report = BaziReport(
+        id=str(uuid.uuid4()),
+        user_id=user["id"],
+        user_email=user["email"],
+        report_content=report_data.report_content,
+        is_published=report_data.is_published,
+        published_at=datetime.utcnow() if report_data.is_published else None
+    )
+    
+    await db.bazi_reports.insert_one(report.model_dump())
+    return report
+
+@api_router.put("/admin/bazi-reports/{user_id}")
+async def update_bazi_report(
+    user_id: str,
+    report_data: BaziReportUpdate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update an existing BaZi report (admin only)"""
+    existing = await db.bazi_reports.find_one({"user_id": user_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Informe no encontrado")
+    
+    update_dict = {k: v for k, v in report_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.utcnow()
+    
+    # If publishing for the first time, set published_at
+    if report_data.is_published and not existing.get("is_published"):
+        update_dict["published_at"] = datetime.utcnow()
+    
+    await db.bazi_reports.update_one(
+        {"user_id": user_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.bazi_reports.find_one({"user_id": user_id})
+    return {k: v for k, v in updated.items() if k != "_id"}
+
+@api_router.get("/my-bazi-report")
+async def get_my_bazi_report(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the current user's BaZi report if published"""
+    report = await db.bazi_reports.find_one({
+        "user_id": current_user["id"],
+        "is_published": True
+    })
+    
+    if not report:
+        return {"has_report": False, "report": None}
+    
+    report_clean = {k: v for k, v in report.items() if k != "_id"}
+    return {"has_report": True, "report": report_clean}
 
 # Include router
 app.include_router(api_router)

@@ -180,6 +180,16 @@ export default function ProfileScreen() {
             <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            testID="menu-bazi-report"
+            onPress={() => router.push('/my-bazi-report')}
+          >
+            <MaterialCommunityIcons name="yin-yang" size={22} color={Colors.accent} />
+            <Text style={styles.menuText}>{t('bazi.my_report')}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} testID="menu-data">
             <MaterialCommunityIcons name="account-outline" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>

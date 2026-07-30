@@ -31,7 +31,7 @@ interface CustomService {
 export default function ServicesScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [services, setServices] = useState<CustomService[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -116,6 +116,57 @@ export default function ServicesScreen() {
               onPress={() => router.push('/agenda-2027-info')}
             >
               <Text style={styles.specialButtonText}>Ver Detalles</Text>
+              <MaterialCommunityIcons name="arrow-right" size={18} color={Colors.primary} />
+            </TouchableOpacity>
+          </LinearGradient>
+        </View>
+
+        {/* Tarjeta Especial: Análisis BaZi */}
+        <View style={styles.specialCard} testID="bazi-service-card">
+          <LinearGradient colors={Gradients.navy} style={styles.specialCardGradient}>
+            <View style={styles.specialCardHeader}>
+              <View style={styles.specialIconWrapper}>
+                <MaterialCommunityIcons name="yin-yang" size={28} color={Colors.accent} />
+              </View>
+              <View style={[styles.specialBadge, { backgroundColor: Colors.jade }]}>
+                <Text style={styles.specialBadgeText}>BaZi</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.specialTitle}>{t('bazi.service_title')}</Text>
+            <Text style={styles.specialDesc}>
+              {language === 'es' 
+                ? 'Descubre tu destino personal a través del análisis de tu carta natal china'
+                : 'Discover your personal destiny through the analysis of your Chinese natal chart'}
+            </Text>
+
+            <View style={styles.specialFeatures}>
+              <View style={styles.specialFeatureItem}>
+                <MaterialCommunityIcons name="account-star" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>
+                  {language === 'es' ? 'Análisis personalizado' : 'Personalized analysis'}
+                </Text>
+              </View>
+              <View style={styles.specialFeatureItem}>
+                <MaterialCommunityIcons name="chart-timeline-variant" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>
+                  {language === 'es' ? 'Ciclos de suerte' : 'Luck cycles'}
+                </Text>
+              </View>
+              <View style={styles.specialFeatureItem}>
+                <MaterialCommunityIcons name="file-document-edit" size={18} color={Colors.accent} />
+                <Text style={styles.specialFeatureText}>
+                  {language === 'es' ? 'Informe detallado' : 'Detailed report'}
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              testID="bazi-service-btn"
+              style={styles.specialButton}
+              onPress={() => router.push('/service/bazi')}
+            >
+              <Text style={styles.specialButtonText}>{t('bazi.request_analysis')}</Text>
               <MaterialCommunityIcons name="arrow-right" size={18} color={Colors.primary} />
             </TouchableOpacity>
           </LinearGradient>

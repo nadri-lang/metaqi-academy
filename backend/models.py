@@ -672,3 +672,47 @@ class AppConfigUpdate(BaseModel):
     agenda_2027_title_en: Optional[str] = None
     agenda_2027_description_es: Optional[str] = None
     agenda_2027_description_en: Optional[str] = None
+
+# BaZi Service Configuration
+class BaziServiceConfig(BaseModel):
+    """
+    Configuration for the BaZi Natal Chart Analysis service.
+    Editable by admin.
+    """
+    id: str = "bazi_service_config"
+    title: str = "Análisis Carta Natal BaZi"
+    description: str = "Análisis completo de tus pilares del destino, ciclos de suerte y elementos personales."
+    price: float = 197.0
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class BaziServiceConfigUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    is_active: Optional[bool] = None
+
+# Personalized BaZi Report for Users
+class BaziReport(BaseModel):
+    """
+    Personalized BaZi natal chart analysis report for a specific user.
+    Written by admin and published for the user to read.
+    """
+    id: str
+    user_id: str
+    user_email: str
+    report_content: str  # The full personalized analysis text
+    is_published: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    published_at: Optional[datetime] = None
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class BaziReportCreate(BaseModel):
+    user_email: str
+    report_content: str
+    is_published: bool = False
+
+class BaziReportUpdate(BaseModel):
+    report_content: Optional[str] = None
+    is_published: Optional[bool] = None
+
