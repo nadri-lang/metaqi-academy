@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
@@ -82,20 +82,18 @@ export default function EnergyDetailScreen() {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     
-    // Format: Martes, 28/07/2026
     return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day}/${month}/${year}`;
   };
 
-  // Buttons in specific order: Horas Favorables, VIAJES, Actividades, A Evitar, BaZi, Feng Shui, Qi Men
-  // Total 7 buttons in 2-column grid (last row has 1 button centered or aligned)
+  // Buttons using MaterialCommunityIcons for better Expo Go compatibility
   const buttons = [
-    { id: 'hours', label: t('daily.favorable_hours'), icon: 'time', color: Colors.accent },
+    { id: 'hours', label: t('daily.favorable_hours'), icon: 'clock-outline', color: Colors.accent },
     { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
-    { id: 'activities', label: t('daily.activities'), icon: 'checkmark-circle', color: Colors.jade },
-    { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle', color: Colors.error },
-    { id: 'bazi', label: t('daily.bazi'), icon: 'git-network', color: Colors.accent },
-    { id: 'fengshui', label: t('daily.feng_shui'), icon: 'home', color: Colors.jade },
-    { id: 'qimen', label: t('daily.qimen'), icon: 'compass', color: Colors.accent },
+    { id: 'activities', label: t('daily.activities'), icon: 'check-circle-outline', color: Colors.jade },
+    { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle-outline', color: Colors.error },
+    { id: 'bazi', label: t('daily.bazi'), icon: 'yin-yang', color: Colors.accent },
+    { id: 'fengshui', label: t('daily.feng_shui'), icon: 'home-outline', color: Colors.jade },
+    { id: 'qimen', label: t('daily.qimen'), icon: 'compass-outline', color: Colors.accent },
   ];
 
   const renderModalContent = () => {
@@ -106,7 +104,7 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="time" size={28} color={Colors.accent} />
+              <MaterialCommunityIcons name="clock-outline" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>{t('daily.favorable_hours')}</Text>
             </View>
             {data.favorable_hours && data.favorable_hours.length > 0 ? (
@@ -128,7 +126,7 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="airplane" size={28} color={Colors.primary} />
+              <MaterialCommunityIcons name="airplane" size={28} color={Colors.primary} />
               <Text style={styles.modalTitle}>{t('daily.travel_hours')}</Text>
             </View>
             {data.travel_hours && data.travel_hours.length > 0 ? (
@@ -150,7 +148,7 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="checkmark-circle" size={28} color={Colors.jade} />
+              <MaterialCommunityIcons name="check-circle-outline" size={28} color={Colors.jade} />
               <Text style={styles.modalTitle}>{t('daily.sustained_activities')}</Text>
             </View>
             {data.recommendations && data.recommendations.length > 0 ? (
@@ -172,7 +170,7 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="close-circle" size={28} color={Colors.error} />
+              <MaterialCommunityIcons name="close-circle-outline" size={28} color={Colors.error} />
               <Text style={styles.modalTitle}>{t('daily.avoid_activities')}</Text>
             </View>
             {data.avoid && data.avoid.length > 0 ? (
@@ -194,7 +192,7 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="git-network" size={28} color={Colors.accent} />
+              <MaterialCommunityIcons name="yin-yang" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>{t('daily.bazi')}</Text>
             </View>
             <Text style={styles.modalSubtitle}>{t('daily.bazi_relationships')}</Text>
@@ -212,14 +210,14 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="home" size={28} color={Colors.jade} />
+              <MaterialCommunityIcons name="home-outline" size={28} color={Colors.jade} />
               <Text style={styles.modalTitle}>{t('daily.feng_shui')}</Text>
             </View>
             <Text style={styles.modalSubtitle}>{t('daily.feng_shui_sectors')}</Text>
             {data.feng_shui_sectors && data.feng_shui_sectors.length > 0 ? (
               data.feng_shui_sectors.map((item, idx) => (
                 <View key={idx} style={styles.modalListItem}>
-                  <Ionicons name="location" size={18} color={Colors.jade} />
+                  <MaterialCommunityIcons name="map-marker" size={18} color={Colors.jade} />
                   <Text style={styles.modalText}>{item}</Text>
                 </View>
               ))
@@ -235,14 +233,14 @@ export default function EnergyDetailScreen() {
         return (
           <View>
             <View style={styles.modalHeader}>
-              <Ionicons name="compass" size={28} color={Colors.accent} />
+              <MaterialCommunityIcons name="compass-outline" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>{t('daily.qimen')}</Text>
             </View>
             <Text style={styles.modalSubtitle}>{t('daily.qimen_directions')}</Text>
             {data.qimen_directions && data.qimen_directions.length > 0 ? (
               data.qimen_directions.map((item, idx) => (
                 <View key={idx} style={styles.modalListItem}>
-                  <Ionicons name="navigate" size={18} color={Colors.accent} />
+                  <MaterialCommunityIcons name="navigation" size={18} color={Colors.accent} />
                   <Text style={styles.modalText}>{item}</Text>
                 </View>
               ))
@@ -279,14 +277,14 @@ export default function EnergyDetailScreen() {
                 onPress={() => router.back()}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
                 <Text style={styles.backButtonText}>{t('common.back')}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
         </LinearGradient>
         <View style={styles.emptyState}>
-          <Ionicons name="sunny-outline" size={64} color={Colors.textLight} />
+          <MaterialCommunityIcons name="weather-sunny" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>{t('daily.no_content')}</Text>
           <Text style={styles.emptyText}>{t('daily.come_back_later')}</Text>
         </View>
@@ -307,14 +305,14 @@ export default function EnergyDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.primary} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
               <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
             
-            {/* Date and Title - NO "ENERGÍA DEL DÍA" label */}
+            {/* Date and Title */}
             <View style={styles.headerMainContent}>
               <View style={styles.dateContainer}>
-                <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                <MaterialCommunityIcons name="calendar" size={20} color={Colors.primary} />
                 <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
               </View>
               <Text style={styles.headerTitle}>{data.title}</Text>
@@ -330,11 +328,11 @@ export default function EnergyDetailScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
         }
       >
-        {/* Animal del Día - At the top, below banner */}
+        {/* Animal del Día */}
         {data.animal && (
           <View style={styles.animalCard}>
             <View style={styles.animalHeader}>
-              <Ionicons name="paw" size={24} color={Colors.accent} />
+              <MaterialCommunityIcons name="paw" size={24} color={Colors.accent} />
               <Text style={styles.animalLabel}>{t('daily.animal')}</Text>
             </View>
             <Text style={styles.animalText}>{data.animal}</Text>
@@ -359,7 +357,7 @@ export default function EnergyDetailScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
-                <Ionicons name={btn.icon as any} size={28} color={btn.color} />
+                <MaterialCommunityIcons name={btn.icon as any} size={28} color={btn.color} />
               </View>
               <Text style={styles.gridButtonLabel}>{btn.label}</Text>
             </TouchableOpacity>
@@ -468,7 +466,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     paddingTop: Spacing.md,
   },
-  // Animal Card - Top position
   animalCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
@@ -497,7 +494,6 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     textAlign: 'center',
   },
-  // Description Card
   descriptionCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
@@ -512,7 +508,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
   },
-  // Section Label
   sectionLabel: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
@@ -521,7 +516,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  // 2-Column Grid
   buttonsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -537,7 +531,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
-    // Gold shadow effect
     shadowColor: Colors.accent,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -558,7 +551,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
