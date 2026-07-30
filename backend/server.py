@@ -1518,6 +1518,71 @@ async def get_my_bazi_report(
     report_clean = {k: v for k, v in report.items() if k != "_id"}
     return {"has_report": True, "report": report_clean}
 
+# ==================== ADMIN USER MANAGEMENT ENDPOINTS ====================
+
+@api_router.get("/admin/users")
+async def get_all_users(
+    email: str = None,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Get all users or search by email (admin only)"""
+    query = {}
+    if email:
+        query["email"] = {"$regex": email, "$options": "i"}  # Case-insensitive search
+    
+    users = await db.users.find(query).to_list(100)
+    # Remove sensitive data
+    return [{
+        "id": u["id"],
+        "email": u["email"],
+        "name": u.get("name", ""),
+        "role": u.get("role", "free"),
+        "subscription": u.get("subscription", "free"),
+        "created_at": u.get("created_at"),
+        "phone": u.get("phone", ""),
+        "nickname": u.get("nickname", "")
+    } for u in users]
+
+@api_router.put("/admin/users/{user_id}")
+async def update_user_admin(
+    user_id: str,
+    role: str = None,
+    subscription: str = None,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update user role and/or subscription (admin only)"""
+    existing = await db.users.find_one({"id": user_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    update_dict = {}
+    if role is not None:
+        if role not in ["free", "premium", "editor", "admin"]:
+            raise HTTPException(status_code=400, detail="Rol inválido")
+        update_dict["role"] = role
+    
+    if subscription is not None:
+        if subscription not in ["free", "monthly", "yearly"]:
+            raise HTTPException(status_code=400, detail="Suscripción inválida")
+        update_dict["subscription"] = subscription
+    
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No hay cambios para aplicar")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.users.find_one({"id": user_id})
+    return {
+        "id": updated["id"],
+        "email": updated["email"],
+        "name": updated.get("name", ""),
+        "role": updated.get("role", "free"),
+        "subscription": updated.get("subscription", "free")
+    }
+
 # Include router
 app.include_router(api_router)
 

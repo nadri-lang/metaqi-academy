@@ -66,13 +66,6 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-concepts',
   },
   {
-    title: 'Servicio BaZi',
-    description: 'Configurar título, descripción, precio',
-    icon: 'yin-yang',
-    route: '/admin/bazi-service',
-    testID: 'admin-bazi-service',
-  },
-  {
     title: 'Informes BaZi',
     description: 'Escribir informes personalizados',
     icon: 'file-document-edit',
@@ -80,25 +73,18 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-bazi-reports',
   },
   {
+    title: 'Servicios',
+    description: 'Gestionar todos los servicios',
+    icon: 'briefcase',
+    route: '/admin/services',
+    testID: 'admin-services',
+  },
+  {
     title: 'Configuración de la App',
     description: 'Email, WhatsApp, textos promocionales',
     icon: 'cog',
     route: '/admin/app-config',
     testID: 'admin-app-config',
-  },
-  {
-    title: 'Cursos',
-    description: 'Gestionar cursos y lecciones',
-    icon: 'school',
-    route: '/admin/courses',
-    testID: 'admin-courses',
-  },
-  {
-    title: 'Servicios',
-    description: 'Servicios personalizados',
-    icon: 'briefcase',
-    route: '/admin/services',
-    testID: 'admin-services',
   },
   {
     title: 'Usuarios',
