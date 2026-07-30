@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 
 interface Concept {
@@ -63,7 +63,7 @@ export default function ConceptsScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -81,7 +81,7 @@ export default function ConceptsScreen() {
           <View key={concept.id} style={styles.card} testID={`concept-item-${concept.slug}`}>
             <View style={styles.cardHeader}>
               <View style={[styles.iconContainer, { backgroundColor: concept.color + '20' }]}>
-                <Ionicons name={concept.icon as any} size={28} color={concept.color} />
+                <MaterialCommunityIcons name={concept.icon as any} size={28} color={concept.color} />
               </View>
               <Text style={styles.cardNumber}>{String(index + 1).padStart(2, '0')}</Text>
             </View>

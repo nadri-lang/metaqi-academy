@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
 
@@ -113,13 +113,13 @@ export default function AgendaDetailScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.headerContent}>
             <View style={styles.iconContainer}>
-              <Ionicons name="calendar" size={36} color={Colors.accent} />
+              <MaterialCommunityIcons name="calendar" size={36} color={Colors.accent} />
             </View>
             <Text style={styles.title}>{agenda.title}</Text>
             <Text style={styles.description}>{agenda.description}</Text>
@@ -139,7 +139,7 @@ export default function AgendaDetailScreen() {
             <Text style={styles.sectionTitle}>Qué incluye</Text>
             {agenda.materials.map((item, i) => (
               <View key={i} style={styles.materialRow}>
-                <Ionicons name="checkmark-circle" size={20} color={Colors.jade} />
+                <MaterialCommunityIcons name="check-circle" size={20} color={Colors.jade} />
                 <Text style={styles.materialText}>{item}</Text>
               </View>
             ))}
@@ -165,7 +165,7 @@ export default function AgendaDetailScreen() {
                     <Text style={styles.monthSubtitle}>{month.events.length} eventos</Text>
                   </View>
                   {!isFree && (
-                    <Ionicons name="lock-closed" size={20} color={Colors.textLight} />
+                    <MaterialCommunityIcons name="lock" size={20} color={Colors.textLight} />
                   )}
                   {isMonthFree(month) && (
                     <View style={styles.freeBadge}>
@@ -181,7 +181,7 @@ export default function AgendaDetailScreen() {
                 {isFree && month.events.map((event, i) => (
                   <View key={i} style={styles.eventCard}>
                     <View style={styles.eventHeader}>
-                      <Ionicons 
+                      <MaterialCommunityIcons 
                         name={event.auspicious ? "checkmark-circle" : "warning"} 
                         size={16} 
                         color={event.auspicious ? Colors.jade : Colors.warning} 
@@ -196,7 +196,7 @@ export default function AgendaDetailScreen() {
 
                 {!isFree && (
                   <View style={styles.lockedOverlay}>
-                    <Ionicons name="lock-closed" size={24} color={Colors.accent} />
+                    <MaterialCommunityIcons name="lock" size={24} color={Colors.accent} />
                     <Text style={styles.lockedText}>
                       Desbloquea todo el año para acceder
                     </Text>
@@ -219,7 +219,7 @@ export default function AgendaDetailScreen() {
             style={styles.purchaseButton}
             onPress={handlePurchase}
           >
-            <Ionicons name="lock-open" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="lock-open-variant" size={20} color={Colors.primary} />
             <Text style={styles.purchaseText}>
               Comprar por €{agenda.price.toFixed(0)}
             </Text>

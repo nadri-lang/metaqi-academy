@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 
@@ -36,7 +36,7 @@ export default function AdminServicesScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -48,7 +48,7 @@ export default function AdminServicesScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
-          <Ionicons name="briefcase" size={48} color={Colors.accent} />
+          <MaterialCommunityIcons name="briefcase" size={48} color={Colors.accent} />
           <Text style={styles.title}>Gestión de Servicios</Text>
           <Text style={styles.description}>
             Aquí podrás crear y editar los servicios personalizados: BaZi, Qi Men, Rituales, etc.

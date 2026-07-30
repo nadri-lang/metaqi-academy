@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
@@ -83,7 +83,7 @@ export default function ServicesScreen() {
           <LinearGradient colors={Gradients.navy} style={styles.specialCardGradient}>
             <View style={styles.specialCardHeader}>
               <View style={styles.specialIconWrapper}>
-                <Ionicons name="heart" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="heart" size={28} color={Colors.accent} />
               </View>
               <View style={styles.specialBadge}>
                 <Text style={styles.specialBadgeText}>2027</Text>
@@ -97,15 +97,15 @@ export default function ServicesScreen() {
 
             <View style={styles.specialFeatures}>
               <View style={styles.specialFeatureItem}>
-                <Ionicons name="calendar" size={18} color={Colors.accent} />
+                <MaterialCommunityIcons name="calendar" size={18} color={Colors.accent} />
                 <Text style={styles.specialFeatureText}>365 días analizados</Text>
               </View>
               <View style={styles.specialFeatureItem}>
-                <Ionicons name="star" size={18} color={Colors.accent} />
+                <MaterialCommunityIcons name="star" size={18} color={Colors.accent} />
                 <Text style={styles.specialFeatureText}>Fechas más auspiciosas</Text>
               </View>
               <View style={styles.specialFeatureItem}>
-                <Ionicons name="book" size={18} color={Colors.accent} />
+                <MaterialCommunityIcons name="book-open-variant" size={18} color={Colors.accent} />
                 <Text style={styles.specialFeatureText}>Guía completa</Text>
               </View>
             </View>
@@ -116,7 +116,7 @@ export default function ServicesScreen() {
               onPress={() => router.push('/agenda-2027-info')}
             >
               <Text style={styles.specialButtonText}>Ver Detalles</Text>
-              <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+              <MaterialCommunityIcons name="arrow-right" size={18} color={Colors.primary} />
             </TouchableOpacity>
           </LinearGradient>
         </View>
@@ -125,7 +125,7 @@ export default function ServicesScreen() {
           <View key={service.id} style={styles.card} testID={`service-card-${service.id}`}>
             <View style={styles.cardHeader}>
               <View style={styles.iconWrapper}>
-                <Ionicons name="sparkles" size={20} color={Colors.accent} />
+                <MaterialCommunityIcons name="shimmer" size={20} color={Colors.accent} />
               </View>
               <View style={styles.priceContainer}>
                 {service.is_offer && service.original_price && (
@@ -150,7 +150,7 @@ export default function ServicesScreen() {
                 <Text style={styles.includesTitle}>Incluye:</Text>
                 {service.includes.map((item, index) => (
                   <View key={index} style={styles.includeItem}>
-                    <Ionicons name="checkmark-circle" size={16} color={Colors.jade} />
+                    <MaterialCommunityIcons name="check-circle" size={16} color={Colors.jade} />
                     <Text style={styles.includeText}>{item}</Text>
                   </View>
                 ))}
@@ -165,7 +165,7 @@ export default function ServicesScreen() {
               <Text style={styles.requestButtonText}>
                 {user ? `Solicitar por €${service.price.toFixed(2)}` : 'Inicia sesión para solicitar'}
               </Text>
-              <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
+              <MaterialCommunityIcons name="arrow-right" size={16} color={Colors.primary} />
             </TouchableOpacity>
           </View>
         ))}

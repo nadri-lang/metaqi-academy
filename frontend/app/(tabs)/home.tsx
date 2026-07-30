@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLanguage, Language } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 interface DailyEnergy {
@@ -157,7 +157,7 @@ export default function HomeScreen() {
             >
               <Text style={styles.languageFlag}>{currentLanguage.flag}</Text>
               <Text style={styles.languageText}>{currentLanguage.label}</Text>
-              <Ionicons name="chevron-down" size={16} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-down" size={16} color={Colors.white} />
             </TouchableOpacity>
             
             {/* Share Button */}
@@ -167,7 +167,7 @@ export default function HomeScreen() {
               onPress={handleShare}
               activeOpacity={0.8}
             >
-              <Ionicons name="share-outline" size={22} color={Colors.white} />
+              <MaterialCommunityIcons name="share-variant-outline" size={22} color={Colors.white} />
             </TouchableOpacity>
           </View>
         </LinearGradient>
@@ -188,7 +188,7 @@ export default function HomeScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>{t('profile.select_language')}</Text>
                 <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={Colors.textPrimary} />
+                  <MaterialCommunityIcons name="close" size={24} color={Colors.textPrimary} />
                 </TouchableOpacity>
               </View>
               {languages.map((lang) => (
@@ -209,7 +209,7 @@ export default function HomeScreen() {
                     {lang.label}
                   </Text>
                   {language === lang.code && (
-                    <Ionicons name="checkmark" size={20} color={Colors.accent} />
+                    <MaterialCommunityIcons name="check" size={20} color={Colors.accent} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -227,7 +227,7 @@ export default function HomeScreen() {
           >
             <LinearGradient colors={Gradients.gold} style={styles.goldenGradient}>
               <View style={styles.goldenIconContainer}>
-                <Ionicons name="sunny" size={32} color={Colors.primary} />
+                <MaterialCommunityIcons name="white-balance-sunny" size={32} color={Colors.primary} />
               </View>
               <View style={styles.goldenContent}>
                 <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
@@ -241,7 +241,7 @@ export default function HomeScreen() {
                   </Text>
                 )}
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.primary} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -256,12 +256,12 @@ export default function HomeScreen() {
           >
             <View style={styles.styledEnergyContainer}>
               <View style={styles.energyIconContainer}>
-                <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="calendar-outline" size={28} color={Colors.accent} />
               </View>
               <View style={styles.energyContent}>
                 <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
           </TouchableOpacity>
         </View>
@@ -276,14 +276,14 @@ export default function HomeScreen() {
           >
             <View style={styles.styledEnergyContainer}>
               <View style={styles.energyIconContainer}>
-                <Ionicons name="calendar-outline" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="calendar-outline" size={28} color={Colors.accent} />
               </View>
               <View style={styles.energyContent}>
                 <Text style={styles.energyLabel}>
                   {t('home.wedding_agenda')}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
           </TouchableOpacity>
         </View>
@@ -298,13 +298,13 @@ export default function HomeScreen() {
           >
             <LinearGradient colors={Gradients.navy} style={styles.babyTalentGradient}>
               <View style={styles.babyTalentIconContainer}>
-                <Ionicons name="star" size={32} color={Colors.accent} />
+                <MaterialCommunityIcons name="star" size={32} color={Colors.accent} />
               </View>
               <View style={styles.babyTalentContent}>
                 <Text style={styles.babyTalentLabel}>{t('home.baby_talent')}</Text>
                 <Text style={styles.babyTalentSubtitle}>{t('home.baby_talent_subtitle')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={Colors.accent} />
+              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.accent} />
             </LinearGradient>
           </TouchableOpacity>
           
@@ -315,7 +315,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/(tabs)/services')}
           >
             <Text style={styles.babyTalentCtaText}>{t('home.personalized_reading')}</Text>
-            <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
+            <MaterialCommunityIcons name="arrow-right" size={16} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -329,7 +329,7 @@ export default function HomeScreen() {
           >
             <View style={styles.styledEnergyContainer}>
               <View style={styles.energyIconContainer}>
-                <Ionicons name="sparkles-outline" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="shimmer" size={28} color={Colors.accent} />
               </View>
               <View style={styles.energyContent}>
                 <View style={styles.yearEnergyRow}>
@@ -337,7 +337,7 @@ export default function HomeScreen() {
                   <Text style={styles.yearBadge}>2026</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
           </TouchableOpacity>
         </View>

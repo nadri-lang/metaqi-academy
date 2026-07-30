@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useRouter } from 'expo-router';
 
@@ -65,14 +65,14 @@ export default function AgendasScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {agendas.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={64} color={Colors.textLight} />
+            <MaterialCommunityIcons name="calendar-outline" size={64} color={Colors.textLight} />
             <Text style={styles.emptyTitle}>Próximamente</Text>
             <Text style={styles.emptyText}>Estamos preparando agendas exclusivas</Text>
           </View>
         ) : (
           <>
             <View style={styles.freeMonthBanner}>
-              <Ionicons name="gift" size={20} color={Colors.jade} />
+              <MaterialCommunityIcons name="gift" size={20} color={Colors.jade} />
               <Text style={styles.freeMonthText}>
                 Mes actual gratuito · Compra el año completo con descuento
               </Text>
@@ -87,7 +87,7 @@ export default function AgendasScreen() {
               >
                 <View style={styles.cardHeader}>
                   <View style={styles.iconWrap}>
-                    <Ionicons name="calendar" size={22} color={Colors.accent} />
+                    <MaterialCommunityIcons name="calendar" size={22} color={Colors.accent} />
                   </View>
                   <View style={styles.typeBadge}>
                     <Text style={styles.typeBadgeText}>
@@ -103,7 +103,7 @@ export default function AgendasScreen() {
                   <View style={styles.materialsSection}>
                     {agenda.materials.slice(0, 3).map((item, i) => (
                       <View key={i} style={styles.materialItem}>
-                        <Ionicons name="checkmark-circle" size={14} color={Colors.jade} />
+                        <MaterialCommunityIcons name="check-circle" size={14} color={Colors.jade} />
                         <Text style={styles.materialText}>{item}</Text>
                       </View>
                     ))}
@@ -120,7 +120,7 @@ export default function AgendasScreen() {
                   </View>
                   <View style={styles.viewButton}>
                     <Text style={styles.viewButtonText}>Ver detalles</Text>
-                    <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
+                    <MaterialCommunityIcons name="arrow-right" size={16} color={Colors.primary} />
                   </View>
                 </View>
               </TouchableOpacity>

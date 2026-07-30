@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
@@ -83,13 +83,13 @@ export default function YearEnergyDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>
         <View style={styles.emptyState}>
-          <Ionicons name="sparkles-outline" size={64} color={Colors.textLight} />
+          <MaterialCommunityIcons name="shimmer" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>{t('year.no_content')}</Text>
           <Text style={styles.emptyText}>{t('year.come_back_later')}</Text>
         </View>
@@ -109,13 +109,13 @@ export default function YearEnergyDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
             
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="sparkles" size={28} color={Colors.jade} />
+                <MaterialCommunityIcons name="shimmer" size={28} color={Colors.jade} />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>{t('year.title')}</Text>

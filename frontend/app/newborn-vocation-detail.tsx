@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
@@ -204,14 +204,14 @@ export default function NewbornVocationDetailScreen() {
                 onPress={() => router.back()}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={24} color={Colors.white} />
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
                 <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
         </LinearGradient>
         <View style={styles.emptyState}>
-          <Ionicons name="star-outline" size={64} color={Colors.textLight} />
+          <MaterialCommunityIcons name="star-outline" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>
             {language === 'es' ? 'Sin información disponible' : 'No information available'}
           </Text>
@@ -238,7 +238,7 @@ export default function NewbornVocationDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
             
@@ -269,8 +269,8 @@ export default function NewbornVocationDetailScreen() {
                   disabled={!canGoPrevious}
                   activeOpacity={0.7}
                 >
-                  <Ionicons 
-                    name="chevron-back" 
+                  <MaterialCommunityIcons 
+                    name="chevron-left" 
                     size={24} 
                     color={canGoPrevious ? Colors.white : Colors.white + '40'} 
                   />
@@ -289,8 +289,8 @@ export default function NewbornVocationDetailScreen() {
                   <Text style={[styles.navButtonText, !canGoNext && styles.navButtonTextDisabled]}>
                     {language === 'es' ? 'Día Siguiente' : 'Next Day'}
                   </Text>
-                  <Ionicons 
-                    name="chevron-forward" 
+                  <MaterialCommunityIcons 
+                    name="chevron-right" 
                     size={24} 
                     color={canGoNext ? Colors.white : Colors.white + '40'} 
                   />
@@ -319,7 +319,7 @@ export default function NewbornVocationDetailScreen() {
         {data.talents && data.talents.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="sparkles" size={22} color={Colors.accent} />
+              <MaterialCommunityIcons name="shimmer" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>{t('home.natural_talents')}</Text>
             </View>
             {data.talents.map((item, idx) => (
@@ -335,7 +335,7 @@ export default function NewbornVocationDetailScreen() {
         {data.vocations && data.vocations.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="briefcase" size={22} color={Colors.jade} />
+              <MaterialCommunityIcons name="briefcase" size={22} color={Colors.jade} />
               <Text style={styles.sectionTitle}>{t('home.favorable_vocations')}</Text>
             </View>
             {data.vocations.map((item, idx) => (

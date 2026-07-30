@@ -13,7 +13,7 @@ import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLanguage } from '@/src/context/LanguageContext';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -63,7 +63,7 @@ export default function ProfileScreen() {
             style={styles.primaryButton}
             onPress={() => router.push('/(auth)/login')}
           >
-            <Ionicons name="log-in" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="login" size={20} color={Colors.primary} />
             <Text style={styles.primaryButtonText}>{t('common.login')}</Text>
           </TouchableOpacity>
 
@@ -80,7 +80,7 @@ export default function ProfileScreen() {
             <Text style={styles.benefitsTitle}>{t('profile.benefits')}</Text>
             
             <View style={styles.benefitItem}>
-              <Ionicons name="heart" size={20} color={Colors.accent} />
+              <MaterialCommunityIcons name="heart" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
                 <Text style={styles.benefitLabel}>{t('profile.benefit_favorites')}</Text>
                 <Text style={styles.benefitDesc}>{t('profile.benefit_favorites_desc')}</Text>
@@ -88,7 +88,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.benefitItem}>
-              <Ionicons name="book" size={20} color={Colors.accent} />
+              <MaterialCommunityIcons name="book-open-variant" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
                 <Text style={styles.benefitLabel}>{t('profile.benefit_progress')}</Text>
                 <Text style={styles.benefitDesc}>{t('profile.benefit_progress_desc')}</Text>
@@ -96,7 +96,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.benefitItem}>
-              <Ionicons name="sparkles" size={20} color={Colors.accent} />
+              <MaterialCommunityIcons name="shimmer" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
                 <Text style={styles.benefitLabel}>{t('profile.benefit_services')}</Text>
                 <Text style={styles.benefitDesc}>{t('profile.benefit_services_desc')}</Text>
@@ -104,7 +104,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={styles.benefitItem}>
-              <Ionicons name="star" size={20} color={Colors.accent} />
+              <MaterialCommunityIcons name="star" size={20} color={Colors.accent} />
               <View style={styles.benefitTextContainer}>
                 <Text style={styles.benefitLabel}>{t('profile.benefit_premium')}</Text>
                 <Text style={styles.benefitDesc}>{t('profile.benefit_premium_desc')}</Text>
@@ -115,9 +115,9 @@ export default function ProfileScreen() {
           {/* Info Section */}
           <View style={styles.infoSection}>
             <TouchableOpacity style={styles.infoItem} testID="info-contact-btn" onPress={handleContact}>
-              <Ionicons name="mail" size={20} color={Colors.textSecondary} />
+              <MaterialCommunityIcons name="email" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>{t('profile.contact')}</Text>
-              <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textLight} />
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -132,14 +132,14 @@ export default function ProfileScreen() {
         <SafeAreaView edges={['top']}>
           <View style={styles.userHeader}>
             <View style={styles.avatarContainer}>
-              <Ionicons name="person" size={40} color={Colors.accent} />
+              <MaterialCommunityIcons name="account" size={40} color={Colors.accent} />
             </View>
             <Text style={styles.userName}>{user.name}</Text>
             <Text style={styles.userEmail}>{user.email}</Text>
 
             {user.has_active_subscription ? (
               <View style={styles.premiumBadge}>
-                <Ionicons name="star" size={14} color={Colors.primary} />
+                <MaterialCommunityIcons name="star" size={14} color={Colors.primary} />
                 <Text style={styles.premiumBadgeText}>{t('profile.premium_member')}</Text>
               </View>
             ) : (
@@ -163,41 +163,41 @@ export default function ProfileScreen() {
               colors={Gradients.gold}
               style={styles.adminGradient}
             >
-              <Ionicons name="settings" size={22} color={Colors.primary} />
+              <MaterialCommunityIcons name="cog" size={22} color={Colors.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.adminButtonText}>{t('profile.admin_panel')}</Text>
                 <Text style={styles.adminButtonDesc}>{t('profile.admin_panel_desc')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+              <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.primary} />
             </LinearGradient>
           </TouchableOpacity>
         )}
 
         <View style={styles.menuSection}>
           <TouchableOpacity style={styles.menuItem} testID="menu-favorites">
-            <Ionicons name="heart" size={22} color={Colors.textSecondary} />
+            <MaterialCommunityIcons name="heart" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} testID="menu-data">
-            <Ionicons name="person-outline" size={22} color={Colors.textSecondary} />
+            <MaterialCommunityIcons name="account-outline" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>
               {t('profile.my_data') || (user.language === 'es' ? 'Mis Datos' : 'My Data')}
             </Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.menuSection}>
           {(user.role === 'admin' || user.role === 'editor') && (
             <TouchableOpacity style={styles.menuItem} testID="menu-about">
-              <Ionicons name="information-circle" size={22} color={Colors.textSecondary} />
+              <MaterialCommunityIcons name="information" size={22} color={Colors.textSecondary} />
               <Text style={styles.menuText}>{t('profile.about')}</Text>
               <View style={styles.adminOnlyBadge}>
                 <Text style={styles.adminOnlyText}>Admin</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>
           )}
           <TouchableOpacity 
@@ -205,9 +205,9 @@ export default function ProfileScreen() {
             testID="menu-contact"
             onPress={handleContact}
           >
-            <Ionicons name="mail" size={22} color={Colors.textSecondary} />
+            <MaterialCommunityIcons name="email" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>{t('profile.contact')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={Colors.textLight} />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
 
@@ -216,7 +216,7 @@ export default function ProfileScreen() {
           style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <Ionicons name="log-out" size={20} color={Colors.error} />
+          <MaterialCommunityIcons name="logout" size={20} color={Colors.error} />
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>

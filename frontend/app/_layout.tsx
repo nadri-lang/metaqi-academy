@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { AuthProvider } from '@/src/context/AuthContext';
 import { LanguageProvider } from '@/src/context/LanguageContext';
@@ -16,72 +16,65 @@ import {
 } from '@expo-google-fonts/inter';
 import { Colors } from '@/src/constants/Colors';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Asset } from 'expo-asset';
-import { Image } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
-
-// Prewarm icon assets for Android
-function cacheImages(images: string[]) {
-  return images.map((image) => {
-    if (typeof image === 'string') {
-      return Image.prefetch(image);
-    } else {
-      return Asset.fromModule(image).downloadAsync();
-    }
-  });
-}
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     CormorantGaramond_400Regular,
     CormorantGaramond_700Bold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    // Explicitly load MaterialCommunityIcons font
+    ...MaterialCommunityIcons.font,
   });
 
   const [appReady, setAppReady] = React.useState(false);
 
-  useEffect(() => {
-    async function prepare() {
-      try {
-        // Prewarm icon assets
-        await Promise.all([
-          ...cacheImages([]),
-        ]);
-      } catch (e) {
-        console.warn('Error prewarming assets:', e);
-      }
-    }
-    prepare();
-  }, []);
-
-  useEffect(() => {
-    // Timeout de 5 segundos para cargar fuentes
-    const fontTimeout = setTimeout(() => {
-      if (!fontsLoaded) {
-        console.warn('Font loading timeout - proceeding with system fonts');
-        setAppReady(true);
-        SplashScreen.hideAsync();
-      }
-    }, 5000);
-
-    // Si las fuentes se cargan antes del timeout, limpiar el timeout
-    if (fontsLoaded) {
-      clearTimeout(fontTimeout);
+  // Handle font loading completion
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded || fontError) {
+      await SplashScreen.hideAsync().catch(() => {});
       setAppReady(true);
-      SplashScreen.hideAsync();
     }
+  }, [fontsLoaded, fontError]);
 
-    // Cleanup
-    return () => clearTimeout(fontTimeout);
-  }, [fontsLoaded]);
+  useEffect(() => {
+    // If fonts loaded successfully or there's an error, proceed
+    if (fontsLoaded || fontError) {
+      onLayoutRootView();
+    }
+    
+    // Fallback timeout - proceed after 3 seconds even if fonts fail
+    const timeout = setTimeout(() => {
+      if (!appReady) {
+        console.warn('Font loading timeout - proceeding with fallback');
+        SplashScreen.hideAsync().catch(() => {});
+        setAppReady(true);
+      }
+    }, 3000);
 
+    return () => clearTimeout(timeout);
+  }, [fontsLoaded, fontError, onLayoutRootView, appReady]);
+
+  // Show loading indicator while fonts are loading
   if (!appReady) {
-    return null;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.accent} />
+        <Text style={styles.loadingText}>Cargando...</Text>
+      </View>
+    );
+  }
+
+  // Log font error if any
+  if (fontError) {
+    console.warn('Font loading error:', fontError);
   }
 
   return (
@@ -110,3 +103,17 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+});

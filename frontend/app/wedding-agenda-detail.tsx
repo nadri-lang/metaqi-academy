@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
@@ -76,13 +76,13 @@ export default function WeddingAgendaDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
             
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="heart" size={32} color={Colors.accent} />
+                <MaterialCommunityIcons name="heart" size={32} color={Colors.accent} />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>{t('services.wedding_agenda_2027')}</Text>
@@ -113,7 +113,7 @@ export default function WeddingAgendaDetailScreen() {
             {months.length > 0 ? (
               <>
                 <View style={styles.realDataBanner}>
-                  <Ionicons name="checkmark-circle" size={24} color={Colors.accent} />
+                  <MaterialCommunityIcons name="check-circle" size={24} color={Colors.accent} />
                   <Text style={styles.realDataText}>
                     {language === 'es' 
                       ? `${months.length} ${months.length === 1 ? 'mes disponible' : 'meses disponibles'}` 
@@ -125,7 +125,7 @@ export default function WeddingAgendaDetailScreen() {
                   {months.map((month) => (
                     <View key={month.id} style={styles.monthCard}>
                       <View style={styles.monthHeader}>
-                        <Ionicons name="calendar" size={20} color={Colors.accent} />
+                        <MaterialCommunityIcons name="calendar" size={20} color={Colors.accent} />
                         <Text style={styles.monthTitle}>{month.title}</Text>
                       </View>
                       <Text style={styles.monthContent}>{month.content}</Text>
@@ -138,7 +138,7 @@ export default function WeddingAgendaDetailScreen() {
               </>
             ) : (
               <View style={styles.noDataCard}>
-                <Ionicons name="information-circle-outline" size={48} color={Colors.textSecondary} />
+                <MaterialCommunityIcons name="information-outline" size={48} color={Colors.textSecondary} />
                 <Text style={styles.noDataTitle}>
                   {language === 'es' ? 'Sin fechas cargadas aún' : 'No dates loaded yet'}
                 </Text>

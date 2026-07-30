@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 
@@ -95,7 +95,7 @@ export default function WeddingAgenda2027Screen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.primary} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
               <Text style={styles.backButtonText}>
                 {language === 'es' ? 'Volver' : 'Back'}
               </Text>
@@ -103,7 +103,7 @@ export default function WeddingAgenda2027Screen() {
             
             <View style={styles.headerMainContent}>
               <View style={styles.iconContainer}>
-                <Ionicons name="heart" size={32} color={Colors.accent} />
+                <MaterialCommunityIcons name="heart" size={32} color={Colors.accent} />
               </View>
               <Text style={styles.headerTitle}>
                 {language === 'es' ? 'AGENDA DE BODAS 2027' : 'WEDDING AGENDA 2027'}
@@ -146,7 +146,7 @@ export default function WeddingAgenda2027Screen() {
           >
             <View style={styles.quarterButtonContent}>
               <View style={styles.quarterIconContainer}>
-                <Ionicons name="calendar" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="calendar" size={28} color={Colors.accent} />
               </View>
               <View style={styles.quarterTextContainer}>
                 <Text style={styles.quarterTitle}>
@@ -154,7 +154,7 @@ export default function WeddingAgenda2027Screen() {
                 </Text>
                 <Text style={styles.quarterPrice}>{quarter.price}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
           </TouchableOpacity>
         ))}
@@ -177,13 +177,13 @@ export default function WeddingAgenda2027Screen() {
                   {/* Modal Header */}
                   <View style={styles.modalHeader}>
                     <View style={styles.modalIconContainer}>
-                      <Ionicons name="heart" size={32} color={Colors.accent} />
+                      <MaterialCommunityIcons name="heart" size={32} color={Colors.accent} />
                     </View>
                     <TouchableOpacity
                       style={styles.closeButton}
                       onPress={() => setSelectedQuarter(null)}
                     >
-                      <Ionicons name="close" size={28} color={Colors.textSecondary} />
+                      <MaterialCommunityIcons name="close" size={28} color={Colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
@@ -207,7 +207,7 @@ export default function WeddingAgenda2027Screen() {
                     {/* Features */}
                     <View style={styles.featuresCard}>
                       <View style={styles.featureItem}>
-                        <Ionicons name="checkmark-circle" size={24} color={Colors.jade} />
+                        <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
                           {language === 'es' 
                             ? 'Días específicos con horarios favorables'
@@ -215,7 +215,7 @@ export default function WeddingAgenda2027Screen() {
                         </Text>
                       </View>
                       <View style={styles.featureItem}>
-                        <Ionicons name="checkmark-circle" size={24} color={Colors.jade} />
+                        <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
                           {language === 'es' 
                             ? 'Análisis según Feng Shui, BaZi y Qi Men'
@@ -223,7 +223,7 @@ export default function WeddingAgenda2027Screen() {
                         </Text>
                       </View>
                       <View style={styles.featureItem}>
-                        <Ionicons name="checkmark-circle" size={24} color={Colors.jade} />
+                        <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
                           {language === 'es' 
                             ? 'Orientaciones auspiciosas para la ceremonia'
@@ -241,7 +241,7 @@ export default function WeddingAgenda2027Screen() {
                       }}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="logo-whatsapp" size={24} color={Colors.white} />
+                      <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
                         {language === 'es' 
                           ? 'Comprar por WhatsApp'

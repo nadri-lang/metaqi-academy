@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 
 interface Concept {
@@ -71,12 +71,12 @@ export default function ConceptDetailScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="chevron-back" size={24} color={Colors.white} />
+            <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
           </TouchableOpacity>
           
           <View style={styles.headerContent}>
             <View style={[styles.iconContainer, { backgroundColor: concept.color + '30' }]}>
-              <Ionicons name={concept.icon as any} size={40} color={concept.color} />
+              <MaterialCommunityIcons name={concept.icon as any} size={40} color={concept.color} />
             </View>
             <Text style={styles.title}>{concept.title}</Text>
           </View>
@@ -102,7 +102,7 @@ export default function ConceptDetailScreen() {
           onPress={() => router.push('/(tabs)/articles')}
         >
           <Text style={styles.ctaButtonText}>Explorar artículos</Text>
-          <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+          <MaterialCommunityIcons name="arrow-right" size={18} color={Colors.primary} />
         </TouchableOpacity>
       </ScrollView>
     </View>

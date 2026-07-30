@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
@@ -74,13 +74,13 @@ export default function AgendaMonthlyFreeScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
             
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="calendar-outline" size={32} color={Colors.accent} />
+                <MaterialCommunityIcons name="calendar-outline" size={32} color={Colors.accent} />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>
@@ -112,7 +112,7 @@ export default function AgendaMonthlyFreeScreen() {
         ) : data ? (
           <>
             <View style={styles.freeBanner}>
-              <Ionicons name="gift-outline" size={24} color={Colors.accent} />
+              <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
               <Text style={styles.freeBannerText}>
                 {t('home.free_monthly_content')}
               </Text>
@@ -125,7 +125,7 @@ export default function AgendaMonthlyFreeScreen() {
 
             {/* CTA para Agenda Completa 2027 */}
             <View style={styles.ctaCard}>
-              <Ionicons name="sparkles" size={32} color={Colors.accent} />
+              <MaterialCommunityIcons name="shimmer" size={32} color={Colors.accent} />
               <Text style={styles.ctaTitle}>
                 {language === 'es' ? '¿Quieres la Agenda Completa 2027?' : 'Want the Complete 2027 Agenda?'}
               </Text>
@@ -141,13 +141,13 @@ export default function AgendaMonthlyFreeScreen() {
                 <Text style={styles.ctaButtonText}>
                   {language === 'es' ? 'Ver Agenda 2027' : 'View 2027 Agenda'}
                 </Text>
-                <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
+                <MaterialCommunityIcons name="arrow-right" size={20} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </>
         ) : (
           <View style={styles.noDataCard}>
-            <Ionicons name="information-circle-outline" size={48} color={Colors.textSecondary} />
+            <MaterialCommunityIcons name="information-outline" size={48} color={Colors.textSecondary} />
             <Text style={styles.noDataTitle}>
               {language === 'es' ? 'Sin contenido disponible' : 'No content available'}
             </Text>

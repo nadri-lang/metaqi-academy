@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 
@@ -115,7 +115,7 @@ export default function WeddingAgendaAdminScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonText}>Volver</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Agenda de Bodas</Text>
@@ -256,7 +256,7 @@ export default function WeddingAgendaAdminScreen() {
               <ActivityIndicator color={Colors.primary} />
             ) : (
               <>
-                <Ionicons name="save" size={20} color={Colors.primary} />
+                <MaterialCommunityIcons name="save" size={20} color={Colors.primary} />
                 <Text style={styles.submitButtonText}>Guardar</Text>
               </>
             )}
@@ -272,7 +272,7 @@ export default function WeddingAgendaAdminScreen() {
               <ActivityIndicator color={Colors.white} />
             ) : (
               <>
-                <Ionicons name="trash" size={20} color={Colors.white} />
+                <MaterialCommunityIcons name="trash-can" size={20} color={Colors.white} />
                 <Text style={styles.deleteButtonText}>Eliminar Contenido Actual</Text>
               </>
             )}

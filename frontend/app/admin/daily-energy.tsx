@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
@@ -121,7 +121,7 @@ export default function AdminDailyEnergyScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -277,7 +277,7 @@ export default function AdminDailyEnergyScreen() {
                 <ActivityIndicator color={Colors.primary} />
               ) : (
                 <>
-                  <Ionicons name="save" size={20} color={Colors.primary} />
+                  <MaterialCommunityIcons name="save" size={20} color={Colors.primary} />
                   <Text style={styles.saveButtonText}>
                     {existing ? 'Actualizar' : 'Guardar'}
                   </Text>

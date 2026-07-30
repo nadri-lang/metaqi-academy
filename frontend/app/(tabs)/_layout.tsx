@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Colors } from '@/src/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Typography } from '@/src/constants/Typography';
 import { useLanguage } from '@/src/context/LanguageContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,7 +36,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <MaterialCommunityIcons name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -45,7 +45,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.metaphysics'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
+            <MaterialCommunityIcons name="book-open-variant" size={size} color={color} />
           ),
         }}
       />
@@ -54,7 +54,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.courses'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="school" size={size} color={color} />
+            <MaterialCommunityIcons name="school-outline" size={size} color={color} />
           ),
         }}
       />
@@ -63,7 +63,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.services'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="sparkles" size={size} color={color} />
+            <MaterialCommunityIcons name="star-four-points-outline" size={size} color={color} />
           ),
         }}
       />
@@ -72,7 +72,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.account'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <MaterialCommunityIcons name="account-outline" size={size} color={color} />
           ),
         }}
       />
@@ -80,13 +80,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="articles"
         options={{
-          href: null, // Hides from tab bar
+          href: null,
         }}
       />
       <Tabs.Screen
         name="agendas"
         options={{
-          href: null, // Hides from tab bar
+          href: null,
         }}
       />
     </Tabs>

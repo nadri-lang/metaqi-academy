@@ -18,7 +18,7 @@ import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -84,7 +84,7 @@ export default function RegisterScreen() {
               style={styles.backButton}
               onPress={goBack}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
             <View style={styles.logoContainer}>
@@ -143,7 +143,7 @@ export default function RegisterScreen() {
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeButton}
                 >
-                  <Ionicons
+                  <MaterialCommunityIcons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
                     color={Colors.textSecondary}
@@ -170,7 +170,7 @@ export default function RegisterScreen() {
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={styles.eyeButton}
                 >
-                  <Ionicons
+                  <MaterialCommunityIcons
                     name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
                     color={Colors.textSecondary}

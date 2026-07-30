@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/context/LanguageContext';
 
 interface Course {
@@ -96,7 +96,7 @@ export default function CoursesScreen() {
           >
             <View style={styles.courseButtonContent}>
               <View style={styles.courseIconContainer}>
-                <Ionicons name={course.icon as any} size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name={course.icon as any} size={28} color={Colors.accent} />
               </View>
               <View style={styles.courseTextContainer}>
                 <Text style={styles.courseTitle} numberOfLines={2}>
@@ -104,7 +104,7 @@ export default function CoursesScreen() {
                 </Text>
                 <Text style={styles.coursePrice}>{course.price}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={22} color={Colors.textLight} />
+              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
           </TouchableOpacity>
         ))}
@@ -127,13 +127,13 @@ export default function CoursesScreen() {
                   {/* Modal Header */}
                   <View style={styles.modalHeader}>
                     <View style={styles.modalIconContainer}>
-                      <Ionicons name={selectedCourse.icon as any} size={32} color={Colors.accent} />
+                      <MaterialCommunityIcons name={selectedCourse.icon as any} size={32} color={Colors.accent} />
                     </View>
                     <TouchableOpacity
                       style={styles.closeButton}
                       onPress={() => setSelectedCourse(null)}
                     >
-                      <Ionicons name="close" size={28} color={Colors.textSecondary} />
+                      <MaterialCommunityIcons name="close" size={28} color={Colors.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
@@ -150,7 +150,7 @@ export default function CoursesScreen() {
 
                     {/* Notice */}
                     <View style={styles.noticeCard}>
-                      <Ionicons name="information-circle" size={24} color={Colors.accent} />
+                      <MaterialCommunityIcons name="information" size={24} color={Colors.accent} />
                       <Text style={styles.noticeText}>
                         {language === 'es'
                           ? 'Una vez confirmado el pago, el curso se activará en tu sección "Mis Compras" con acceso al vídeo del curso.'
@@ -167,7 +167,7 @@ export default function CoursesScreen() {
                       }}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="logo-whatsapp" size={24} color={Colors.white} />
+                      <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
                         {language === 'es' 
                           ? 'Solicitar Información / Comprar por WhatsApp'

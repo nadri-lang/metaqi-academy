@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 
@@ -103,7 +103,7 @@ export default function AdminScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.deniedContainer}>
-          <Ionicons name="lock-closed" size={64} color={Colors.error} />
+          <MaterialCommunityIcons name="lock" size={64} color={Colors.error} />
           <Text style={styles.deniedTitle}>Acceso denegado</Text>
           <Text style={styles.deniedText}>Solo administradores pueden acceder</Text>
           <TouchableOpacity 
@@ -127,7 +127,7 @@ export default function AdminScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -150,7 +150,7 @@ export default function AdminScreen() {
               onPress={() => router.push(section.route as any)}
             >
               <View style={styles.iconContainer}>
-                <Ionicons name={section.icon as any} size={26} color={Colors.accent} />
+                <MaterialCommunityIcons name={section.icon as any} size={26} color={Colors.accent} />
               </View>
               <Text style={styles.itemTitle}>{section.title}</Text>
               <Text style={styles.itemDesc} numberOfLines={2}>{section.description}</Text>

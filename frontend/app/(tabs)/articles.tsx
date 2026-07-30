@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 
 interface DailyEnergy {
@@ -76,7 +76,7 @@ export default function DailyEnergyDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyState}>
-          <Ionicons name="sunny-outline" size={64} color={Colors.textLight} />
+          <MaterialCommunityIcons name="weather-sunny" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>Sin contenido para hoy</Text>
           <Text style={styles.emptyText}>Vuelve más tarde</Text>
         </View>
@@ -91,7 +91,7 @@ export default function DailyEnergyDetailScreen() {
           <View style={styles.headerContent}>
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="sunny" size={28} color={Colors.accent} />
+                <MaterialCommunityIcons name="white-balance-sunny" size={28} color={Colors.accent} />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>Energía del Día</Text>
@@ -119,7 +119,7 @@ export default function DailyEnergyDetailScreen() {
         {data.animal && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="paw" size={22} color={Colors.accent} />
+              <MaterialCommunityIcons name="paw" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>Animal del Día</Text>
             </View>
             <Text style={styles.animalText}>{data.animal}</Text>
@@ -130,7 +130,7 @@ export default function DailyEnergyDetailScreen() {
         {data.bazi_relationships && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="git-network" size={22} color={Colors.accent} />
+              <MaterialCommunityIcons name="source-branch" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>Relaciones BaZi</Text>
             </View>
             <Text style={styles.description}>{data.bazi_relationships}</Text>
@@ -141,7 +141,7 @@ export default function DailyEnergyDetailScreen() {
         {data.recommendations.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="checkmark-circle" size={22} color={Colors.jade} />
+              <MaterialCommunityIcons name="check-circle" size={22} color={Colors.jade} />
               <Text style={styles.sectionTitle}>Actividades Sostenidas</Text>
             </View>
             {data.recommendations.map((item, idx) => (
@@ -157,7 +157,7 @@ export default function DailyEnergyDetailScreen() {
         {data.avoid.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="close-circle" size={22} color={Colors.error} />
+              <MaterialCommunityIcons name="close-circle" size={22} color={Colors.error} />
               <Text style={styles.sectionTitle}>Actividades a Evitar</Text>
             </View>
             {data.avoid.map((item, idx) => (
@@ -173,12 +173,12 @@ export default function DailyEnergyDetailScreen() {
         {data.feng_shui_sectors.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="home" size={22} color={Colors.jade} />
+              <MaterialCommunityIcons name="home" size={22} color={Colors.jade} />
               <Text style={styles.sectionTitle}>Sectores Feng Shui</Text>
             </View>
             {data.feng_shui_sectors.map((item, idx) => (
               <View key={idx} style={styles.detailItem}>
-                <Ionicons name="location" size={16} color={Colors.jade} />
+                <MaterialCommunityIcons name="map-marker" size={16} color={Colors.jade} />
                 <Text style={styles.detailText}>{item}</Text>
               </View>
             ))}
@@ -189,12 +189,12 @@ export default function DailyEnergyDetailScreen() {
         {data.qimen_directions.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="compass" size={22} color={Colors.accent} />
+              <MaterialCommunityIcons name="compass" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>Direcciones Qi Men</Text>
             </View>
             {data.qimen_directions.map((item, idx) => (
               <View key={idx} style={styles.detailItem}>
-                <Ionicons name="navigate" size={16} color={Colors.accent} />
+                <MaterialCommunityIcons name="navigation" size={16} color={Colors.accent} />
                 <Text style={styles.detailText}>{item}</Text>
               </View>
             ))}
@@ -205,7 +205,7 @@ export default function DailyEnergyDetailScreen() {
         {data.favorable_hours.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <Ionicons name="time" size={22} color={Colors.accent} />
+              <MaterialCommunityIcons name="clock" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>Horas más Favorables</Text>
             </View>
             {data.favorable_hours.map((item, idx) => (

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
@@ -115,7 +115,7 @@ export default function AdminConceptsScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -195,7 +195,7 @@ export default function AdminConceptsScreen() {
                   <ActivityIndicator color={Colors.primary} />
                 ) : (
                   <>
-                    <Ionicons name="save" size={20} color={Colors.primary} />
+                    <MaterialCommunityIcons name="save" size={20} color={Colors.primary} />
                     <Text style={styles.saveButtonText}>Guardar</Text>
                   </>
                 )}
@@ -219,7 +219,7 @@ export default function AdminConceptsScreen() {
                     <Text style={styles.listItemTitle}>{concept.title}</Text>
                     <Text style={styles.listItemSubtitle}>{concept.slug}</Text>
                   </View>
-                  <Ionicons name="create-outline" size={20} color={Colors.accent} />
+                  <MaterialCommunityIcons name="pencil-outline" size={20} color={Colors.accent} />
                 </TouchableOpacity>
               ))}
             </View>

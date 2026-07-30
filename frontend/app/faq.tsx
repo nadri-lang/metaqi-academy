@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -94,7 +94,7 @@ export default function FAQScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="chevron-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
@@ -119,13 +119,13 @@ export default function FAQScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.categoryIconContainer}>
-                  <Ionicons name={category.icon as any} size={22} color={Colors.accent} />
+                  <MaterialCommunityIcons name={category.icon as any} size={22} color={Colors.accent} />
                 </View>
                 <View style={styles.categoryTitleContainer}>
                   <Text style={styles.categoryTitle}>{category.title}</Text>
                   <Text style={styles.categoryCount}>{category.items.length} preguntas</Text>
                 </View>
-                <Ionicons
+                <MaterialCommunityIcons
                   name={isExpanded ? 'chevron-up' : 'chevron-down'}
                   size={22}
                   color={Colors.textSecondary}
@@ -152,7 +152,7 @@ export default function FAQScreen() {
                           activeOpacity={0.7}
                         >
                           <Text style={styles.question}>{item.question}</Text>
-                          <Ionicons
+                          <MaterialCommunityIcons
                             name={isItemExpanded ? 'remove' : 'add'}
                             size={20}
                             color={Colors.accent}

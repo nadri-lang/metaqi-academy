@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 
@@ -112,13 +112,13 @@ export default function AppConfigAdminScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonText}>Volver</Text>
             </TouchableOpacity>
             
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
-                <Ionicons name="settings" size={32} color={Colors.accent} />
+                <MaterialCommunityIcons name="cog" size={32} color={Colors.accent} />
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.headerLabel}>ADMIN</Text>
@@ -212,7 +212,7 @@ export default function AppConfigAdminScreen() {
               <ActivityIndicator color={Colors.primary} />
             ) : (
               <>
-                <Ionicons name="save" size={20} color={Colors.primary} />
+                <MaterialCommunityIcons name="save" size={20} color={Colors.primary} />
                 <Text style={styles.submitButtonText}>Guardar Cambios</Text>
               </>
             )}

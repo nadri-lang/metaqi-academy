@@ -85,7 +85,7 @@ export default function EnergyDetailScreen() {
     return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day}/${month}/${year}`;
   };
 
-  // Buttons using MaterialCommunityIcons for better Expo Go compatibility
+  // 7 buttons for 2-column grid using MaterialCommunityIcons
   const buttons = [
     { id: 'hours', label: t('daily.favorable_hours'), icon: 'clock-outline', color: Colors.accent },
     { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
@@ -268,9 +268,9 @@ export default function EnergyDetailScreen() {
   if (!data) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={Gradients.gold} style={styles.header}>
+        <LinearGradient colors={Gradients.gold} style={styles.headerCompact}>
           <SafeAreaView edges={['top']}>
-            <View style={styles.headerContent}>
+            <View style={styles.headerRow}>
               <TouchableOpacity
                 testID="back-button"
                 style={styles.backButton}
@@ -278,8 +278,9 @@ export default function EnergyDetailScreen() {
                 activeOpacity={0.7}
               >
                 <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
-                <Text style={styles.backButtonText}>{t('common.back')}</Text>
               </TouchableOpacity>
+              <Text style={styles.headerTitleCompact}>{t('daily.title')}</Text>
+              <View style={{ width: 40 }} />
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -294,11 +295,10 @@ export default function EnergyDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header Banner */}
-      <LinearGradient colors={Gradients.gold} style={styles.header}>
+      {/* Compact Header Banner */}
+      <LinearGradient colors={Gradients.gold} style={styles.headerCompact}>
         <SafeAreaView edges={['top']}>
-          <View style={styles.headerContent}>
-            {/* Back Button */}
+          <View style={styles.headerRow}>
             <TouchableOpacity
               testID="back-button"
               style={styles.backButton}
@@ -306,17 +306,12 @@ export default function EnergyDetailScreen() {
               activeOpacity={0.7}
             >
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
-              <Text style={styles.backButtonText}>{t('common.back')}</Text>
             </TouchableOpacity>
-            
-            {/* Date and Title */}
-            <View style={styles.headerMainContent}>
-              <View style={styles.dateContainer}>
-                <MaterialCommunityIcons name="calendar" size={20} color={Colors.primary} />
-                <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
-              </View>
-              <Text style={styles.headerTitle}>{data.title}</Text>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
+              <Text style={styles.headerTitleCompact} numberOfLines={1}>{data.title}</Text>
             </View>
+            <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -331,10 +326,7 @@ export default function EnergyDetailScreen() {
         {/* Animal del Día */}
         {data.animal && (
           <View style={styles.animalCard}>
-            <View style={styles.animalHeader}>
-              <MaterialCommunityIcons name="paw" size={24} color={Colors.accent} />
-              <Text style={styles.animalLabel}>{t('daily.animal')}</Text>
-            </View>
+            <MaterialCommunityIcons name="paw" size={20} color={Colors.accent} />
             <Text style={styles.animalText}>{data.animal}</Text>
           </View>
         )}
@@ -357,7 +349,7 @@ export default function EnergyDetailScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
-                <MaterialCommunityIcons name={btn.icon as any} size={28} color={btn.color} />
+                <MaterialCommunityIcons name={btn.icon as any} size={26} color={btn.color} />
               </View>
               <Text style={styles.gridButtonLabel}>{btn.label}</Text>
             </TouchableOpacity>
@@ -424,133 +416,122 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
-  header: { paddingBottom: Spacing.xl },
-  headerContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+  // Compact Header
+  headerCompact: {
+    paddingBottom: Spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.sm,
   },
   backButton: {
-    flexDirection: 'row',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.xs,
-    marginBottom: Spacing.lg,
-    alignSelf: 'flex-start',
   },
-  backButtonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.primary,
-  },
-  headerMainContent: {
-    alignItems: 'flex-start',
-  },
-  dateContainer: {
-    flexDirection: 'row',
+  headerCenter: {
+    flex: 1,
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
   },
   headerDate: {
     fontFamily: Typography.sansMedium,
-    fontSize: Typography.base,
+    fontSize: Typography.xs,
     color: Colors.primary,
-    textTransform: 'capitalize',
+    opacity: 0.8,
   },
-  headerTitle: {
+  headerTitleCompact: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['2xl'],
+    fontSize: Typography.lg,
     color: Colors.primary,
-    lineHeight: 34,
+    textAlign: 'center',
   },
   content: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    padding: Spacing.md,
   },
+  // Animal Card - Compact
   animalCard: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.accent + '40',
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    alignItems: 'center',
-  },
-  animalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
     gap: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  animalLabel: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
   animalText: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['2xl'],
+    fontSize: Typography.lg,
     color: Colors.accent,
-    textAlign: 'center',
   },
+  // Description Card
   descriptionCard: {
     backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
   },
   description: {
     fontFamily: Typography.sans,
-    fontSize: Typography.base,
+    fontSize: Typography.sm,
     color: Colors.textSecondary,
-    lineHeight: 26,
+    lineHeight: 22,
   },
+  // Section Label
   sectionLabel: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
+    fontSize: Typography.xs,
     color: Colors.textLight,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
+  // 2-Column Grid
   buttonsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: Spacing.md,
   },
   gridButton: {
-    width: '47%',
+    width: '48%',
     backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.md,
     borderWidth: 1.5,
     borderColor: Colors.primary,
-    padding: Spacing.md,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  gridButtonIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
+    padding: Spacing.sm,
+    paddingVertical: Spacing.md,
     alignItems: 'center',
     marginBottom: Spacing.sm,
+    // Gold shadow effect
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  gridButtonIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
   },
   gridButtonLabel: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
+    fontSize: Typography.xs,
     color: Colors.textPrimary,
     textAlign: 'center',
   },
+  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

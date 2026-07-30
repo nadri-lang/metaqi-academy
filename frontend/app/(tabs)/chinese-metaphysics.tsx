@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import { useTranslate } from '@/src/hooks/useTranslate';
@@ -39,7 +39,7 @@ function ConceptCard({ concept }: { concept: Concept }) {
     <View style={styles.conceptCard}>
       <View style={styles.conceptHeader}>
         <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
-          <Ionicons name={concept.icon as any} size={28} color={concept.color} />
+          <MaterialCommunityIcons name={concept.icon as any} size={28} color={concept.color} />
         </View>
         <Text style={styles.conceptTitle}>{translatedTitle}</Text>
       </View>
@@ -89,7 +89,7 @@ export default function ChineseMetaphysicsScreen() {
         <View style={styles.headerContent}>
           <View style={styles.iconRow}>
             <View style={styles.iconContainer}>
-              <Ionicons name="book" size={28} color={Colors.accent} />
+              <MaterialCommunityIcons name="book-open-variant" size={28} color={Colors.accent} />
             </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerLabel}>{t('metaphysics.subtitle')}</Text>
@@ -117,7 +117,7 @@ export default function ChineseMetaphysicsScreen() {
         >
           <LinearGradient colors={Gradients.gold} style={styles.faqGradient}>
             <View style={styles.faqIconContainer}>
-              <Ionicons name="help-circle" size={32} color={Colors.primary} />
+              <MaterialCommunityIcons name="help-circle" size={32} color={Colors.primary} />
             </View>
             <View style={styles.faqContent}>
               <Text style={styles.faqLabel}>{t('metaphysics.faq_button')}</Text>
@@ -125,7 +125,7 @@ export default function ChineseMetaphysicsScreen() {
                 {t('profile.faq')}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+            <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.primary} />
           </LinearGradient>
         </TouchableOpacity>
 
