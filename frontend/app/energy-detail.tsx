@@ -32,9 +32,10 @@ interface DailyEnergy {
   feng_shui_sectors: string[];
   qimen_directions: string[];
   favorable_hours: string[];
+  travel_hours: string[];
 }
 
-type ModalType = 'hours' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | null;
+type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | null;
 
 export default function EnergyDetailScreen() {
   const router = useRouter();
@@ -85,8 +86,11 @@ export default function EnergyDetailScreen() {
     return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day}/${month}/${year}`;
   };
 
+  // Buttons in specific order: Horas Favorables, VIAJES, Actividades, A Evitar, BaZi, Feng Shui, Qi Men
+  // Total 7 buttons in 2-column grid (last row has 1 button centered or aligned)
   const buttons = [
     { id: 'hours', label: t('daily.favorable_hours'), icon: 'time', color: Colors.accent },
+    { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
     { id: 'activities', label: t('daily.activities'), icon: 'checkmark-circle', color: Colors.jade },
     { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle', color: Colors.error },
     { id: 'bazi', label: t('daily.bazi'), icon: 'git-network', color: Colors.accent },
@@ -109,6 +113,28 @@ export default function EnergyDetailScreen() {
               data.favorable_hours.map((hour, idx) => (
                 <View key={idx} style={styles.modalListItem}>
                   <View style={[styles.modalBullet, { backgroundColor: Colors.accent }]} />
+                  <Text style={styles.modalText}>{hour}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.modalEmptyText}>
+                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+              </Text>
+            )}
+          </View>
+        );
+
+      case 'travel':
+        return (
+          <View>
+            <View style={styles.modalHeader}>
+              <Ionicons name="airplane" size={28} color={Colors.primary} />
+              <Text style={styles.modalTitle}>{t('daily.travel_hours')}</Text>
+            </View>
+            {data.travel_hours && data.travel_hours.length > 0 ? (
+              data.travel_hours.map((hour, idx) => (
+                <View key={idx} style={styles.modalListItem}>
+                  <View style={[styles.modalBullet, { backgroundColor: Colors.error }]} />
                   <Text style={styles.modalText}>{hour}</Text>
                 </View>
               ))
@@ -320,23 +346,22 @@ export default function EnergyDetailScreen() {
           <Text style={styles.description}>{data.content}</Text>
         </View>
 
-        {/* Vertical Buttons List */}
+        {/* 2-Column Grid of Buttons */}
         <Text style={styles.sectionLabel}>
           {language === 'es' ? 'Información del Día' : 'Day Information'}
         </Text>
-        <View style={styles.buttonsContainer}>
+        <View style={styles.buttonsGrid}>
           {buttons.map((btn) => (
             <TouchableOpacity
               key={btn.id}
-              style={styles.infoButton}
+              style={styles.gridButton}
               onPress={() => setActiveModal(btn.id as ModalType)}
               activeOpacity={0.7}
             >
-              <View style={[styles.buttonIconContainer, { backgroundColor: btn.color + '20' }]}>
-                <Ionicons name={btn.icon as any} size={24} color={btn.color} />
+              <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
+                <Ionicons name={btn.icon as any} size={28} color={btn.color} />
               </View>
-              <Text style={styles.buttonLabel}>{btn.label}</Text>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textLight} />
+              <Text style={styles.gridButtonLabel}>{btn.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -487,7 +512,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
   },
-  // Vertical Buttons
+  // Section Label
   sectionLabel: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
@@ -496,32 +521,42 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  buttonsContainer: {
+  // 2-Column Grid
+  buttonsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: Spacing.md,
   },
-  infoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  gridButton: {
+    width: '47%',
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
     padding: Spacing.md,
     paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    // Gold shadow effect
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  buttonIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  gridButtonIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-  buttonLabel: {
-    flex: 1,
+  gridButtonLabel: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
+    fontSize: Typography.sm,
     color: Colors.textPrimary,
+    textAlign: 'center',
   },
   // Modal Styles
   modalOverlay: {

@@ -33,6 +33,7 @@ export default function AdminDailyEnergyScreen() {
   const [fengShuiSectors, setFengShuiSectors] = useState('');
   const [qimenDirections, setQimenDirections] = useState('');
   const [favorableHours, setFavorableHours] = useState('');
+  const [travelHours, setTravelHours] = useState('');
   const [loading, setLoading] = useState(false);
   const [existing, setExisting] = useState<any>(null);
 
@@ -54,6 +55,7 @@ export default function AdminDailyEnergyScreen() {
       setFengShuiSectors((data.feng_shui_sectors || []).join('\n'));
       setQimenDirections((data.qimen_directions || []).join('\n'));
       setFavorableHours((data.favorable_hours || []).join('\n'));
+      setTravelHours((data.travel_hours || []).join('\n'));
     } catch (error) {
       setExisting(null);
       setTitle('');
@@ -65,6 +67,7 @@ export default function AdminDailyEnergyScreen() {
       setFengShuiSectors('');
       setQimenDirections('');
       setFavorableHours('');
+      setTravelHours('');
     }
   };
 
@@ -87,6 +90,7 @@ export default function AdminDailyEnergyScreen() {
         feng_shui_sectors: fengShuiSectors.split('\n').filter(r => r.trim()),
         qimen_directions: qimenDirections.split('\n').filter(r => r.trim()),
         favorable_hours: favorableHours.split('\n').filter(r => r.trim()),
+        travel_hours: travelHours.split('\n').filter(r => r.trim()),
       };
 
       await api.post('/energy/daily', payload);
@@ -246,6 +250,18 @@ export default function AdminDailyEnergyScreen() {
               value={favorableHours}
               onChangeText={setFavorableHours}
               placeholder="05:00-07:00: Hora del Conejo&#10;11:00-13:00: Máxima energía Yang"
+              placeholderTextColor={Colors.textLight}
+              multiline
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>🚗 Horas NO recomendadas para Viajes (una por línea)</Text>
+            <TextInput
+              testID="input-travel"
+              style={[styles.input, styles.textArea]}
+              value={travelHours}
+              onChangeText={setTravelHours}
+              placeholder="07:00-09:00: Evitar salidas hacia el Norte&#10;15:00-17:00: Hora de conflicto"
               placeholderTextColor={Colors.textLight}
               multiline
               textAlignVertical="top"

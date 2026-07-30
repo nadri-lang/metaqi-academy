@@ -53,6 +53,8 @@ export default {
     qimen: 'Qi Men',
     activities: 'Activities',
     favorable_hours: 'Favorable Hours',
+    travel: 'Travel',
+    travel_hours: 'Hours NOT recommended for travel',
     to_avoid: 'To Avoid',
     bazi_relationships: 'BaZi Relationships',
     sustained_activities: 'Recommended Activities',

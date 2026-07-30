@@ -97,6 +97,7 @@ class DailyEnergy(BaseModel):
     feng_shui_sectors: List[str] = []  # e.g. ["Norte: Prosperidad"]
     qimen_directions: List[str] = []  # e.g. ["Sur: Fama"]
     favorable_hours: List[str] = []  # e.g. ["07:00-09:00: Energía Yang"]
+    travel_hours: List[str] = []  # Hours NOT recommended for travel (Viajes)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -114,6 +115,7 @@ class DailyEnergyCreate(BaseModel):
     feng_shui_sectors: List[str] = []
     qimen_directions: List[str] = []
     favorable_hours: List[str] = []
+    travel_hours: List[str] = []  # Hours NOT recommended for travel (Viajes)
 
 class MoonEnergy(BaseModel):
     id: str

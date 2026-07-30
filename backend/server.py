@@ -156,6 +156,9 @@ async def get_daily_energy(date: Optional[str] = None, lang: str = "es"):
         if "favorable_hours" in energy and energy["favorable_hours"]:
             energy["favorable_hours"] = [await translate_dict({"text": h}, lang, ["text"]) for h in energy["favorable_hours"]]
             energy["favorable_hours"] = [h["text"] for h in energy["favorable_hours"]]
+        if "travel_hours" in energy and energy["travel_hours"]:
+            energy["travel_hours"] = [await translate_dict({"text": t}, lang, ["text"]) for t in energy["travel_hours"]]
+            energy["travel_hours"] = [t["text"] for t in energy["travel_hours"]]
     
     return DailyEnergy(**energy)
 
