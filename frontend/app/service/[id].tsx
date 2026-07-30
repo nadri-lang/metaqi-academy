@@ -13,53 +13,60 @@ import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import * as Linking from 'expo-linking';
 import api from '@/src/services/api';
 
-interface BaziServiceConfig {
+interface CustomService {
   id: string;
   title: string;
   description: string;
+  includes: string[];
   price: number;
-  features: string[];
+  original_price?: number;
+  is_offer?: boolean;
+  form_fields: any[];
   is_active: boolean;
 }
 
-export default function BaziServiceScreen() {
+export default function ServiceDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
   const { t, language } = useLanguage();
-  const [config, setConfig] = useState<BaziServiceConfig | null>(null);
+  const [service, setService] = useState<CustomService | null>(null);
   const [loading, setLoading] = useState(true);
   const [appConfig, setAppConfig] = useState<any>(null);
 
   useEffect(() => {
-    loadData();
-  }, [language]);
+    if (id) {
+      loadData();
+    }
+  }, [id]);
 
   const loadData = async () => {
     try {
       const [serviceRes, appRes] = await Promise.all([
-        api.get('/bazi-service/config'),
+        api.get(`/services/${id}`),
         api.get('/app-config')
       ]);
-      setConfig(serviceRes.data);
+      setService(serviceRes.data);
       setAppConfig(appRes.data);
     } catch (error) {
-      console.error('Error loading BaZi service:', error);
+      console.error('Error loading service:', error);
+      Alert.alert('Error', 'No se pudo cargar el servicio');
     } finally {
       setLoading(false);
     }
   };
 
   const handleWhatsAppContact = () => {
-    if (!appConfig?.contact_whatsapp) {
+    if (!appConfig?.contact_whatsapp || !service) {
       Alert.alert('Error', 'WhatsApp no configurado');
       return;
     }
 
-    const message = t('bazi.whatsapp_message');
+    const message = `Hola, estoy interesado en el servicio: ${service.title}. ¿Podrían proporcionarme más información sobre el pago y los pasos a seguir? Gracias.`;
     const phone = appConfig.contact_whatsapp.replace(/\D/g, '');
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     
@@ -76,7 +83,7 @@ export default function BaziServiceScreen() {
     );
   }
 
-  if (!config) {
+  if (!service) {
     return (
       <View style={styles.container}>
         <LinearGradient colors={Gradients.gold} style={styles.header}>
@@ -92,7 +99,7 @@ export default function BaziServiceScreen() {
         </LinearGradient>
         <View style={styles.emptyState}>
           <MaterialCommunityIcons name="alert-circle-outline" size={64} color={Colors.textLight} />
-          <Text style={styles.emptyText}>Servicio no disponible</Text>
+          <Text style={styles.emptyText}>Servicio no encontrado</Text>
         </View>
       </View>
     );
@@ -107,7 +114,7 @@ export default function BaziServiceScreen() {
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{t('bazi.service_title')}</Text>
+            <Text style={styles.headerTitle} numberOfLines={1}>{service.title}</Text>
             <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
@@ -117,34 +124,44 @@ export default function BaziServiceScreen() {
         {/* Service Icon */}
         <View style={styles.iconContainer}>
           <LinearGradient colors={Gradients.navy} style={styles.iconGradient}>
-            <MaterialCommunityIcons name="yin-yang" size={48} color={Colors.accent} />
+            <MaterialCommunityIcons name="shimmer" size={48} color={Colors.accent} />
           </LinearGradient>
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>{config.title}</Text>
+        <Text style={styles.title}>{service.title}</Text>
 
         {/* Price Badge */}
         <View style={styles.priceBadge}>
-          <Text style={styles.priceLabel}>{t('bazi.price_label')}</Text>
-          <Text style={styles.priceValue}>€{config.price}</Text>
+          {service.is_offer && service.original_price && (
+            <Text style={styles.originalPrice}>€{service.original_price.toFixed(2)}</Text>
+          )}
+          <Text style={styles.priceValue}>€{service.price.toFixed(2)}</Text>
+          {service.is_offer && (
+            <View style={styles.offerTag}>
+              <Text style={styles.offerText}>OFERTA</Text>
+            </View>
+          )}
         </View>
 
         {/* Description */}
         <View style={styles.descriptionCard}>
           <Text style={styles.descriptionTitle}>
-            {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
+            {language === 'es' ? 'Descripción' : 'Description'}
           </Text>
-          <Text style={styles.description}>{config.description}</Text>
+          <Text style={styles.description}>{service.description}</Text>
         </View>
 
-        {/* Features List */}
-        {config.features && config.features.length > 0 && (
+        {/* Includes/Features */}
+        {service.includes && service.includes.length > 0 && (
           <View style={styles.featuresCard}>
-            {config.features.map((feature, index) => (
+            <Text style={styles.featuresTitle}>
+              {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
+            </Text>
+            {service.includes.map((item, index) => (
               <View key={index} style={styles.featureItem}>
                 <MaterialCommunityIcons name="check-circle" size={20} color={Colors.jade} />
-                <Text style={styles.featureText}>{feature}</Text>
+                <Text style={styles.featureText}>{item}</Text>
               </View>
             ))}
           </View>
@@ -157,13 +174,15 @@ export default function BaziServiceScreen() {
           activeOpacity={0.8}
         >
           <MaterialCommunityIcons name="whatsapp" size={24} color="#FFFFFF" />
-          <Text style={styles.whatsappButtonText}>{t('bazi.contact_whatsapp')}</Text>
+          <Text style={styles.whatsappButtonText}>
+            {language === 'es' ? 'Solicitar Servicio' : 'Request Service'}
+          </Text>
         </TouchableOpacity>
 
         <Text style={styles.footnote}>
           {language === 'es' 
-            ? 'Te contactaremos para confirmar los detalles del pago y solicitar tu fecha y hora de nacimiento.'
-            : 'We will contact you to confirm payment details and request your date and time of birth.'}
+            ? 'Te contactaremos para confirmar los detalles del pago.'
+            : 'We will contact you to confirm payment details.'}
         </Text>
 
         <View style={{ height: Spacing.xl }} />
@@ -237,24 +256,37 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   priceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.accent,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
     marginBottom: Spacing.lg,
+    gap: Spacing.xs,
   },
-  priceLabel: {
+  originalPrice: {
     fontFamily: Typography.sansMedium,
     fontSize: Typography.sm,
     color: Colors.primary,
+    textDecorationLine: 'line-through',
+    opacity: 0.7,
   },
   priceValue: {
     fontFamily: Typography.serifBold,
     fontSize: Typography.xl,
     color: Colors.primary,
+  },
+  offerTag: {
+    backgroundColor: Colors.error,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  offerText: {
+    fontFamily: Typography.sansBold,
+    fontSize: 10,
+    color: '#FFFFFF',
   },
   descriptionCard: {
     backgroundColor: Colors.card,
@@ -285,12 +317,18 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     width: '100%',
     marginBottom: Spacing.lg,
-    gap: Spacing.sm,
+  },
+  featuresTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   featureText: {
     fontFamily: Typography.sans,

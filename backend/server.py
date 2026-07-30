@@ -508,6 +508,14 @@ async def get_services():
     services = await db.custom_services.find({"is_active": True}).to_list(100)
     return [CustomService(**s) for s in services]
 
+@api_router.get("/services/{service_id}", response_model=CustomService)
+async def get_service_by_id(service_id: str):
+    """Get a single service by ID"""
+    service = await db.custom_services.find_one({"id": service_id})
+    if not service:
+        raise HTTPException(status_code=404, detail="Servicio no encontrado")
+    return CustomService(**service)
+
 @api_router.post("/services", response_model=CustomService)
 async def create_service(
     service_data: CustomServiceCreate,
@@ -518,6 +526,42 @@ async def create_service(
     
     await db.custom_services.insert_one(service_dict)
     return CustomService(**service_dict)
+
+@api_router.put("/services/{service_id}", response_model=CustomService)
+async def update_service(
+    service_id: str,
+    service_data: CustomServiceCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Update an existing service"""
+    existing = await db.custom_services.find_one({"id": service_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Servicio no encontrado")
+    
+    update_dict = service_data.model_dump()
+    await db.custom_services.update_one(
+        {"id": service_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.custom_services.find_one({"id": service_id})
+    return CustomService(**updated)
+
+@api_router.delete("/services/{service_id}")
+async def delete_service(
+    service_id: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a service (soft delete by setting is_active=False)"""
+    result = await db.custom_services.update_one(
+        {"id": service_id},
+        {"$set": {"is_active": False}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Servicio no encontrado")
+    
+    return {"success": True, "message": "Servicio eliminado"}
 
 # ============= SERVICE REQUESTS ENDPOINTS =============
 
@@ -1336,9 +1380,13 @@ async def get_bazi_service_config(lang: str = "es"):
     else:
         config = {k: v for k, v in config.items() if k != "_id"}
     
-    # Translate title and description
+    # Translate title, description and features
     if lang != "es":
         config = await translate_dict(config, lang, ["title", "description"])
+        # Translate features array
+        if config.get("features"):
+            config["features"] = [await translate_dict({"text": f}, lang, ["text"]) for f in config["features"]]
+            config["features"] = [f["text"] for f in config["features"]]
     
     return BaziServiceConfig(**config)
 

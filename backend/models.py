@@ -683,6 +683,12 @@ class BaziServiceConfig(BaseModel):
     title: str = "Análisis Carta Natal BaZi"
     description: str = "Análisis completo de tus pilares del destino, ciclos de suerte y elementos personales."
     price: float = 197.0
+    features: List[str] = [
+        "Análisis de los 4 Pilares del Destino",
+        "Ciclos de Suerte de 10 años",
+        "Elementos favorables y desfavorables",
+        "Recomendaciones personalizadas"
+    ]
     is_active: bool = True
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -690,6 +696,7 @@ class BaziServiceConfigUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
+    features: Optional[List[str]] = None
     is_active: Optional[bool] = None
 
 # Personalized BaZi Report for Users

@@ -27,6 +27,7 @@ export default function AdminBaziServiceScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [features, setFeatures] = useState('');
 
   useEffect(() => {
     loadConfig();
@@ -38,6 +39,7 @@ export default function AdminBaziServiceScreen() {
       setTitle(response.data.title || '');
       setDescription(response.data.description || '');
       setPrice(String(response.data.price || 197));
+      setFeatures((response.data.features || []).join('\n'));
     } catch (error) {
       console.error('Error loading config:', error);
     } finally {
@@ -57,6 +59,7 @@ export default function AdminBaziServiceScreen() {
         title: title.trim(),
         description: description.trim(),
         price: parseFloat(price) || 197,
+        features: features.split('\n').filter(f => f.trim()).map(f => f.trim()),
       });
       Alert.alert('Éxito', t('admin.service_updated'));
     } catch (error) {
@@ -119,6 +122,17 @@ export default function AdminBaziServiceScreen() {
             placeholder="197"
             placeholderTextColor={Colors.textLight}
             keyboardType="decimal-pad"
+          />
+
+          <Text style={styles.label}>Características (una por línea)</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            value={features}
+            onChangeText={setFeatures}
+            placeholder="Análisis de los 4 Pilares del Destino&#10;Ciclos de Suerte de 10 años&#10;Elementos favorables y desfavorables&#10;Recomendaciones personalizadas"
+            placeholderTextColor={Colors.textLight}
+            multiline
+            textAlignVertical="top"
           />
         </View>
 
