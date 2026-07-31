@@ -23,10 +23,6 @@ interface AppConfig {
   id: string;
   contact_email: string;
   contact_whatsapp: string;
-  agenda_2027_title_es: string;
-  agenda_2027_title_en: string;
-  agenda_2027_description_es: string;
-  agenda_2027_description_en: string;
   updated_at: string;
 }
 
@@ -35,13 +31,9 @@ export default function AppConfigAdminScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
-  // Form state
+  // Form state - Solo contacto
   const [contactEmail, setContactEmail] = useState('');
   const [contactWhatsApp, setContactWhatsApp] = useState('');
-  const [agendaTitleEs, setAgendaTitleEs] = useState('');
-  const [agendaTitleEn, setAgendaTitleEn] = useState('');
-  const [agendaDescEs, setAgendaDescEs] = useState('');
-  const [agendaDescEn, setAgendaDescEn] = useState('');
 
   useEffect(() => {
     loadConfig();
@@ -54,10 +46,6 @@ export default function AppConfigAdminScreen() {
       
       setContactEmail(config.contact_email);
       setContactWhatsApp(config.contact_whatsapp);
-      setAgendaTitleEs(config.agenda_2027_title_es);
-      setAgendaTitleEn(config.agenda_2027_title_en);
-      setAgendaDescEs(config.agenda_2027_description_es);
-      setAgendaDescEn(config.agenda_2027_description_en);
     } catch (error) {
       console.error('Error loading config:', error);
       Alert.alert('Error', 'No se pudo cargar la configuración');
@@ -77,10 +65,6 @@ export default function AppConfigAdminScreen() {
       await api.put('/admin/app-config', {
         contact_email: contactEmail,
         contact_whatsapp: contactWhatsApp,
-        agenda_2027_title_es: agendaTitleEs,
-        agenda_2027_title_en: agendaTitleEn,
-        agenda_2027_description_es: agendaDescEs,
-        agenda_2027_description_en: agendaDescEn,
       });
       
       Alert.alert(
@@ -112,11 +96,11 @@ export default function AppConfigAdminScreen() {
               style={styles.backButton}
               onPress={() => router.back()}
             >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.ivory} />
               <Text style={styles.backButtonText}>Volver</Text>
             </TouchableOpacity>
             
-            <View style={styles.iconRow}>
+            <View style={styles.headerTitleRow}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons name="cog" size={32} color={Colors.accent} />
               </View>
@@ -140,6 +124,9 @@ export default function AppConfigAdminScreen() {
           {/* Contact Information Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Información de Contacto</Text>
+            <Text style={styles.sectionDescription}>
+              Estos datos se usarán para los botones de contacto por WhatsApp en toda la aplicación.
+            </Text>
             
             <Text style={styles.label}>Email de Contacto *</Text>
             <TextInput
@@ -147,6 +134,7 @@ export default function AppConfigAdminScreen() {
               value={contactEmail}
               onChangeText={setContactEmail}
               placeholder="tu@email.com"
+              placeholderTextColor={Colors.textLight}
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -157,49 +145,16 @@ export default function AppConfigAdminScreen() {
               value={contactWhatsApp}
               onChangeText={setContactWhatsApp}
               placeholder="34640510085"
+              placeholderTextColor={Colors.textLight}
               keyboardType="phone-pad"
             />
-          </View>
-
-          {/* Wedding Agenda 2027 Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Agenda de Bodas 2027</Text>
             
-            <Text style={styles.label}>Título (Español)</Text>
-            <TextInput
-              style={styles.input}
-              value={agendaTitleEs}
-              onChangeText={setAgendaTitleEs}
-              placeholder="AGENDA DE BODAS 2027"
-            />
-
-            <Text style={styles.label}>Título (English)</Text>
-            <TextInput
-              style={styles.input}
-              value={agendaTitleEn}
-              onChangeText={setAgendaTitleEn}
-              placeholder="WEDDING AGENDA 2027"
-            />
-
-            <Text style={styles.label}>Descripción (Español)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={agendaDescEs}
-              onChangeText={setAgendaDescEs}
-              placeholder="Descripción en español..."
-              multiline
-              numberOfLines={4}
-            />
-
-            <Text style={styles.label}>Descripción (English)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={agendaDescEn}
-              onChangeText={setAgendaDescEn}
-              placeholder="Description in English..."
-              multiline
-              numberOfLines={4}
-            />
+            <View style={styles.infoBox}>
+              <MaterialCommunityIcons name="information-outline" size={20} color={Colors.accent} />
+              <Text style={styles.infoText}>
+                Introduce el número de WhatsApp sin el símbolo +. Ejemplo: 34640510085
+              </Text>
+            </View>
           </View>
 
           {/* Save Button */}
@@ -212,7 +167,7 @@ export default function AppConfigAdminScreen() {
               <ActivityIndicator color={Colors.primary} />
             ) : (
               <>
-                <MaterialCommunityIcons name="save" size={20} color={Colors.primary} />
+                <MaterialCommunityIcons name="content-save" size={20} color={Colors.primary} />
                 <Text style={styles.submitButtonText}>Guardar Cambios</Text>
               </>
             )}
@@ -248,14 +203,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
     marginBottom: Spacing.md,
-    alignSelf: 'flex-start',
   },
   backButtonText: {
-    fontFamily: Typography.sansSemiBold,
+    fontFamily: Typography.sansMedium,
     fontSize: Typography.base,
-    color: Colors.white,
+    color: Colors.ivory,
   },
-  iconRow: {
+  headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
@@ -263,8 +217,8 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 56,
     height: 56,
-    borderRadius: 16,
-    backgroundColor: Colors.accent + '30',
+    borderRadius: 28,
+    backgroundColor: Colors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -272,39 +226,44 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerLabel: {
-    fontFamily: Typography.sansMedium,
+    fontFamily: Typography.sansBold,
     fontSize: Typography.xs,
     color: Colors.accent,
-    letterSpacing: 2,
-    marginBottom: 4,
+    letterSpacing: 1.5,
+    marginBottom: 2,
   },
   headerTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['2xl'],
-    color: Colors.white,
-    lineHeight: 32,
+    fontSize: Typography.xl,
+    color: Colors.ivory,
   },
   content: {
     padding: Spacing.lg,
   },
   section: {
     backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
   },
   sectionTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
+    fontSize: Typography.lg,
     color: Colors.textPrimary,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xs,
   },
-  label: {
-    fontFamily: Typography.sansMedium,
+  sectionDescription: {
+    fontFamily: Typography.sans,
     fontSize: Typography.sm,
     color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+  },
+  label: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     marginTop: Spacing.md,
   },
@@ -313,7 +272,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.cardBorder,
     borderRadius: BorderRadius.md,
-    padding: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     fontFamily: Typography.sans,
     fontSize: Typography.base,
     color: Colors.textPrimary,
@@ -322,21 +282,42 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: Colors.accent + '10',
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.accent,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  infoText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
   submitButton: {
+    backgroundColor: Colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.accent,
-    padding: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     gap: Spacing.sm,
-    marginTop: Spacing.lg,
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
-    fontFamily: Typography.sansSemiBold,
+    fontFamily: Typography.sansBold,
     fontSize: Typography.base,
     color: Colors.primary,
   },
