@@ -104,6 +104,8 @@ export default {
     fill_all_fields: 'Please fill all fields',
     passwords_dont_match: 'Passwords don\'t match',
     password_too_short: 'Password must be at least 6 characters',
+    forgot_password: 'Forgot your password?',
+    forgot_password_message: 'Please contact the administrator at nnikholk@gmail.com to recover your password.',
   },
   profile: {
     welcome_to: 'Welcome to',

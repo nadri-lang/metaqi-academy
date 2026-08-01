@@ -140,6 +140,22 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
+            {/* Forgot Password Link */}
+            <TouchableOpacity 
+              style={styles.forgotPasswordContainer}
+              onPress={() => {
+                Alert.alert(
+                  t('auth.forgot_password') || '¿Olvidaste tu contraseña?',
+                  t('auth.forgot_password_message') || 'Por favor, contacta con la administradora en nnikholk@gmail.com para recuperar tu contraseña.',
+                  [{ text: 'OK' }]
+                );
+              }}
+            >
+              <Text style={styles.forgotPasswordText}>
+                {t('auth.forgot_password') || '¿Olvidaste tu contraseña?'}
+              </Text>
+            </TouchableOpacity>
+
             <View style={styles.footer}>
               <Text style={styles.footerText}>{t('auth.no_account')} </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
@@ -274,6 +290,16 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  forgotPasswordText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    textDecorationLine: 'underline',
   },
   footer: {
     flexDirection: 'row',

@@ -41,6 +41,7 @@ export default function AdminUsersScreen() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState('free');
   const [selectedSubscription, setSelectedSubscription] = useState('free');
+  const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function AdminUsersScreen() {
     setSelectedUser(user);
     setSelectedRole(user.role || 'free');
     setSelectedSubscription(user.subscription || 'free');
+    setNewPassword('');
     setEditModalVisible(true);
   };
 
@@ -90,15 +92,20 @@ export default function AdminUsersScreen() {
 
     setSaving(true);
     try {
-      await api.put(`/admin/users/${selectedUser.id}`, null, {
-        params: {
-          role: selectedRole,
-          subscription: selectedSubscription,
-        }
-      });
+      const params: any = {
+        role: selectedRole,
+        subscription: selectedSubscription,
+      };
+      
+      if (newPassword.trim()) {
+        params.new_password = newPassword.trim();
+      }
+
+      await api.put(`/admin/users/${selectedUser.id}`, null, { params });
       
       Alert.alert('Éxito', 'Usuario actualizado correctamente');
       setEditModalVisible(false);
+      setNewPassword('');
       loadUsers();
     } catch (error) {
       console.error('Error updating user:', error);
@@ -313,6 +320,21 @@ export default function AdminUsersScreen() {
                       </TouchableOpacity>
                     ))}
                   </View>
+
+                  {/* New Password Field */}
+                  <Text style={styles.modalLabel}>Nueva Contraseña (opcional)</Text>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="Dejar vacío para no cambiar"
+                    placeholderTextColor={Colors.textLight}
+                    secureTextEntry
+                    autoCapitalize="none"
+                  />
+                  <Text style={styles.passwordHint}>
+                    Solo completa este campo si deseas cambiar la contraseña del usuario
+                  </Text>
 
                   <TouchableOpacity
                     style={[styles.saveButton, saving && styles.saveButtonDisabled]}
@@ -594,5 +616,23 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  passwordInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  passwordHint: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    marginTop: Spacing.xs,
+    fontStyle: 'italic',
   },
 });

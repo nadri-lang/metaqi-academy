@@ -104,6 +104,8 @@ export default {
     fill_all_fields: 'Por favor completa todos los campos',
     passwords_dont_match: 'Las contraseñas no coinciden',
     password_too_short: 'La contraseña debe tener al menos 6 caracteres',
+    forgot_password: '¿Olvidaste tu contraseña?',
+    forgot_password_message: 'Por favor, contacta con la administradora en nnikholk@gmail.com para recuperar tu contraseña.',
   },
   profile: {
     welcome_to: 'Bienvenido a',

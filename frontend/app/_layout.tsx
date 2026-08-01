@@ -17,7 +17,7 @@ import {
 import { Colors } from '@/src/constants/Colors';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIconFonts } from '@/src/hooks/use-icon-fonts';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -30,23 +30,25 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
-    // Explicitly load MaterialCommunityIcons font
-    ...MaterialCommunityIcons.font,
   });
+
+  // Icon glyph fonts (@expo/vector-icons) come back as 0-byte files from
+  // Metro's asset resolver under Expo Go, so they load from a CDN instead.
+  const [iconFontsLoaded, iconFontError] = useIconFonts();
 
   const [appReady, setAppReady] = React.useState(false);
 
   // Handle font loading completion
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded && iconFontsLoaded) || fontError || iconFontError) {
       await SplashScreen.hideAsync().catch(() => {});
       setAppReady(true);
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, iconFontsLoaded, fontError, iconFontError]);
 
   useEffect(() => {
     // If fonts loaded successfully or there's an error, proceed
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded && iconFontsLoaded) || fontError || iconFontError) {
       onLayoutRootView();
     }
     
@@ -60,7 +62,7 @@ export default function RootLayout() {
     }, 3000);
 
     return () => clearTimeout(timeout);
-  }, [fontsLoaded, fontError, onLayoutRootView, appReady]);
+  }, [fontsLoaded, iconFontsLoaded, fontError, iconFontError, onLayoutRootView, appReady]);
 
   // Show loading indicator while fonts are loading
   if (!appReady) {
@@ -75,6 +77,9 @@ export default function RootLayout() {
   // Log font error if any
   if (fontError) {
     console.warn('Font loading error:', fontError);
+  }
+  if (iconFontError) {
+    console.warn('Icon font loading error:', iconFontError);
   }
 
   return (

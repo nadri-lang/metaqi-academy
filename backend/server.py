@@ -1548,9 +1548,10 @@ async def update_user_admin(
     user_id: str,
     role: str = None,
     subscription: str = None,
+    new_password: str = None,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Update user role and/or subscription (admin only)"""
+    """Update user role, subscription and/or password (admin only)"""
     existing = await db.users.find_one({"id": user_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -1565,6 +1566,11 @@ async def update_user_admin(
         if subscription not in ["free", "monthly", "yearly"]:
             raise HTTPException(status_code=400, detail="Suscripción inválida")
         update_dict["subscription"] = subscription
+    
+    # Update password if provided
+    if new_password is not None and new_password.strip():
+        from auth import get_password_hash
+        update_dict["hashed_password"] = get_password_hash(new_password.strip())
     
     if not update_dict:
         raise HTTPException(status_code=400, detail="No hay cambios para aplicar")
