@@ -76,7 +76,7 @@ async def register(user_data: UserCreate):
     # Create new user
     user_dict = user_data.model_dump()
     user_dict["id"] = str(uuid.uuid4())
-    user_dict["hashed_password"] = get_password_hash(user_data.password)
+    user_dict["hashed_password"] = get_password_hash(user_data.password.strip())
     user_dict["has_active_subscription"] = False
     user_dict["created_at"] = datetime.utcnow()
     user_dict["last_login"] = None
@@ -89,7 +89,7 @@ async def register(user_data: UserCreate):
 async def login(login_data: LoginRequest):
     # Find user
     user = await db.users.find_one({"email": login_data.email})
-    if not user or not verify_password(login_data.password, user["hashed_password"]):
+    if not user or not verify_password(login_data.password.strip(), user["hashed_password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"

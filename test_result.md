@@ -138,6 +138,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "USER-REQUESTED AUTH VERIFICATION COMPLETED - All 7 critical tests PASSED ✅. Test 1: Register new user (testuser@example.com) - SUCCESS. Test 2 (PRIORITY): Admin login with nnikholk@gmail.com / admin123 - SUCCESS, returns valid JWT with token_type=bearer, role=admin, email matches. Test 3: Admin login with wrong password - SUCCESS, correctly returns 401 Unauthorized. Test 4: Register duplicate email (nnikholk@gmail.com) - SUCCESS, correctly returns 400 with 'Email already registered'. Test 5: Test user login - SUCCESS. Test 6a: Valid token authentication - SUCCESS. Test 6b: Invalid token rejected - SUCCESS, returns 401. JWT token verified: contains sub (user_id), email, role=admin, exp (expiration). Admin user in MongoDB verified: has all required fields (id, has_active_subscription, created_at, last_login, language). All authentication flows working correctly."
+      - working: true
+        agent: "testing"
+        comment: "PASSWORD RECOVERY FLOW VERIFICATION COMPLETED - All 8 tests PASSED ✅ (100% success rate). Test 1: Register test user with password 'testpass123' - SUCCESS, user created with ID cdcce85c-5482-47f2-a1f5-f5d1f7519fe7. Test 2: Admin login (nnikholk@gmail.com / admin123) - SUCCESS, JWT token obtained. Test 3: Get test user ID via GET /api/admin/users?email=password_test_user@example.com - SUCCESS, user ID retrieved. Test 4: Admin changes password via PUT /api/admin/users/{user_id}?new_password=newpass456 - SUCCESS, password changed. Test 5: Old password rejected - SUCCESS, login with 'testpass123' returns 401 Unauthorized. Test 6: Login with new password 'newpass456' - SUCCESS, returns valid JWT token. Test 7 (Edge Case): Password with spaces '  spacepass123  ' - SUCCESS, spaces trimmed correctly, can login with 'spacepass123'. Test 8 (Edge Case): Empty password field - SUCCESS, empty password ignored (returns 400), old password still works. CONCLUSION: Password recovery flow working perfectly. Admin can change user passwords, users can login with new passwords, old passwords are invalidated, and edge cases are handled correctly."
   
   - task: "Daily Energy API"
     implemented: true
@@ -461,6 +464,58 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      PASSWORD RECOVERY FLOW TEST COMPLETED - 8/8 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the password recovery flow for MetaQi Academy app.
+      
+      TEST RESULTS:
+      ✅ Test 1: Register test user with password "testpass123" - SUCCESS
+         - User created: password_test_user@example.com
+         - User ID: cdcce85c-5482-47f2-a1f5-f5d1f7519fe7
+         - Role: free_member
+      
+      ✅ Test 2: Admin login (nnikholk@gmail.com / admin123) - SUCCESS
+         - JWT token obtained successfully
+         - Token type: bearer
+         - Role: admin
+      
+      ✅ Test 3: Get test user ID via admin endpoint - SUCCESS
+         - GET /api/admin/users?email=password_test_user@example.com
+         - User ID retrieved: cdcce85c-5482-47f2-a1f5-f5d1f7519fe7
+      
+      ✅ Test 4: Admin changes user password - SUCCESS
+         - PUT /api/admin/users/{user_id}?new_password=newpass456
+         - Password changed from "testpass123" to "newpass456"
+         - Response includes updated user data
+      
+      ✅ Test 5: Old password rejected - SUCCESS
+         - Login with "testpass123" returns 401 Unauthorized
+         - Old password correctly invalidated
+      
+      ✅ Test 6: Login with new password - SUCCESS
+         - Login with "newpass456" returns 200 OK
+         - Valid JWT token received
+         - Token type: bearer
+         - User data matches (email, user_id)
+      
+      ✅ Test 7 (Edge Case): Password with spaces - SUCCESS
+         - Admin sets password: "  spacepass123  "
+         - User can login with trimmed version: "spacepass123"
+         - Spaces automatically trimmed on both set and login
+      
+      ✅ Test 8 (Edge Case): Empty password field - SUCCESS
+         - Admin sends empty password: ""
+         - Request returns 400 Bad Request
+         - Old password still works (password not changed)
+      
+      CONCLUSION: Password recovery flow working perfectly. All success criteria met:
+      - Admin can successfully change user passwords ✅
+      - User can login with NEW password after admin changes it ✅
+      - Login returns valid JWT token ✅
+      - Old password is invalidated ✅
+      - Edge cases handled correctly (spaces trimmed, empty password ignored) ✅
   - agent: "main"
     message: |
       MAJOR UPDATE: Implemented user-requested admin/visibility rules and translation fixes.
