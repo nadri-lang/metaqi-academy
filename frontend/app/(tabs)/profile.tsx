@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
 
   const handleLogout = () => {
@@ -174,7 +174,11 @@ export default function ProfileScreen() {
         )}
 
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem} testID="menu-favorites">
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            testID="menu-favorites"
+            onPress={() => router.push('/my-favorites')}
+          >
             <MaterialCommunityIcons name="heart" size={22} color={Colors.textSecondary} />
             <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
             <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
@@ -182,11 +186,13 @@ export default function ProfileScreen() {
 
           <TouchableOpacity 
             style={styles.menuItem} 
-            testID="menu-bazi-report"
-            onPress={() => router.push('/my-bazi-report')}
+            testID="menu-purchases"
+            onPress={() => router.push('/my-purchases')}
           >
-            <MaterialCommunityIcons name="yin-yang" size={22} color={Colors.accent} />
-            <Text style={styles.menuText}>{t('bazi.my_report')}</Text>
+            <MaterialCommunityIcons name="shopping" size={22} color={Colors.accent} />
+            <Text style={styles.menuText}>
+              {language === 'es' ? 'Mis Compras' : 'My Purchases'}
+            </Text>
             <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
           </TouchableOpacity>
 

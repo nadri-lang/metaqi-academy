@@ -14,6 +14,7 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
+import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface Concept {
   id: string;
@@ -66,13 +67,22 @@ export default function ConceptDetailScreen() {
     <View style={styles.container}>
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
-          <TouchableOpacity
-            testID="back-btn"
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
-          </TouchableOpacity>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              testID="back-btn"
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
+            </TouchableOpacity>
+            
+            <FavoriteButton 
+              itemType="concept" 
+              itemId={concept.slug} 
+              size={24} 
+              color={Colors.white}
+            />
+          </View>
           
           <View style={styles.headerContent}>
             <View style={[styles.iconContainer, { backgroundColor: concept.color + '30' }]}>
@@ -123,13 +133,17 @@ const styles = StyleSheet.create({
   header: {
     paddingBottom: Spacing.xl,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+  },
   backButton: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: Spacing.sm,
-    marginTop: Spacing.sm,
   },
   headerContent: {
     alignItems: 'center',

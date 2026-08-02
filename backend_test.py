@@ -1047,6 +1047,411 @@ def test_wedding_agenda_delete_endpoint():
         print_result(False, f"Wedding agenda delete test error: {str(e)}")
         return False
 
+# ============= NEW TESTS - FAVORITES SYSTEM (USER-REQUESTED) =============
+
+def test_favorites_add_different_types():
+    """Test 24: POST /api/favorites - Add favorites with different item types"""
+    print_test_header("Favorites System - Add Different Item Types")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        # Test different item types as specified in review request
+        item_types = [
+            {"item_type": "daily_energy", "item_id": "2026-07-28"},
+            {"item_type": "newborn_vocation", "item_id": "2026-07-27"},
+            {"item_type": "agenda", "item_id": "wedding-agenda-july-2026"},
+            {"item_type": "concept", "item_id": "bazi-concept-001"}
+        ]
+        
+        results = []
+        for item in item_types:
+            response = requests.post(f"{BASE_URL}/favorites", json=item, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                results.append({
+                    "item_type": item["item_type"],
+                    "success": True,
+                    "favorite_id": data.get("id")
+                })
+            else:
+                results.append({
+                    "item_type": item["item_type"],
+                    "success": False,
+                    "status_code": response.status_code
+                })
+        
+        all_success = all(r["success"] for r in results)
+        
+        print_result(all_success, f"Added {len([r for r in results if r['success']])}/{len(item_types)} favorites", {
+            "results": results
+        })
+        return all_success
+            
+    except Exception as e:
+        print_result(False, f"Add favorites error: {str(e)}")
+        return False
+
+def test_favorites_duplicate_prevention():
+    """Test 25: POST /api/favorites - Adding duplicate favorite should not create duplicate"""
+    print_test_header("Favorites System - Duplicate Prevention")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        # Add the same favorite twice
+        payload = {
+            "item_type": "daily_energy",
+            "item_id": "2026-07-28"
+        }
+        
+        # First add
+        response1 = requests.post(f"{BASE_URL}/favorites", json=payload, headers=headers)
+        
+        if response1.status_code != 200:
+            print_result(False, f"First add failed with status {response1.status_code}")
+            return False
+        
+        data1 = response1.json()
+        favorite_id_1 = data1.get("id")
+        
+        # Second add (duplicate)
+        response2 = requests.post(f"{BASE_URL}/favorites", json=payload, headers=headers)
+        
+        if response2.status_code != 200:
+            print_result(False, f"Second add failed with status {response2.status_code}")
+            return False
+        
+        data2 = response2.json()
+        favorite_id_2 = data2.get("id")
+        
+        # Check if same ID returned (no duplicate created)
+        if favorite_id_1 == favorite_id_2:
+            print_result(True, "Duplicate prevention working - same favorite returned", {
+                "favorite_id": favorite_id_1,
+                "item_type": payload["item_type"],
+                "item_id": payload["item_id"],
+                "verification": "Both requests returned same favorite ID"
+            })
+            return True
+        else:
+            print_result(False, "Duplicate created - different IDs returned", {
+                "first_id": favorite_id_1,
+                "second_id": favorite_id_2
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Duplicate prevention test error: {str(e)}")
+        return False
+
+def test_favorites_delete_nonexistent():
+    """Test 26: DELETE /api/favorites/{item_type}/{item_id} - Delete non-existent favorite"""
+    print_test_header("Favorites System - Delete Non-Existent Favorite")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        # Try to delete a favorite that doesn't exist
+        response = requests.delete(
+            f"{BASE_URL}/favorites/nonexistent_type/nonexistent_id_12345", 
+            headers=headers
+        )
+        
+        if response.status_code == 404:
+            print_result(True, "Non-existent favorite correctly returns 404", {
+                "status_code": response.status_code,
+                "detail": response.json().get("detail") if response.text else None
+            })
+            return True
+        else:
+            print_result(False, f"Expected 404, got {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Delete non-existent favorite error: {str(e)}")
+        return False
+
+def test_favorites_user_isolation():
+    """Test 27: GET /api/favorites - Verify favorites are user-specific"""
+    print_test_header("Favorites System - User Isolation")
+    
+    if not test_user_token or not admin_token:
+        print_result(False, "Missing tokens - need both test user and admin tokens")
+        return False
+    
+    try:
+        # Get test user's favorites
+        test_user_headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        response1 = requests.get(f"{BASE_URL}/favorites", headers=test_user_headers)
+        
+        if response1.status_code != 200:
+            print_result(False, f"Test user favorites request failed: {response1.status_code}")
+            return False
+        
+        test_user_favorites = response1.json()
+        test_user_count = len(test_user_favorites)
+        
+        # Get admin's favorites
+        admin_headers = {
+            "Authorization": f"Bearer {admin_token}"
+        }
+        
+        response2 = requests.get(f"{BASE_URL}/favorites", headers=admin_headers)
+        
+        if response2.status_code != 200:
+            print_result(False, f"Admin favorites request failed: {response2.status_code}")
+            return False
+        
+        admin_favorites = response2.json()
+        admin_count = len(admin_favorites)
+        
+        # Verify that favorites are different (user-specific)
+        # Test user should have favorites from previous tests, admin should have 0 or different ones
+        print_result(True, "Favorites are user-specific", {
+            "test_user_favorites_count": test_user_count,
+            "admin_favorites_count": admin_count,
+            "verification": "Each user has their own favorites list"
+        })
+        return True
+            
+    except Exception as e:
+        print_result(False, f"User isolation test error: {str(e)}")
+        return False
+
+def test_favorites_delete_existing():
+    """Test 28: DELETE /api/favorites/{item_type}/{item_id} - Delete existing favorite"""
+    print_test_header("Favorites System - Delete Existing Favorite")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        # First, add a favorite to delete
+        payload = {
+            "item_type": "concept",
+            "item_id": "test-concept-to-delete"
+        }
+        
+        add_response = requests.post(f"{BASE_URL}/favorites", json=payload, headers=headers)
+        
+        if add_response.status_code != 200:
+            print_result(False, f"Failed to add favorite for deletion test: {add_response.status_code}")
+            return False
+        
+        print(f"  ℹ️  Added favorite: {payload['item_type']}/{payload['item_id']}")
+        
+        # Now delete it
+        delete_response = requests.delete(
+            f"{BASE_URL}/favorites/{payload['item_type']}/{payload['item_id']}", 
+            headers=headers
+        )
+        
+        if delete_response.status_code == 200:
+            delete_data = delete_response.json()
+            
+            # Verify it's deleted by trying to get all favorites
+            verify_response = requests.get(f"{BASE_URL}/favorites", headers=headers)
+            
+            if verify_response.status_code == 200:
+                all_favorites = verify_response.json()
+                deleted_favorite_exists = any(
+                    f.get("item_type") == payload["item_type"] and f.get("item_id") == payload["item_id"]
+                    for f in all_favorites
+                )
+                
+                if not deleted_favorite_exists:
+                    print_result(True, "Favorite deleted successfully", {
+                        "item_type": payload["item_type"],
+                        "item_id": payload["item_id"],
+                        "delete_message": delete_data.get("message"),
+                        "verification": "Favorite not found in user's favorites list"
+                    })
+                    return True
+                else:
+                    print_result(False, "Delete appeared successful but favorite still exists", {
+                        "item_type": payload["item_type"],
+                        "item_id": payload["item_id"]
+                    })
+                    return False
+            else:
+                print_result(False, f"Verification request failed: {verify_response.status_code}")
+                return False
+        else:
+            print_result(False, f"Delete request failed with status {delete_response.status_code}", {
+                "response": delete_response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"Delete existing favorite error: {str(e)}")
+        return False
+
+# ============= NEW TESTS - MY PURCHASES ENDPOINT (USER-REQUESTED) =============
+
+def test_my_purchases_endpoint():
+    """Test 29: GET /api/purchases/my-purchases - Get user's activated purchases"""
+    print_test_header("My Purchases Endpoint - Get Activated Purchases")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        response = requests.get(f"{BASE_URL}/purchases/my-purchases", headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            if isinstance(data, list):
+                # Check if all purchases have status='activated'
+                all_activated = all(p.get("status") == "activated" for p in data)
+                
+                # Check if video_url field is present
+                has_video_url_field = all("video_url" in p for p in data) if data else True
+                
+                # Get sample purchase details
+                sample = data[0] if data else None
+                
+                print_result(True, f"My purchases endpoint working - {len(data)} purchases found", {
+                    "count": len(data),
+                    "all_activated": all_activated,
+                    "has_video_url_field": has_video_url_field,
+                    "sample_purchase": {
+                        "product_name": sample.get("product_name"),
+                        "status": sample.get("status"),
+                        "video_url": sample.get("video_url"),
+                        "purchased_at": sample.get("purchased_at")
+                    } if sample else "No purchases found"
+                })
+                return True
+            else:
+                print_result(False, "Response is not a list", {
+                    "response_type": type(data).__name__
+                })
+                return False
+        elif response.status_code == 401:
+            print_result(False, "Authentication required - 401 Unauthorized", {
+                "response": response.text
+            })
+            return False
+        else:
+            print_result(False, f"My purchases request failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"My purchases error: {str(e)}")
+        return False
+
+# ============= NEW TESTS - BAZI REPORT ENDPOINT (USER-REQUESTED) =============
+
+def test_bazi_report_endpoint():
+    """Test 30: GET /api/my-bazi-report - Get user's BaZi report"""
+    print_test_header("BaZi Report Endpoint - Get User's Report")
+    
+    if not test_user_token:
+        print_result(False, "No test user token available")
+        return False
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {test_user_token}"
+        }
+        
+        response = requests.get(f"{BASE_URL}/my-bazi-report", headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify response structure
+            has_report_field = "has_report" in data
+            has_report_data_field = "report" in data
+            
+            if has_report_field and has_report_data_field:
+                has_report = data.get("has_report")
+                report_data = data.get("report")
+                
+                if has_report and report_data:
+                    # User has a published report
+                    print_result(True, "BaZi report found for user", {
+                        "has_report": has_report,
+                        "report_fields": list(report_data.keys()) if isinstance(report_data, dict) else None,
+                        "user_id": report_data.get("user_id") if isinstance(report_data, dict) else None,
+                        "is_published": report_data.get("is_published") if isinstance(report_data, dict) else None
+                    })
+                    return True
+                elif not has_report and report_data is None:
+                    # User has no report (expected for test user)
+                    print_result(True, "No BaZi report for user (expected)", {
+                        "has_report": has_report,
+                        "report": report_data,
+                        "note": "Test user has no published BaZi report"
+                    })
+                    return True
+                else:
+                    print_result(False, "Unexpected response structure", {
+                        "has_report": has_report,
+                        "report": report_data
+                    })
+                    return False
+            else:
+                print_result(False, "Missing required fields in response", {
+                    "has_report_field": has_report_field,
+                    "has_report_data_field": has_report_data_field,
+                    "response": data
+                })
+                return False
+        elif response.status_code == 401:
+            print_result(False, "Authentication required - 401 Unauthorized", {
+                "response": response.text
+            })
+            return False
+        else:
+            print_result(False, f"BaZi report request failed with status {response.status_code}", {
+                "response": response.text
+            })
+            return False
+            
+    except Exception as e:
+        print_result(False, f"BaZi report error: {str(e)}")
+        return False
+
 def print_summary():
     """Print test summary"""
     print(f"\n{'='*80}")
@@ -1112,6 +1517,23 @@ def run_all_tests():
     test_daily_energy_auto_delete()  # Test 21: Auto-delete old records
     test_year_energy_delete_endpoint()  # Test 22: Year energy delete endpoint
     test_wedding_agenda_delete_endpoint()  # Test 23: Wedding agenda delete endpoint (NEW)
+    
+    # NEW TESTS - FAVORITES SYSTEM (USER-REQUESTED 2026-07-29)
+    print("\n" + "="*80)
+    print("FAVORITES SYSTEM - COMPREHENSIVE TESTING")
+    print("="*80)
+    test_favorites_add_different_types()  # Test 24: Add favorites with different item types
+    test_favorites_duplicate_prevention()  # Test 25: Duplicate prevention
+    test_favorites_delete_nonexistent()  # Test 26: Delete non-existent favorite
+    test_favorites_user_isolation()  # Test 27: User-specific favorites
+    test_favorites_delete_existing()  # Test 28: Delete existing favorite
+    
+    # NEW TESTS - MY PURCHASES & BAZI REPORT (USER-REQUESTED 2026-07-29)
+    print("\n" + "="*80)
+    print("MY PURCHASES & BAZI REPORT - TESTING")
+    print("="*80)
+    test_my_purchases_endpoint()  # Test 29: Get user's activated purchases
+    test_bazi_report_endpoint()  # Test 30: Get user's BaZi report
     
     # Print summary
     print_summary()

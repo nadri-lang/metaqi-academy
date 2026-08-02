@@ -16,6 +16,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface NewbornVocation {
   id: string;
@@ -244,19 +245,27 @@ export default function NewbornVocationDetailScreen() {
             
             {/* SIMPLIFIED HEADER - Single title with date */}
             <View style={styles.simplifiedHeader}>
-              <Text style={styles.simplifiedTitle}>
-                {language === 'es' 
-                  ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
-                  : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
-                }
-              </Text>
-              {isToday && (
-                <View style={styles.todayBadge}>
-                  <Text style={styles.todayBadgeText}>
-                    {language === 'es' ? 'HOY' : 'TODAY'}
-                  </Text>
-                </View>
-              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.simplifiedTitle}>
+                  {language === 'es' 
+                    ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
+                    : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
+                  }
+                </Text>
+                {isToday && (
+                  <View style={styles.todayBadge}>
+                    <Text style={styles.todayBadgeText}>
+                      {language === 'es' ? 'HOY' : 'TODAY'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <FavoriteButton 
+                itemType="newborn_vocation" 
+                itemId={data.date} 
+                size={24} 
+                color={Colors.white}
+              />
             </View>
 
             {/* Navigation Arrows */}

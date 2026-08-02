@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
+import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface PremiumAgenda {
   id: string;
@@ -115,6 +116,13 @@ export default function AgendaDetailScreen() {
             >
               <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
             </TouchableOpacity>
+            
+            <FavoriteButton 
+              itemType="agenda" 
+              itemId={id as string} 
+              size={24} 
+              color={Colors.white}
+            />
           </View>
 
           <View style={styles.headerContent}>
@@ -235,6 +243,9 @@ const styles = StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
   header: { paddingBottom: Spacing.xl },
   headerNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.sm,
     paddingTop: Spacing.sm,
   },

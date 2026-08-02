@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface DailyEnergy {
   id: string;
@@ -311,7 +312,12 @@ export default function EnergyDetailScreen() {
               <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
               <Text style={styles.headerTitleCompact} numberOfLines={1}>{data.title}</Text>
             </View>
-            <View style={{ width: 40 }} />
+            <FavoriteButton 
+              itemType="daily_energy" 
+              itemId={data.date} 
+              size={24} 
+              color={Colors.primary}
+            />
           </View>
         </SafeAreaView>
       </LinearGradient>
