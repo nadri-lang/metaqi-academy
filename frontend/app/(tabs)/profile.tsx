@@ -173,39 +173,42 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
-        <View style={styles.menuSection}>
-          <TouchableOpacity 
-            style={styles.menuItem} 
-            testID="menu-favorites"
-            onPress={() => router.push('/my-favorites')}
-          >
-            <MaterialCommunityIcons name="heart" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
+        {/* User Menu - Only for non-admin users */}
+        {user.role !== 'admin' && user.role !== 'editor' && (
+          <View style={styles.menuSection}>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              testID="menu-favorites"
+              onPress={() => router.push('/my-favorites')}
+            >
+              <MaterialCommunityIcons name="heart" size={22} color={Colors.textSecondary} />
+              <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.menuItem} 
-            testID="menu-purchases"
-            onPress={() => router.push('/my-purchases')}
-          >
-            <MaterialCommunityIcons name="shopping" size={22} color={Colors.accent} />
-            <Text style={styles.menuText}>
-              {language === 'es' ? 'Mis Compras' : 'My Purchases'}
-            </Text>
-            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              testID="menu-purchases"
+              onPress={() => router.push('/my-purchases')}
+            >
+              <MaterialCommunityIcons name="shopping" size={22} color={Colors.accent} />
+              <Text style={styles.menuText}>
+                {language === 'es' ? 'Mis Compras' : 'My Purchases'}
+              </Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.menuItem} 
-            testID="menu-contact"
-            onPress={handleContact}
-          >
-            <MaterialCommunityIcons name="email" size={22} color={Colors.textSecondary} />
-            <Text style={styles.menuText}>{t('profile.contact')}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              testID="menu-contact"
+              onPress={handleContact}
+            >
+              <MaterialCommunityIcons name="email" size={22} color={Colors.textSecondary} />
+              <Text style={styles.menuText}>{t('profile.contact')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <TouchableOpacity
           testID="logout-btn"
