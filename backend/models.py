@@ -723,3 +723,25 @@ class BaziReportUpdate(BaseModel):
     report_content: Optional[str] = None
     is_published: Optional[bool] = None
 
+
+
+# Password Reset Token
+class PasswordResetToken(BaseModel):
+    """
+    Token for password reset requests.
+    Each token is valid for 1 hour.
+    """
+    id: str
+    user_id: str
+    user_email: str
+    token: str  # Unique random token
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

@@ -37,6 +37,7 @@ from models import (
     Purchase, PurchaseCreate, PurchaseUpdate,
     BaziServiceConfig, BaziServiceConfigUpdate,
     BaziReport, BaziReportCreate, BaziReportUpdate,
+    PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
 )
 from auth import (
     get_password_hash, 
@@ -46,6 +47,8 @@ from auth import (
     get_current_admin_user
 )
 from translation_service import translate_dict, translate_list_of_dicts
+from email_service import email_service
+import secrets
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -118,6 +121,115 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return UserResponse(**user)
+
+
+# ============= PASSWORD RESET ENDPOINTS =============
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Request password reset - sends email with reset token.
+    Always returns 200 (even if email doesn't exist) for security.
+    """
+    user = await db.users.find_one({"email": request.email})
+    
+    if user:
+        # Generate secure random token
+        reset_token = secrets.token_urlsafe(32)
+        
+        # Create reset token record
+        token_dict = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "user_email": user["email"],
+            "token": reset_token,
+            "expires_at": datetime.utcnow() + timedelta(hours=1),
+            "used": False,
+            "created_at": datetime.utcnow()
+        }
+        
+        await db.password_reset_tokens.insert_one(token_dict)
+        
+        # Send email
+        user_name = user.get("name", user["email"].split("@")[0])
+        user_language = user.get("language", "es")
+        
+        email_sent = await email_service.send_password_reset_email(
+            to_email=user["email"],
+            reset_token=reset_token,
+            user_name=user_name,
+            language=user_language
+        )
+        
+        if not email_sent:
+            logger.warning(f"Failed to send password reset email to {user['email']}")
+    
+    # Always return success (don't reveal if email exists)
+    return {
+        "message": "Si el correo existe, recibirás un enlace de restablecimiento" if request.email else "If the email exists, you will receive a reset link"
+    }
+
+@api_router.get("/auth/validate-reset-token/{token}")
+async def validate_reset_token(token: str):
+    """
+    Validate if a reset token is valid and not expired.
+    """
+    token_record = await db.password_reset_tokens.find_one({"token": token})
+    
+    if not token_record:
+        raise HTTPException(status_code=404, detail="Token inválido")
+    
+    if token_record["used"]:
+        raise HTTPException(status_code=400, detail="Este token ya ha sido utilizado")
+    
+    if datetime.utcnow() > token_record["expires_at"]:
+        raise HTTPException(status_code=400, detail="Este token ha expirado")
+    
+    return {
+        "valid": True,
+        "email": token_record["user_email"]
+    }
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using valid token.
+    """
+    # Find and validate token
+    token_record = await db.password_reset_tokens.find_one({"token": request.token})
+    
+    if not token_record:
+        raise HTTPException(status_code=404, detail="Token inválido")
+    
+    if token_record["used"]:
+        raise HTTPException(status_code=400, detail="Este token ya ha sido utilizado")
+    
+    if datetime.utcnow() > token_record["expires_at"]:
+        raise HTTPException(status_code=400, detail="Este token ha expirado")
+    
+    # Validate new password
+    new_password = request.new_password.strip()
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+    
+    # Update user password
+    hashed_password = get_password_hash(new_password)
+    await db.users.update_one(
+        {"id": token_record["user_id"]},
+        {"$set": {"hashed_password": hashed_password}}
+    )
+    
+    # Mark token as used
+    await db.password_reset_tokens.update_one(
+        {"token": request.token},
+        {"$set": {"used": True}}
+    )
+    
+    return {
+        "message": "Contraseña actualizada exitosamente",
+        "email": token_record["user_email"]
+    }
+
 
 # ============= DAILY ENERGY ENDPOINTS =============
 

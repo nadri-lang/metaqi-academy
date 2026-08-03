@@ -143,13 +143,7 @@ export default function LoginScreen() {
             {/* Forgot Password Link */}
             <TouchableOpacity 
               style={styles.forgotPasswordContainer}
-              onPress={() => {
-                Alert.alert(
-                  t('auth.forgot_password') || '¿Olvidaste tu contraseña?',
-                  t('auth.forgot_password_message') || 'Por favor, contacta con la administradora en nnikholk@gmail.com para recuperar tu contraseña.',
-                  [{ text: 'OK' }]
-                );
-              }}
+              onPress={() => router.push('/forgot-password')}
             >
               <Text style={styles.forgotPasswordText}>
                 {t('auth.forgot_password') || '¿Olvidaste tu contraseña?'}
