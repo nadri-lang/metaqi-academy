@@ -493,6 +493,73 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: |
+      ADMIN PASSWORD CHANGE FLOW TEST COMPLETED - 11/11 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the admin password change flow with comprehensive edge cases.
+      
+      TEST RESULTS:
+      ✅ Test 1: Create test user (passwordtest@test.com / initialpass123) - SUCCESS
+         - User created with ID: 6f6d4aa6-74b8-48a2-a473-4831ad0e83cf
+         - Role: free_member
+      
+      ✅ Test 2: Admin login (nnikholk@gmail.com / admin123) - SUCCESS
+         - JWT token obtained successfully
+         - Token type: bearer, Role: admin
+      
+      ✅ Test 3: Get test user ID via GET /api/admin/users?email=passwordtest@test.com - SUCCESS
+         - User ID retrieved: 6f6d4aa6-74b8-48a2-a473-4831ad0e83cf
+         - Email: passwordtest@test.com
+      
+      ✅ Test 4: Admin changes password via PUT /api/admin/users/{user_id}?new_password=changedpass456 - SUCCESS
+         - Password changed from "initialpass123" to "changedpass456"
+         - Response includes updated user data
+      
+      ✅ Test 5: Old password rejected - SUCCESS
+         - Login with "initialpass123" returns 401 Unauthorized
+         - Detail: "Incorrect email or password"
+         - Old password correctly invalidated
+      
+      ✅ Test 6: New password works - SUCCESS
+         - Login with "changedpass456" returns 200 OK
+         - Valid JWT token received (token_type: bearer)
+         - User can authenticate with new password
+      
+      ✅ Test 7: Password with spaces - SUCCESS
+         - Admin sets password: "  newpass789  " (with leading/trailing spaces)
+         - Password change accepted
+      
+      ✅ Test 8: Login with trimmed password - SUCCESS
+         - User can login with "newpass789" (without spaces)
+         - Spaces automatically trimmed on save
+         - Backend correctly handles space trimming
+      
+      ✅ Test 9: Empty password (Edge Case) - SUCCESS
+         - Admin sends empty password: ""
+         - Request returns 400 Bad Request
+         - Detail: "No hay cambios para aplicar"
+         - Empty password correctly rejected
+      
+      ✅ Test 10: Whitespace-only password (Edge Case) - SUCCESS
+         - Admin sends whitespace-only password: "   "
+         - Request returns 400 Bad Request
+         - Detail: "No hay cambios para aplicar"
+         - Whitespace-only password correctly rejected
+      
+      ✅ Test 11: Login with spaces vs without spaces - SUCCESS
+         - Admin sets password: "  finalpass999  "
+         - Login with "  finalpass999  " (with spaces) - SUCCESS
+         - Login with "finalpass999" (without spaces) - SUCCESS
+         - Backend trims spaces on both save AND login
+      
+      CONCLUSION: Admin password change flow working perfectly. All success criteria met:
+      - Admin can successfully change user passwords ✅
+      - Old password immediately stops working ✅
+      - New password works immediately ✅
+      - Passwords are trimmed on both save and login ✅
+      - Empty/whitespace-only passwords are ignored (don't change password) ✅
+      - All edge cases handled correctly ✅
+  - agent: "testing"
+    message: |
       PASSWORD RECOVERY FLOW TEST COMPLETED - 8/8 tests PASSED ✅ (100% success rate)
       
       USER-REQUESTED VERIFICATION: Test the password recovery flow for MetaQi Academy app.
