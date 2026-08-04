@@ -761,3 +761,20 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
+
+
+# Analytics Models
+class AnalyticsSummary(BaseModel):
+    total_visitors: int
+    total_registered: int
+    active_today: int
+    registered_today: int
+    active_this_month: int
+    last_updated: datetime
+
+class VisitorLog(BaseModel):
+    id: str
+    user_id: Optional[str] = None
+    session_id: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    date: str  # YYYY-MM-DD for grouping

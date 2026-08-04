@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
+import AnalyticsDashboard from '@/src/components/AnalyticsDashboard';
 
 interface AdminSection {
   title: string;
@@ -141,6 +142,11 @@ export default function AdminScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Analytics Dashboard - Only visible for admin */}
+        {user?.role === 'admin' && (
+          <AnalyticsDashboard />
+        )}
+
         <View style={styles.grid}>
           {ADMIN_SECTIONS.map((section) => (
             <TouchableOpacity

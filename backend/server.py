@@ -39,6 +39,7 @@ from models import (
     BaziReport, BaziReportCreate, BaziReportUpdate,
     PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
     GoogleAuthSession, GoogleAuthResponse, UserSession,
+    AnalyticsSummary, VisitorLog,
 )
 from auth import (
     get_password_hash, 
@@ -49,6 +50,7 @@ from auth import (
 )
 from translation_service import translate_dict, translate_list_of_dicts
 from email_service import email_service
+from analytics_service import AnalyticsService
 import secrets
 import httpx
 
@@ -66,15 +68,25 @@ app = FastAPI(title="MetaQi Academy API")
 # Create API router
 api_router = APIRouter(prefix="/api")
 
+# Initialize Analytics Service
+analytics = AnalyticsService(db)
+
 # Initialize MongoDB indexes on startup
 @app.on_event("startup")
 async def create_indexes():
-    """Create MongoDB indexes for Google Auth"""
+    """Create MongoDB indexes for Google Auth and Analytics"""
     try:
         # User sessions indexes
         await db.user_sessions.create_index("session_token", unique=True)
         await db.user_sessions.create_index("user_id")
         await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
+        
+        # Analytics indexes
+        await db.visitor_logs.create_index("date")
+        await db.visitor_logs.create_index("user_id")
+        await db.visitor_logs.create_index("timestamp")
+        await db.analytics.create_index("type", unique=True)
+        
         logger.info("MongoDB indexes created successfully")
     except Exception as e:
         logger.warning(f"Error creating indexes (may already exist): {e}")
@@ -101,6 +113,10 @@ async def register(user_data: UserCreate):
     del user_dict["password"]
     
     await db.users.insert_one(user_dict)
+    
+    # Track registration
+    await analytics.track_registration(user_dict["id"])
+    
     return UserResponse(**user_dict)
 
 @api_router.post("/auth/login", response_model=Token)
@@ -118,6 +134,9 @@ async def login(login_data: LoginRequest):
         {"id": user["id"]},
         {"$set": {"last_login": datetime.utcnow()}}
     )
+    
+    # Track visit
+    await analytics.track_visit(user_id=user["id"])
     
     # Create access token
     access_token = create_access_token(
@@ -304,6 +323,8 @@ async def google_auth_session(session_data: GoogleAuthSession):
                     }
                 }
             )
+            # Track existing user visit
+            await analytics.track_visit(user_id=user_id)
         else:
             # Create new user
             user_id = f"user_{uuid.uuid4().hex[:12]}"
@@ -320,6 +341,9 @@ async def google_auth_session(session_data: GoogleAuthSession):
             }
             await db.users.insert_one(user_dict)
             user = user_dict
+            
+            # Track new registration
+            await analytics.track_registration(user_id)
         
         # Create session with 7-day expiration
         session_token = secrets.token_urlsafe(32)
@@ -393,6 +417,9 @@ async def get_current_user_info(authorization: str = Header(None)):
                 detail="User not found"
             )
         
+        # Track visit
+        await analytics.track_visit(user_id=user["id"], session_id=session["session_token"])
+        
         return UserResponse(**user)
     
     # Fall back to JWT token (password login)
@@ -407,6 +434,9 @@ async def get_current_user_info(authorization: str = Header(None)):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
+        
+        # Track visit
+        await analytics.track_visit(user_id=user["id"], session_id=token[:20])
         
         return UserResponse(**user)
     except Exception:
@@ -486,6 +516,33 @@ async def create_daily_energy(
         await db.daily_energy.insert_one(energy_dict)
     
     return DailyEnergy(**energy_dict)
+
+
+
+# ============= ADMIN ANALYTICS ENDPOINTS =============
+
+@api_router.get("/admin/analytics", response_model=AnalyticsSummary)
+async def get_analytics_summary(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Get analytics summary for admin dashboard.
+    Only accessible by admin users.
+    """
+    summary = await analytics.get_summary()
+    return AnalyticsSummary(**summary)
+
+@api_router.post("/admin/track-visit")
+async def admin_track_visit(
+    user_id: Optional[str] = None,
+    session_id: Optional[str] = None
+):
+    """
+    Manual endpoint to track visits (for testing or manual tracking).
+    In production, visits should be tracked automatically via middleware.
+    """
+    await analytics.track_visit(user_id=user_id, session_id=session_id)
+    return {"message": "Visit tracked successfully"}
 
 @api_router.delete("/admin/cleanup/old-daily-energy")
 async def cleanup_old_daily_energy(
