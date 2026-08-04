@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Header
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -38,6 +38,7 @@ from models import (
     BaziServiceConfig, BaziServiceConfigUpdate,
     BaziReport, BaziReportCreate, BaziReportUpdate,
     PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
+    GoogleAuthSession, GoogleAuthResponse, UserSession,
 )
 from auth import (
     get_password_hash, 
@@ -49,6 +50,7 @@ from auth import (
 from translation_service import translate_dict, translate_list_of_dicts
 from email_service import email_service
 import secrets
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -63,6 +65,19 @@ app = FastAPI(title="MetaQi Academy API")
 
 # Create API router
 api_router = APIRouter(prefix="/api")
+
+# Initialize MongoDB indexes on startup
+@app.on_event("startup")
+async def create_indexes():
+    """Create MongoDB indexes for Google Auth"""
+    try:
+        # User sessions indexes
+        await db.user_sessions.create_index("session_token", unique=True)
+        await db.user_sessions.create_index("user_id")
+        await db.user_sessions.create_index("expires_at", expireAfterSeconds=0)
+        logger.info("MongoDB indexes created successfully")
+    except Exception as e:
+        logger.warning(f"Error creating indexes (may already exist): {e}")
 
 # ============= AUTH ENDPOINTS =============
 
@@ -114,13 +129,6 @@ async def login(login_data: LoginRequest):
         token_type="bearer",
         user=UserResponse(**user)
     )
-
-@api_router.get("/auth/me", response_model=UserResponse)
-async def get_me(current_user: dict = Depends(get_current_user)):
-    user = await db.users.find_one({"id": current_user["id"]})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return UserResponse(**user)
 
 
 # ============= PASSWORD RESET ENDPOINTS =============
@@ -229,6 +237,183 @@ async def reset_password(request: ResetPasswordRequest):
         "message": "Contraseña actualizada exitosamente",
         "email": token_record["user_email"]
     }
+
+
+# ============= GOOGLE AUTH ENDPOINTS =============
+
+# Set to track processed session_ids (prevent duplicate processing)
+processed_session_ids = set()
+
+@api_router.post("/auth/session", response_model=GoogleAuthResponse)
+async def google_auth_session(session_data: GoogleAuthSession):
+    """
+    Exchange Emergent session_id for a session_token and user data.
+    This is called by the frontend after Google OAuth redirect.
+    """
+    session_id = session_data.session_id
+    
+    # Guard against duplicate processing
+    if session_id in processed_session_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Session ID already processed"
+        )
+    
+    try:
+        # Call Emergent API to get user data
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": session_id},
+                timeout=10.0
+            )
+        
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired session ID"
+            )
+        
+        data = response.json()
+        email = data.get("email")
+        name = data.get("name", email.split("@")[0])
+        picture = data.get("picture")
+        emergent_session_token = data.get("session_token")
+        
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No email returned from auth provider"
+            )
+        
+        # Mark session_id as processed
+        processed_session_ids.add(session_id)
+        
+        # Find or create user
+        user = await db.users.find_one({"email": email})
+        
+        if user:
+            # Update existing user
+            user_id = user["id"]
+            await db.users.update_one(
+                {"id": user_id},
+                {
+                    "$set": {
+                        "name": name,
+                        "last_login": datetime.utcnow()
+                    }
+                }
+            )
+        else:
+            # Create new user
+            user_id = f"user_{uuid.uuid4().hex[:12]}"
+            user_dict = {
+                "id": user_id,
+                "email": email,
+                "name": name,
+                "language": "es",
+                "role": "free",
+                "hashed_password": "",  # No password for OAuth users
+                "has_active_subscription": False,
+                "created_at": datetime.utcnow(),
+                "last_login": datetime.utcnow()
+            }
+            await db.users.insert_one(user_dict)
+            user = user_dict
+        
+        # Create session with 7-day expiration
+        session_token = secrets.token_urlsafe(32)
+        expires_at = datetime.utcnow() + timedelta(days=7)
+        
+        session_dict = {
+            "id": str(uuid.uuid4()),
+            "session_token": session_token,
+            "user_id": user_id,
+            "created_at": datetime.utcnow(),
+            "expires_at": expires_at
+        }
+        
+        await db.user_sessions.insert_one(session_dict)
+        
+        # Get fresh user data
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        
+        return GoogleAuthResponse(
+            session_token=session_token,
+            user=UserResponse(**user)
+        )
+        
+    except httpx.RequestError as e:
+        logger.error(f"Error connecting to Emergent API: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
+        )
+    except Exception as e:
+        logger.error(f"Error in Google auth session: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during authentication"
+        )
+
+@api_router.get("/auth/me")
+async def get_current_user_info(authorization: str = Header(None)):
+    """
+    Get current user info from session token.
+    Works with both JWT tokens (password login) and session tokens (Google login).
+    """
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No authorization token provided"
+        )
+    
+    token = authorization.replace("Bearer ", "")
+    
+    # Try session token first (Google auth)
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    
+    if session:
+        # Check expiration
+        expires_at = session["expires_at"]
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        
+        if datetime.utcnow() > expires_at:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session expired"
+            )
+        
+        # Get user
+        user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        return UserResponse(**user)
+    
+    # Fall back to JWT token (password login)
+    try:
+        from auth import decode_token
+        payload = decode_token(token)
+        user_id = payload.get("sub")
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        return UserResponse(**user)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
 
 
 # ============= DAILY ENERGY ENDPOINTS =============

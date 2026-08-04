@@ -60,6 +60,22 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+# Google Auth Models
+class GoogleAuthSession(BaseModel):
+    session_id: str
+
+class GoogleAuthResponse(BaseModel):
+    session_token: str
+    user: UserResponse
+
+class UserSession(BaseModel):
+    id: str
+    session_token: str
+    user_id: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: datetime
+
+
 # Category Model
 class Category(BaseModel):
     id: str

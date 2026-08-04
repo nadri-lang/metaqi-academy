@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,15 +19,48 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+
+// Call this at module scope for mobile auth sessions
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
-  const { t } = useLanguage();
+  const { login, loginWithGoogle } = useAuth();
+  const { t, language } = useLanguage();
   const router = useRouter();
+
+  useEffect(() => {
+    // Listen for deep links (mobile only)
+    if (Platform.OS !== 'web') {
+      const subscription = Linking.addEventListener('url', handleDeepLink);
+      return () => subscription.remove();
+    }
+  }, []);
+
+  const handleDeepLink = async ({ url }: { url: string }) => {
+    const match = url.match(/[?#&]session_id=([^&#]+)/);
+    if (match) {
+      const sessionId = match[1];
+      try {
+        setGoogleLoading(true);
+        await loginWithGoogle(sessionId);
+        router.replace('/(tabs)/home');
+      } catch (error: any) {
+        Alert.alert(
+          language === 'es' ? 'Error' : 'Error',
+          error.message || (language === 'es' ? 'Error al iniciar sesión con Google' : 'Error signing in with Google')
+        );
+      } finally {
+        setGoogleLoading(false);
+      }
+    }
+  };
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -53,6 +86,50 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+
+  const handleGoogleLogin = async () => {
+    try {
+      setGoogleLoading(true);
+      
+      // Determine redirect URL based on platform
+      let redirectUrl: string;
+      if (Platform.OS === 'web') {
+        redirectUrl = window.location.origin + '/';
+      } else {
+        redirectUrl = Linking.createURL('');
+      }
+      
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      
+      if (Platform.OS === 'web') {
+        // On web, directly navigate
+        window.location.href = authUrl;
+      } else {
+        // On mobile, open auth session
+        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+        
+        if (result.type === 'success' && result.url) {
+          await handleDeepLink({ url: result.url });
+        } else if (result.type === 'dismiss' || result.type === 'cancel') {
+          // Check if we received a deep link anyway (Android/Expo Go workaround)
+          const initialUrl = await Linking.getInitialURL();
+          if (initialUrl) {
+            await handleDeepLink({ url: initialUrl });
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      Alert.alert(
+        language === 'es' ? 'Error' : 'Error',
+        language === 'es' ? 'Error al iniciar sesión con Google' : 'Error signing in with Google'
+      );
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -148,6 +225,34 @@ export default function LoginScreen() {
               <Text style={styles.forgotPasswordText}>
                 {t('auth.forgot_password') || '¿Olvidaste tu contraseña?'}
               </Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>
+                {language === 'es' ? 'O continúa con' : 'Or continue with'}
+              </Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Sign-In Button */}
+            <TouchableOpacity
+              testID="google-login-btn"
+              style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+              onPress={handleGoogleLogin}
+              disabled={googleLoading || loading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={Colors.textPrimary} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons name="google" size={20} color={Colors.textPrimary} />
+                  <Text style={styles.googleButtonText}>
+                    {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <View style={styles.footer}>
@@ -294,6 +399,39 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.accent,
     textDecorationLine: 'underline',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.xl,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.cardBorder,
+  },
+  dividerText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textLight,
+    marginHorizontal: Spacing.md,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  googleButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
   },
   footer: {
     flexDirection: 'row',
