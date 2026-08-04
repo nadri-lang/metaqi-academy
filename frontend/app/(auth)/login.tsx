@@ -31,6 +31,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -159,84 +160,16 @@ export default function LoginScreen() {
 
           {/* Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.title}>{t('auth.login_title')}</Text>
-            <Text style={styles.description}>{t('auth.login_description')}</Text>
+            <Text style={styles.title}>
+              {language === 'es' ? 'Bienvenido a MetaQi Academy' : 'Welcome to MetaQi Academy'}
+            </Text>
+            <Text style={styles.description}>
+              {language === 'es' 
+                ? 'Inicia sesión con tu cuenta de Google para acceder' 
+                : 'Sign in with your Google account to access'}
+            </Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.email')}</Text>
-              <TextInput
-                testID="login-email-input"
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@email.com"
-                placeholderTextColor={Colors.textLight}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.password')}</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  testID="login-password-input"
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor={Colors.textLight}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  testID="password-toggle-btn"
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
-                >
-                  <MaterialCommunityIcons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color={Colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              testID="login-submit-btn"
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <Text style={styles.buttonText}>{t('common.enter')}</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Forgot Password Link */}
-            <TouchableOpacity 
-              style={styles.forgotPasswordContainer}
-              onPress={() => router.push('/forgot-password')}
-            >
-              <Text style={styles.forgotPasswordText}>
-                {t('auth.forgot_password') || '¿Olvidaste tu contraseña?'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>
-                {language === 'es' ? 'O continúa con' : 'Or continue with'}
-              </Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Google Sign-In Button */}
+            {/* Google Sign-In Button - Primary */}
             <TouchableOpacity
               testID="google-login-btn"
               style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
@@ -247,7 +180,7 @@ export default function LoginScreen() {
                 <ActivityIndicator color={Colors.textPrimary} />
               ) : (
                 <>
-                  <MaterialCommunityIcons name="google" size={20} color={Colors.textPrimary} />
+                  <MaterialCommunityIcons name="google" size={24} color={Colors.textPrimary} />
                   <Text style={styles.googleButtonText}>
                     {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
                   </Text>
@@ -255,12 +188,106 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>{t('auth.no_account')} </Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                <Text style={styles.linkText}>{t('auth.register_here')}</Text>
+            {/* Admin Access Link */}
+            {!showAdminLogin ? (
+              <TouchableOpacity
+                style={styles.adminAccessLink}
+                onPress={() => setShowAdminLogin(true)}
+              >
+                <Text style={styles.adminAccessText}>
+                  {language === 'es' ? 'Acceso administrador' : 'Admin access'}
+                </Text>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <>
+                {/* Divider */}
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>
+                    {language === 'es' ? 'Acceso Admin' : 'Admin Access'}
+                  </Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                {/* Admin Login Form */}
+                <View style={styles.adminFormContainer}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>{t('common.email')}</Text>
+                    <TextInput
+                      testID="login-email-input"
+                      style={styles.input}
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="admin@metaqi.com"
+                      placeholderTextColor={Colors.textLight}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>{t('common.password')}</Text>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        testID="login-password-input"
+                        style={styles.passwordInput}
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="••••••••"
+                        placeholderTextColor={Colors.textLight}
+                        secureTextEntry={!showPassword}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        testID="password-toggle-btn"
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={styles.eyeButton}
+                      >
+                        <MaterialCommunityIcons
+                          name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                          size={20}
+                          color={Colors.textSecondary}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    testID="login-submit-btn"
+                    style={[styles.button, loading && styles.buttonDisabled]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color={Colors.white} />
+                    ) : (
+                      <Text style={styles.buttonText}>{t('common.enter')}</Text>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Forgot Password Link */}
+                  <TouchableOpacity 
+                    style={styles.forgotPasswordContainer}
+                    onPress={() => router.push('/forgot-password')}
+                  >
+                    <Text style={styles.forgotPasswordText}>
+                      {t('auth.forgot_password') || '¿Olvidaste tu contraseña?'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Hide Admin Form */}
+                  <TouchableOpacity
+                    style={styles.hideAdminButton}
+                    onPress={() => setShowAdminLogin(false)}
+                  >
+                    <Text style={styles.hideAdminText}>
+                      {language === 'es' ? '← Volver al inicio de sesión con Google' : '← Back to Google sign in'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -420,18 +447,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.accent,
+    borderWidth: 2,
+    borderColor: Colors.accent,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
+    marginTop: Spacing.xl,
   },
   googleButtonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
+    fontFamily: Typography.sansBold,
+    fontSize: Typography.lg,
+    color: Colors.primary,
+  },
+  adminAccessLink: {
+    marginTop: Spacing.xl,
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  adminAccessText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textLight,
+    textDecorationLine: 'underline',
+  },
+  adminFormContainer: {
+    marginTop: Spacing.md,
+  },
+  hideAdminButton: {
+    marginTop: Spacing.lg,
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  hideAdminText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.accent,
   },
   footer: {
     flexDirection: 'row',

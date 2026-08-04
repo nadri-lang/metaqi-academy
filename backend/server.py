@@ -95,32 +95,22 @@ async def create_indexes():
 
 @api_router.post("/auth/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
-    # Check if user exists
-    existing_user = await db.users.find_one({"email": user_data.email})
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-    
-    # Create new user
-    user_dict = user_data.model_dump()
-    user_dict["id"] = str(uuid.uuid4())
-    user_dict["hashed_password"] = get_password_hash(user_data.password.strip())
-    user_dict["has_active_subscription"] = False
-    user_dict["created_at"] = datetime.utcnow()
-    user_dict["last_login"] = None
-    del user_dict["password"]
-    
-    await db.users.insert_one(user_dict)
-    
-    # Track registration
-    await analytics.track_registration(user_dict["id"])
-    
-    return UserResponse(**user_dict)
+    """
+    REGISTRATION DISABLED - Users must sign up via Google OAuth.
+    This endpoint is kept for backward compatibility but returns 403.
+    Admin accounts must be created directly in the database.
+    """
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="El registro público está desactivado. Por favor, inicia sesión con Google."
+    )
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(login_data: LoginRequest):
+    """
+    Email/Password login - ADMIN ONLY.
+    Regular users must authenticate via Google OAuth.
+    """
     # Find user
     user = await db.users.find_one({"email": login_data.email})
     if not user or not verify_password(login_data.password.strip(), user["hashed_password"]):

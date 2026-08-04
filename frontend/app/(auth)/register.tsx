@@ -1,18 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/src/context/AuthContext';
 import { useLanguage } from '@/src/context/LanguageContext';
 import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
@@ -21,186 +14,91 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register } = useAuth();
-  const { t } = useLanguage();
+  const { language } = useLanguage();
   const router = useRouter();
 
-  const goBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/(tabs)/home');
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert(t('common.error'), t('auth.fill_all_fields'));
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert(t('common.error'), t('auth.passwords_dont_match'));
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert(t('common.error'), t('auth.password_too_short'));
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await register(name, email, password);
-      router.replace('/(tabs)/home');
-    } catch (error: any) {
-      Alert.alert(t('common.error'), error.message);
-    } finally {
-      setLoading(false);
-    }
+  const goToLogin = () => {
+    router.replace('/(auth)/login');
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header with gradient */}
-          <LinearGradient colors={Gradients.navy} style={styles.header}>
-            <TouchableOpacity
-              testID="register-back-btn"
-              style={styles.backButton}
-              onPress={goBack}
-            >
-              <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
-              <Text style={styles.backButtonText}>{t('common.back')}</Text>
-            </TouchableOpacity>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logo}>MetaQi</Text>
-              <Text style={styles.subtitle}>Academy</Text>
-            </View>
-          </LinearGradient>
+      <LinearGradient colors={Gradients.navy} style={styles.header}>
+        <View style={styles.headerNav}>
+          <TouchableOpacity
+            testID="register-back-btn"
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <MaterialCommunityIcons name="chevron-left" size={24} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>
+            {language === 'es' ? 'Registro' : 'Sign Up'}
+          </Text>
+        </View>
+      </LinearGradient>
 
-          {/* Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>{t('auth.register_title')}</Text>
-            <Text style={styles.description}>{t('auth.register_description')}</Text>
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <MaterialCommunityIcons name="google" size={80} color={Colors.accent} />
+        </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.name')}</Text>
-              <TextInput
-                testID="register-name-input"
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholderTextColor={Colors.textLight}
-                autoCapitalize="words"
-              />
-            </View>
+        <Text style={styles.title}>
+          {language === 'es' 
+            ? 'Únete con Google' 
+            : 'Join with Google'}
+        </Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.email')}</Text>
-              <TextInput
-                testID="register-email-input"
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@email.com"
-                placeholderTextColor={Colors.textLight}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
+        <Text style={styles.description}>
+          {language === 'es'
+            ? 'MetaQi Academy utiliza Google Sign-In para garantizar la seguridad de tu cuenta y ofrecerte una experiencia de inicio de sesión rápida y confiable.'
+            : 'MetaQi Academy uses Google Sign-In to ensure your account security and provide you with a fast and reliable login experience.'}
+        </Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.password')}</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  testID="register-password-input"
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor={Colors.textLight}
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  testID="password-toggle-btn"
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeButton}
-                >
-                  <MaterialCommunityIcons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color={Colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('common.confirm_password')}</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  testID="register-confirm-password-input"
-                  style={styles.passwordInput}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor={Colors.textLight}
-                  secureTextEntry={!showConfirmPassword}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  testID="confirm-password-toggle-btn"
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.eyeButton}
-                >
-                  <MaterialCommunityIcons
-                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={20}
-                    color={Colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              testID="register-submit-btn"
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <Text style={styles.buttonText}>{t('common.register')}</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>{t('auth.have_account')} </Text>
-              <TouchableOpacity onPress={goBack}>
-                <Text style={styles.linkText}>{t('auth.login_here')}</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.benefitsContainer}>
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="shield-check" size={24} color={Colors.jade} />
+            <Text style={styles.benefitText}>
+              {language === 'es' ? 'Seguro y protegido' : 'Safe and secure'}
+            </Text>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="lightning-bolt" size={24} color={Colors.accent} />
+            <Text style={styles.benefitText}>
+              {language === 'es' ? 'Acceso instantáneo' : 'Instant access'}
+            </Text>
+          </View>
+
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="account-check" size={24} color={Colors.jade} />
+            <Text style={styles.benefitText}>
+              {language === 'es' ? 'Sin necesidad de contraseña' : 'No password needed'}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={goToLogin}
+        >
+          <MaterialCommunityIcons name="google" size={24} color={Colors.primary} />
+          <Text style={styles.googleButtonText}>
+            {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.loginLink}
+          onPress={goToLogin}
+        >
+          <Text style={styles.loginLinkText}>
+            {language === 'es' ? '¿Ya tienes cuenta? Inicia sesión' : 'Already have an account? Sign in'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -210,137 +108,99 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
   header: {
     paddingBottom: Spacing.xl,
+  },
+  headerNav: {
+    paddingHorizontal: Spacing.sm,
     paddingTop: Spacing.sm,
   },
   backButton: {
-    flexDirection: 'row',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    alignSelf: 'flex-start',
   },
-  backButtonText: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.base,
-    color: Colors.white,
-    marginLeft: 4,
-  },
-  logoContainer: {
-    alignItems: 'center',
+  headerContent: {
+    paddingHorizontal: Spacing.xl,
     marginTop: Spacing.md,
   },
-  logo: {
+  headerTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['4xl'],
-    color: Colors.accent,
+    fontSize: Typography['3xl'],
+    color: Colors.white,
     marginBottom: Spacing.xs,
   },
-  subtitle: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.lg,
-    color: Colors.white,
-    letterSpacing: 4,
-    textTransform: 'uppercase',
-  },
-  formContainer: {
+  content: {
     flex: 1,
-    backgroundColor: Colors.background,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
-    marginTop: -BorderRadius.xl,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: Colors.accent + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
   },
   title: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography['3xl'],
+    fontSize: Typography['2xl'],
     color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
   },
   description: {
     fontFamily: Typography.sans,
     fontSize: Typography.base,
     color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing.xl,
   },
-  inputContainer: {
-    marginBottom: Spacing.md,
+  benefitsContainer: {
+    width: '100%',
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
   },
-  label: {
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  benefitText: {
     fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  input: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    fontFamily: Typography.sans,
     fontSize: Typography.base,
     color: Colors.textPrimary,
   },
-  passwordContainer: {
-    position: 'relative',
-  },
-  passwordInput: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    paddingRight: 48,
-    fontFamily: Typography.sans,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    padding: 4,
-  },
-  button: {
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.accent,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginTop: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.sm,
+    width: '100%',
+    marginBottom: Spacing.lg,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
+  googleButtonText: {
+    fontFamily: Typography.sansBold,
+    fontSize: Typography.lg,
     color: Colors.primary,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.xl,
+  loginLink: {
+    paddingVertical: Spacing.sm,
   },
-  footerText: {
+  loginLinkText: {
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
-    color: Colors.textSecondary,
-  },
-  linkText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
     color: Colors.accent,
+    textAlign: 'center',
   },
 });
