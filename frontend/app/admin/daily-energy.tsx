@@ -34,6 +34,7 @@ export default function AdminDailyEnergyScreen() {
   const [qimenDirections, setQimenDirections] = useState('');
   const [favorableHours, setFavorableHours] = useState('');
   const [travelHours, setTravelHours] = useState('');
+  const [activations, setActivations] = useState('');
   const [loading, setLoading] = useState(false);
   const [existing, setExisting] = useState<any>(null);
 
@@ -56,6 +57,7 @@ export default function AdminDailyEnergyScreen() {
       setQimenDirections((data.qimen_directions || []).join('\n'));
       setFavorableHours((data.favorable_hours || []).join('\n'));
       setTravelHours((data.travel_hours || []).join('\n'));
+      setActivations(data.activations || '');
     } catch (error) {
       setExisting(null);
       setTitle('');
@@ -68,6 +70,7 @@ export default function AdminDailyEnergyScreen() {
       setQimenDirections('');
       setFavorableHours('');
       setTravelHours('');
+      setActivations('');
     }
   };
 
@@ -91,6 +94,7 @@ export default function AdminDailyEnergyScreen() {
         qimen_directions: qimenDirections.split('\n').filter(r => r.trim()),
         favorable_hours: favorableHours.split('\n').filter(r => r.trim()),
         travel_hours: travelHours.split('\n').filter(r => r.trim()),
+        activations: activations.trim() || null,
       };
 
       await api.post('/energy/daily', payload);
@@ -264,6 +268,19 @@ export default function AdminDailyEnergyScreen() {
               placeholder="07:00-09:00: Evitar salidas hacia el Norte&#10;15:00-17:00: Hora de conflicto"
               placeholderTextColor={Colors.textLight}
               multiline
+              textAlignVertical="top"
+            />
+
+            <Text style={styles.label}>✨ Activaciones del Día</Text>
+            <TextInput
+              testID="input-activations"
+              style={[styles.input, styles.textArea]}
+              value={activations}
+              onChangeText={setActivations}
+              placeholder="Describe las activaciones recomendadas para este día..."
+              placeholderTextColor={Colors.textLight}
+              multiline
+              numberOfLines={5}
               textAlignVertical="top"
             />
 

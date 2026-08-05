@@ -34,9 +34,14 @@ interface DailyEnergy {
   qimen_directions: string[];
   favorable_hours: string[];
   travel_hours: string[];
+  activations?: string;
+  activations_en?: string;
+  activations_fr?: string;
+  activations_de?: string;
+  activations_ro?: string;
 }
 
-type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | null;
+type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | 'activations' | null;
 
 export default function EnergyDetailScreen() {
   const router = useRouter();
@@ -86,10 +91,11 @@ export default function EnergyDetailScreen() {
     return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day}/${month}/${year}`;
   };
 
-  // 7 buttons for 2-column grid using MaterialCommunityIcons
+  // 8 buttons for 2-column grid using MaterialCommunityIcons
   const buttons = [
     { id: 'hours', label: t('daily.favorable_hours'), icon: 'clock-outline', color: Colors.accent },
     { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
+    { id: 'activations', label: language === 'es' ? 'ACTIVACIONES' : 'ACTIVATIONS', icon: 'star-outline', color: Colors.accent },
     { id: 'activities', label: t('daily.activities'), icon: 'check-circle-outline', color: Colors.jade },
     { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle-outline', color: Colors.error },
     { id: 'bazi', label: t('daily.bazi'), icon: 'yin-yang', color: Colors.accent },
@@ -137,6 +143,34 @@ export default function EnergyDetailScreen() {
                   <Text style={styles.modalText}>{hour}</Text>
                 </View>
               ))
+            ) : (
+              <Text style={styles.modalEmptyText}>
+                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+              </Text>
+            )}
+          </View>
+        );
+
+      case 'activations':
+        // Get translated activations based on language
+        const getActivationsText = () => {
+          if (language === 'en' && data.activations_en) return data.activations_en;
+          if (language === 'fr' && data.activations_fr) return data.activations_fr;
+          if (language === 'de' && data.activations_de) return data.activations_de;
+          if (language === 'ro' && data.activations_ro) return data.activations_ro;
+          return data.activations || '';
+        };
+
+        return (
+          <View>
+            <View style={styles.modalHeader}>
+              <MaterialCommunityIcons name="star-outline" size={28} color={Colors.accent} />
+              <Text style={styles.modalTitle}>
+                {language === 'es' ? 'ACTIVACIONES' : 'ACTIVATIONS'}
+              </Text>
+            </View>
+            {getActivationsText() ? (
+              <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
             ) : (
               <Text style={styles.modalEmptyText}>
                 {language === 'es' ? 'Sin información disponible' : 'No information available'}

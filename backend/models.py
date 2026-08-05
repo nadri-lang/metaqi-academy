@@ -114,6 +114,11 @@ class DailyEnergy(BaseModel):
     qimen_directions: List[str] = []  # e.g. ["Sur: Fama"]
     favorable_hours: List[str] = []  # e.g. ["07:00-09:00: Energía Yang"]
     travel_hours: List[str] = []  # Hours NOT recommended for travel (Viajes)
+    activations: Optional[str] = None  # Daily activations text
+    activations_en: Optional[str] = None
+    activations_fr: Optional[str] = None
+    activations_de: Optional[str] = None
+    activations_ro: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -132,6 +137,7 @@ class DailyEnergyCreate(BaseModel):
     qimen_directions: List[str] = []
     favorable_hours: List[str] = []
     travel_hours: List[str] = []  # Hours NOT recommended for travel (Viajes)
+    activations: Optional[str] = None  # Daily activations text
 
 class MoonEnergy(BaseModel):
     id: str

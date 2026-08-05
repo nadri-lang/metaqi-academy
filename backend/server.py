@@ -488,6 +488,42 @@ async def create_daily_energy(
 ):
     energy_dict = energy_data.model_dump()
     
+    # Auto-translate activations if provided
+    if energy_dict.get("activations"):
+        activations_text = energy_dict["activations"]
+        
+        # Translate to English
+        en_result = await translate_dict(
+            {"activations": activations_text},
+            "en",
+            ["activations"]
+        )
+        energy_dict["activations_en"] = en_result.get("activations", "")
+        
+        # Translate to French
+        fr_result = await translate_dict(
+            {"activations": activations_text},
+            "fr",
+            ["activations"]
+        )
+        energy_dict["activations_fr"] = fr_result.get("activations", "")
+        
+        # Translate to German
+        de_result = await translate_dict(
+            {"activations": activations_text},
+            "de",
+            ["activations"]
+        )
+        energy_dict["activations_de"] = de_result.get("activations", "")
+        
+        # Translate to Romanian
+        ro_result = await translate_dict(
+            {"activations": activations_text},
+            "ro",
+            ["activations"]
+        )
+        energy_dict["activations_ro"] = ro_result.get("activations", "")
+    
     # Check if already exists
     existing = await db.daily_energy.find_one({"date": energy_data.date})
     
