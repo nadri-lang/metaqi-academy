@@ -323,7 +323,7 @@ async def google_auth_session(session_data: GoogleAuthSession):
                 "email": email,
                 "name": name,
                 "language": "es",
-                "role": "free",
+                "role": "free_member",
                 "hashed_password": "",  # No password for OAuth users
                 "has_active_subscription": False,
                 "created_at": datetime.utcnow(),
@@ -1916,7 +1916,7 @@ async def get_all_users(
         "id": u["id"],
         "email": u["email"],
         "name": u.get("name", ""),
-        "role": u.get("role", "free"),
+        "role": u.get("role", "free_member"),
         "subscription": u.get("subscription", "free"),
         "created_at": u.get("created_at"),
         "phone": u.get("phone", ""),
@@ -1938,7 +1938,7 @@ async def update_user_admin(
     
     update_dict = {}
     if role is not None:
-        if role not in ["free", "premium", "editor", "admin"]:
+        if role not in ["free_member", "premium_member", "editor", "admin"]:
             raise HTTPException(status_code=400, detail="Rol inválido")
         update_dict["role"] = role
     
@@ -1965,7 +1965,7 @@ async def update_user_admin(
         "id": updated["id"],
         "email": updated["email"],
         "name": updated.get("name", ""),
-        "role": updated.get("role", "free"),
+        "role": updated.get("role", "free_member"),
         "subscription": updated.get("subscription", "free")
     }
 
