@@ -1657,17 +1657,49 @@ async def create_faq_item(
 
 # ============= PURCHASES / MIS COMPRAS =============
 
-@api_router.get("/purchases/my-purchases", response_model=List[Purchase])
+@api_router.get("/purchases/my-purchases")
 async def get_my_purchases(
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all purchases for the authenticated user (activated courses with video links)"""
-    purchases = await db.purchases.find({
+    """
+    Get all purchases for the authenticated user.
+    Currently returns BaZi reports as purchases since there's no actual purchase system yet.
+    """
+    # Get all published BaZi reports for this user
+    bazi_reports_cursor = db.bazi_reports.find({
+        "user_email": current_user["email"],
+        "is_published": True
+    })
+    bazi_reports = await bazi_reports_cursor.to_list(100)
+    
+    purchases = []
+    
+    # Map each BaZi report as a "purchase"
+    for idx, bazi_report in enumerate(bazi_reports, 1):
+        report_title = f"Reporte BaZi #{idx}" if len(bazi_reports) > 1 else "Reporte Personalizado BaZi"
+        purchases.append({
+            "id": bazi_report.get("id", f"bazi_report_{idx}"),
+            "user_id": current_user["id"],
+            "product_id": f"bazi_report_{bazi_report.get('id', idx)}",
+            "product_name": report_title,
+            "product_type": "service",
+            "price": 0,
+            "payment_method": "manual",
+            "status": "activated",
+            "video_url": None,
+            "purchased_at": bazi_report.get("created_at", datetime.utcnow()),
+            "activated_at": bazi_report.get("published_at", datetime.utcnow()),
+        })
+    
+    # In the future, add real purchases from db.purchases collection
+    real_purchases = await db.purchases.find({
         "user_id": current_user["id"],
-        "status": "activated"  # Only show activated purchases
+        "status": "activated"
     }).sort("purchased_at", -1).to_list(100)
     
-    return [Purchase(**p) for p in purchases]
+    purchases.extend(real_purchases)
+    
+    return purchases
 
 @api_router.get("/admin/purchases", response_model=List[Purchase])
 async def get_all_purchases(
@@ -1808,14 +1840,15 @@ async def search_user_for_report(
     email: str,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Search for a user by email to create/edit their report (admin only)"""
+    """Search for a user by email to create/edit their reports (admin only)"""
     user = await db.users.find_one({"email": email.lower().strip()})
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    # Check if user already has a report
-    report = await db.bazi_reports.find_one({"user_id": user["id"]})
-    report_clean = {k: v for k, v in report.items() if k != "_id"} if report else None
+    # Get all reports for this user
+    reports_cursor = db.bazi_reports.find({"user_id": user["id"]})
+    reports = await reports_cursor.to_list(100)
+    reports_clean = [{k: v for k, v in r.items() if k != "_id"} for r in reports]
     
     return {
         "user": {
@@ -1823,7 +1856,7 @@ async def search_user_for_report(
             "email": user["email"],
             "name": user.get("name", "")
         },
-        "report": report_clean
+        "reports": reports_clean
     }
 
 @api_router.post("/admin/bazi-reports")
@@ -1831,17 +1864,13 @@ async def create_bazi_report(
     report_data: BaziReportCreate,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Create a new BaZi report for a user (admin only)"""
+    """Create a new BaZi report for a user (admin only). Multiple reports per user are allowed."""
     # Find user by email
     user = await db.users.find_one({"email": report_data.user_email.lower().strip()})
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    # Check if report already exists
-    existing = await db.bazi_reports.find_one({"user_id": user["id"]})
-    if existing:
-        raise HTTPException(status_code=400, detail="El usuario ya tiene un informe. Use PUT para actualizarlo.")
-    
+    # Create new report - each report has its own unique ID
     report = BaziReport(
         id=str(uuid.uuid4()),
         user_id=user["id"],
@@ -1854,14 +1883,14 @@ async def create_bazi_report(
     await db.bazi_reports.insert_one(report.model_dump())
     return report
 
-@api_router.put("/admin/bazi-reports/{user_id}")
+@api_router.put("/admin/bazi-reports/{report_id}")
 async def update_bazi_report(
-    user_id: str,
+    report_id: str,
     report_data: BaziReportUpdate,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Update an existing BaZi report (admin only)"""
-    existing = await db.bazi_reports.find_one({"user_id": user_id})
+    """Update an existing BaZi report by report_id (admin only)"""
+    existing = await db.bazi_reports.find_one({"id": report_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Informe no encontrado")
     
@@ -1873,28 +1902,29 @@ async def update_bazi_report(
         update_dict["published_at"] = datetime.utcnow()
     
     await db.bazi_reports.update_one(
-        {"user_id": user_id},
+        {"id": report_id},
         {"$set": update_dict}
     )
     
-    updated = await db.bazi_reports.find_one({"user_id": user_id})
+    updated = await db.bazi_reports.find_one({"id": report_id})
     return {k: v for k, v in updated.items() if k != "_id"}
 
 @api_router.get("/my-bazi-report")
-async def get_my_bazi_report(
+async def get_my_bazi_reports(
     current_user: dict = Depends(get_current_user)
 ):
-    """Get the current user's BaZi report if published"""
-    report = await db.bazi_reports.find_one({
+    """Get all published BaZi reports for the current user"""
+    reports_cursor = db.bazi_reports.find({
         "user_id": current_user["id"],
         "is_published": True
     })
+    reports = await reports_cursor.to_list(100)
     
-    if not report:
-        return {"has_report": False, "report": None}
+    if not reports:
+        return {"has_reports": False, "reports": []}
     
-    report_clean = {k: v for k, v in report.items() if k != "_id"}
-    return {"has_report": True, "report": report_clean}
+    reports_clean = [{k: v for k, v in r.items() if k != "_id"} for r in reports]
+    return {"has_reports": True, "reports": reports_clean}
 
 # ==================== ADMIN USER MANAGEMENT ENDPOINTS ====================
 

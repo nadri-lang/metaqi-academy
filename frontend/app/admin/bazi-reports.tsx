@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -31,6 +31,8 @@ interface ReportData {
   user_id: string;
   report_content: string;
   is_published: boolean;
+  created_at?: string;
+  published_at?: string;
 }
 
 export default function AdminBaziReportsScreen() {
@@ -41,9 +43,11 @@ export default function AdminBaziReportsScreen() {
   
   const [searchEmail, setSearchEmail] = useState('');
   const [user, setUser] = useState<UserData | null>(null);
-  const [report, setReport] = useState<ReportData | null>(null);
+  const [reports, setReports] = useState<ReportData[]>([]);
+  const [selectedReport, setSelectedReport] = useState<ReportData | null>(null);
   const [reportContent, setReportContent] = useState('');
   const [searchError, setSearchError] = useState('');
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
 
   const handleSearch = async () => {
     if (!searchEmail.trim()) {
@@ -54,15 +58,16 @@ export default function AdminBaziReportsScreen() {
     setSearching(true);
     setSearchError('');
     setUser(null);
-    setReport(null);
+    setReports([]);
+    setSelectedReport(null);
     setReportContent('');
+    setIsCreatingNew(false);
 
     try {
       const response = await api.get(`/admin/bazi-reports/search?email=${encodeURIComponent(searchEmail.trim())}`);
       setUser(response.data.user);
-      if (response.data.report) {
-        setReport(response.data.report);
-        setReportContent(response.data.report.report_content || '');
+      if (response.data.reports && response.data.reports.length > 0) {
+        setReports(response.data.reports);
       }
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -75,6 +80,24 @@ export default function AdminBaziReportsScreen() {
     }
   };
 
+  const handleSelectReport = (report: ReportData) => {
+    setSelectedReport(report);
+    setReportContent(report.report_content || '');
+    setIsCreatingNew(false);
+  };
+
+  const handleNewReport = () => {
+    setSelectedReport(null);
+    setReportContent('');
+    setIsCreatingNew(true);
+  };
+
+  const handleCancelEdit = () => {
+    setSelectedReport(null);
+    setReportContent('');
+    setIsCreatingNew(false);
+  };
+
   const handleSave = async (publish: boolean) => {
     if (!user) return;
     
@@ -85,9 +108,9 @@ export default function AdminBaziReportsScreen() {
 
     setSaving(true);
     try {
-      if (report) {
-        // Update existing report
-        await api.put(`/admin/bazi-reports/${user.id}`, {
+      if (selectedReport) {
+        // Update existing report by report_id
+        await api.put(`/admin/bazi-reports/${selectedReport.id}`, {
           report_content: reportContent.trim(),
           is_published: publish,
         });
@@ -102,7 +125,10 @@ export default function AdminBaziReportsScreen() {
       
       Alert.alert('Éxito', publish ? t('admin.report_published') : t('admin.report_saved'));
       
-      // Refresh data
+      // Refresh data and reset form
+      setSelectedReport(null);
+      setReportContent('');
+      setIsCreatingNew(false);
       handleSearch();
     } catch (error) {
       console.error('Error saving report:', error);
@@ -111,6 +137,49 @@ export default function AdminBaziReportsScreen() {
       setSaving(false);
     }
   };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    });
+  };
+
+  const renderReportItem = ({ item, index }: { item: ReportData; index: number }) => (
+    <TouchableOpacity 
+      style={[
+        styles.reportItem,
+        selectedReport?.id === item.id && styles.reportItemSelected
+      ]}
+      onPress={() => handleSelectReport(item)}
+    >
+      <View style={styles.reportItemHeader}>
+        <Text style={styles.reportItemTitle}>Informe #{index + 1}</Text>
+        {item.is_published ? (
+          <View style={styles.publishedBadge}>
+            <MaterialCommunityIcons name="check-circle" size={14} color="#FFFFFF" />
+            <Text style={styles.publishedText}>Publicado</Text>
+          </View>
+        ) : (
+          <View style={styles.draftBadge}>
+            <MaterialCommunityIcons name="pencil-outline" size={14} color={Colors.accent} />
+            <Text style={styles.draftText}>Borrador</Text>
+          </View>
+        )}
+      </View>
+      <Text style={styles.reportItemDate}>
+        Creado: {formatDate(item.created_at)}
+      </Text>
+      <Text style={styles.reportItemPreview} numberOfLines={2}>
+        {item.report_content}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const showEditor = isCreatingNew || selectedReport;
 
   return (
     <View style={styles.container}>
@@ -130,63 +199,103 @@ export default function AdminBaziReportsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Search Section */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>{t('admin.search_user')}</Text>
-            <View style={styles.searchRow}>
-              <TextInput
-                style={styles.searchInput}
-                value={searchEmail}
-                onChangeText={setSearchEmail}
-                placeholder="usuario@email.com"
-                placeholderTextColor={Colors.textLight}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity 
-                style={styles.searchButton}
-                onPress={handleSearch}
-                disabled={searching}
-              >
-                {searching ? (
-                  <ActivityIndicator color={Colors.primary} size="small" />
-                ) : (
-                  <MaterialCommunityIcons name="magnify" size={24} color={Colors.primary} />
-                )}
-              </TouchableOpacity>
-            </View>
-            
-            {searchError ? (
-              <Text style={styles.errorText}>{searchError}</Text>
-            ) : null}
-          </View>
-
-          {/* User Found */}
-          {user && (
+        <FlatList
+          data={[]}
+          renderItem={() => null}
+          ListHeaderComponent={
             <>
-              <View style={styles.userCard}>
-                <MaterialCommunityIcons name="account-circle" size={40} color={Colors.accent} />
-                <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{user.name || 'Sin nombre'}</Text>
-                  <Text style={styles.userEmail}>{user.email}</Text>
+              {/* Search Section */}
+              <View style={styles.card}>
+                <Text style={styles.sectionTitle}>{t('admin.search_user')}</Text>
+                <View style={styles.searchRow}>
+                  <TextInput
+                    style={styles.searchInput}
+                    value={searchEmail}
+                    onChangeText={setSearchEmail}
+                    placeholder="usuario@email.com"
+                    placeholderTextColor={Colors.textLight}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity 
+                    style={styles.searchButton}
+                    onPress={handleSearch}
+                    disabled={searching}
+                  >
+                    {searching ? (
+                      <ActivityIndicator color={Colors.primary} size="small" />
+                    ) : (
+                      <MaterialCommunityIcons name="magnify" size={24} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
                 </View>
-                {report?.is_published && (
-                  <View style={styles.publishedBadge}>
-                    <MaterialCommunityIcons name="check-circle" size={16} color="#FFFFFF" />
-                    <Text style={styles.publishedText}>Publicado</Text>
-                  </View>
-                )}
+                
+                {searchError ? (
+                  <Text style={styles.errorText}>{searchError}</Text>
+                ) : null}
               </View>
 
-              {/* Report Editor */}
-              <View style={styles.editorCard}>
-                <Text style={styles.label}>{t('admin.report_content')}</Text>
-                <TextInput
-                  style={styles.textArea}
-                  value={reportContent}
-                  onChangeText={setReportContent}
-                  placeholder="Escribe aquí el análisis personalizado de la Carta Natal BaZi del usuario...
+              {/* User Found */}
+              {user && (
+                <>
+                  <View style={styles.userCard}>
+                    <MaterialCommunityIcons name="account-circle" size={40} color={Colors.accent} />
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userName}>{user.name || 'Sin nombre'}</Text>
+                      <Text style={styles.userEmail}>{user.email}</Text>
+                    </View>
+                  </View>
+
+                  {/* Reports List */}
+                  <View style={styles.card}>
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>
+                        Informes ({reports.length})
+                      </Text>
+                      {!showEditor && (
+                        <TouchableOpacity 
+                          style={styles.newReportButton}
+                          onPress={handleNewReport}
+                        >
+                          <MaterialCommunityIcons name="plus" size={20} color="#FFFFFF" />
+                          <Text style={styles.newReportButtonText}>Nuevo</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {reports.length === 0 && !showEditor && (
+                      <Text style={styles.emptyText}>
+                        Este usuario no tiene informes. Crea uno nuevo.
+                      </Text>
+                    )}
+
+                    {reports.length > 0 && !showEditor && (
+                      <FlatList
+                        data={reports}
+                        renderItem={renderReportItem}
+                        keyExtractor={(item) => item.id}
+                        scrollEnabled={false}
+                        ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
+                      />
+                    )}
+                  </View>
+
+                  {/* Report Editor */}
+                  {showEditor && (
+                    <View style={styles.editorCard}>
+                      <View style={styles.editorHeader}>
+                        <Text style={styles.label}>
+                          {selectedReport ? `Editando Informe` : 'Nuevo Informe'}
+                        </Text>
+                        <TouchableOpacity onPress={handleCancelEdit}>
+                          <MaterialCommunityIcons name="close" size={24} color={Colors.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
+                      <TextInput
+                        style={styles.textArea}
+                        value={reportContent}
+                        onChangeText={setReportContent}
+                        placeholder="Escribe aquí el análisis personalizado de la Carta Natal BaZi del usuario...
 
 Incluye:
 • Análisis de los 4 Pilares del Destino
@@ -194,49 +303,54 @@ Incluye:
 • Ciclos de Suerte
 • Elementos favorables y desfavorables
 • Recomendaciones personalizadas"
-                  placeholderTextColor={Colors.textLight}
-                  multiline
-                  textAlignVertical="top"
-                />
-              </View>
+                        placeholderTextColor={Colors.textLight}
+                        multiline
+                        textAlignVertical="top"
+                      />
 
-              {/* Action Buttons */}
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.draftButton]}
-                  onPress={() => handleSave(false)}
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <ActivityIndicator color={Colors.primary} size="small" />
-                  ) : (
-                    <>
-                      <MaterialCommunityIcons name="content-save-outline" size={20} color={Colors.primary} />
-                      <Text style={styles.draftButtonText}>{t('admin.save_draft')}</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                      {/* Action Buttons */}
+                      <View style={styles.buttonRow}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.draftButton]}
+                          onPress={() => handleSave(false)}
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <ActivityIndicator color={Colors.primary} size="small" />
+                          ) : (
+                            <>
+                              <MaterialCommunityIcons name="content-save-outline" size={20} color={Colors.primary} />
+                              <Text style={styles.draftButtonText}>{t('admin.save_draft')}</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.publishButton]}
-                  onPress={() => handleSave(true)}
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <>
-                      <MaterialCommunityIcons name="send" size={20} color="#FFFFFF" />
-                      <Text style={styles.publishButtonText}>{t('admin.publish_report')}</Text>
-                    </>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.publishButton]}
+                          onPress={() => handleSave(true)}
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <ActivityIndicator color="#FFFFFF" size="small" />
+                          ) : (
+                            <>
+                              <MaterialCommunityIcons name="send" size={20} color="#FFFFFF" />
+                              <Text style={styles.publishButtonText}>{t('admin.publish_report')}</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   )}
-                </TouchableOpacity>
-              </View>
+                </>
+              )}
+
+              <View style={{ height: Spacing.xl * 2 }} />
             </>
-          )}
-
-          <View style={{ height: Spacing.xl * 2 }} />
-        </ScrollView>
+          }
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        />
       </KeyboardAvoidingView>
     </View>
   );
@@ -278,11 +392,37 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     marginBottom: Spacing.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   sectionTitle: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.textPrimary,
-    marginBottom: Spacing.md,
+  },
+  newReportButton: {
+    backgroundColor: Colors.jade,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    gap: 4,
+  },
+  newReportButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: '#FFFFFF',
+  },
+  emptyText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: Spacing.lg,
   },
   searchRow: {
     flexDirection: 'row',
@@ -338,12 +478,47 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
+  // Report list items
+  reportItem: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.md,
+  },
+  reportItemSelected: {
+    borderColor: Colors.accent,
+    backgroundColor: Colors.accent + '10',
+  },
+  reportItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.xs,
+  },
+  reportItemTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  reportItemDate: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  reportItemPreview: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: Typography.sm * 1.4,
+  },
   publishedBadge: {
     backgroundColor: Colors.jade,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    paddingVertical: 2,
     borderRadius: BorderRadius.full,
     gap: 4,
   },
@@ -352,6 +527,21 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: '#FFFFFF',
   },
+  draftBadge: {
+    backgroundColor: Colors.accent + '20',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    gap: 4,
+  },
+  draftText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+  },
+  // Editor
   editorCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.lg,
@@ -360,11 +550,16 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     marginBottom: Spacing.md,
   },
+  editorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   label: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
   },
   textArea: {
     backgroundColor: Colors.background,
@@ -382,6 +577,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     gap: Spacing.md,
+    marginTop: Spacing.md,
   },
   actionButton: {
     flex: 1,

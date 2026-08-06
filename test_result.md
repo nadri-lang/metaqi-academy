@@ -295,6 +295,18 @@ backend:
         agent: "testing"
         comment: "BAZI REPORT ENDPOINT TESTED - PASSED ✅. Test 30: GET /api/my-bazi-report - SUCCESS, endpoint working correctly. Returns {has_report: false, report: null} for test user (expected, no published report). Verified: 1) Requires authentication, 2) Returns proper structure with has_report and report fields, 3) Only returns published reports (is_published=True). Endpoint ready for production use."
   
+  - task: "BaZi Reports Multiple-Reports-Per-User Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "BAZI REPORTS MULTIPLE-REPORTS-PER-USER TESTING COMPLETED - 6/6 tests PASSED ✅ (100% success rate). USER-REQUESTED VERIFICATION: Test the BaZi Reports multiple-reports-per-user functionality. CRITICAL TESTS ALL PASSED: Test 1: Admin Login (nnikholk@gmail.com / admin123) - SUCCESS, JWT token obtained. Test 2: Create First Report - SUCCESS, report created with ID 2040232e-d8ac-4dde-af33-a1ee5153e98b. Test 3 (CRITICAL): Create SECOND Report for SAME User - SUCCESS, second report created with DIFFERENT ID 591ee3ee-9f7f-4a64-9310-3c63d7fc46c7, NO 400 error (proves multiple reports per user works). Test 4: GET /api/admin/bazi-reports/search?email=nnikholk@gmail.com - SUCCESS, returns user info and 'reports' array with 2 items (not single 'report' object). Test 5: GET /api/my-bazi-report - SUCCESS, returns {has_reports: true, reports: [array with 2 items]} (uses plural 'reports', not singular 'report'). Test 6: PUT /api/admin/bazi-reports/{report_id} - SUCCESS, updated specific report by ID, content changed correctly. ALL CRITICAL VALIDATIONS MET: ✅ Creating multiple reports for same user does NOT return 400 error, ✅ Search endpoint returns 'reports' array (not single 'report'), ✅ /my-bazi-report returns 'has_reports' and 'reports' (plural), ✅ Can update specific report by ID. CONCLUSION: Multiple reports per user functionality is working perfectly. Admin can create unlimited reports for any user, each with unique ID."
+  
   - task: "Database Seed Script"
     implemented: true
     working: true
@@ -518,12 +530,12 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 9
+  test_sequence: 10
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Dual Token Support in get_current_user"
+    - "BaZi Reports Multiple-Reports-Per-User Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -1682,3 +1694,76 @@ agent_communication:
       ✅ get_current_user supports both authentication methods
       
       CONCLUSION: Dual token support is working perfectly. The get_current_user function now correctly handles both JWT tokens (password login) and session tokens (Google OAuth) as designed. The critical bug has been fixed and all authentication flows are operational.
+
+  - agent: "testing"
+    message: |
+      BAZI REPORTS MULTIPLE-REPORTS-PER-USER TESTING COMPLETED - 6/6 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the BaZi Reports multiple-reports-per-user functionality.
+      
+      CONTEXT:
+      - The app allows Admin users to create multiple BaZi reports for a single user (previously limited to 1 per user)
+      - Admin credentials: nnikholk@gmail.com / admin123
+      - Auth is JWT-based for admin login
+      
+      ENDPOINTS TESTED:
+      1. POST /api/auth/login - Admin login
+      2. POST /api/admin/bazi-reports - Create first report
+      3. POST /api/admin/bazi-reports - Create SECOND report for SAME user
+      4. GET /api/admin/bazi-reports/search?email=... - Get all reports for user
+      5. GET /api/my-bazi-report - Get current user's published reports
+      6. PUT /api/admin/bazi-reports/{report_id} - Update specific report
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - SUCCESS
+         - Status: 200 OK
+         - JWT token obtained: eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+         - Token type: bearer
+         - User role: admin
+      
+      ✅ Test 2: Create First BaZi Report - SUCCESS
+         - POST /api/admin/bazi-reports
+         - Body: {"user_email": "nnikholk@gmail.com", "report_content": "Test BaZi Report #1...", "is_published": true}
+         - Status: 200 OK
+         - Report ID: 2040232e-d8ac-4dde-af33-a1ee5153e98b
+         - Report created successfully
+      
+      ✅ Test 3 (CRITICAL): Create SECOND Report for SAME User - SUCCESS
+         - POST /api/admin/bazi-reports
+         - Body: {"user_email": "nnikholk@gmail.com", "report_content": "Test BaZi Report #2...", "is_published": true}
+         - Status: 200 OK (NOT 400!)
+         - Report ID: 591ee3ee-9f7f-4a64-9310-3c63d7fc46c7 (DIFFERENT from first report)
+         - PROVES: Multiple reports per user works correctly, no 400 error
+      
+      ✅ Test 4: Search User Reports - SUCCESS
+         - GET /api/admin/bazi-reports/search?email=nnikholk@gmail.com
+         - Status: 200 OK
+         - Response structure: {"user": {...}, "reports": [array]}
+         - Reports count: 2 reports found
+         - Report #1 ID: 2040232e-d8ac-4dde-af33-a1ee5153e98b
+         - Report #2 ID: 591ee3ee-9f7f-4a64-9310-3c63d7fc46c7
+         - VERIFIED: Returns 'reports' array (not single 'report' object)
+      
+      ✅ Test 5: Get My BaZi Reports - SUCCESS
+         - GET /api/my-bazi-report
+         - Status: 200 OK
+         - Response structure: {"has_reports": true, "reports": [array]}
+         - Reports count: 2 reports
+         - VERIFIED: Uses plural 'reports' (not singular 'report')
+         - VERIFIED: has_reports field present (not has_report)
+      
+      ✅ Test 6: Update Specific Report by ID - SUCCESS
+         - PUT /api/admin/bazi-reports/2040232e-d8ac-4dde-af33-a1ee5153e98b
+         - Body: {"report_content": "UPDATED: This report has been updated...", "is_published": true}
+         - Status: 200 OK
+         - Report ID unchanged: 2040232e-d8ac-4dde-af33-a1ee5153e98b
+         - Content updated successfully
+         - VERIFIED: Can update specific report by its unique ID
+      
+      CRITICAL VALIDATIONS - ALL PASSED:
+      ✅ Creating multiple reports for same user does NOT return 400 error
+      ✅ Search endpoint returns 'reports' array (not single 'report')
+      ✅ /my-bazi-report returns 'has_reports' and 'reports' (plural)
+      ✅ Can update specific report by ID
+      
+      CONCLUSION: Multiple reports per user functionality is working perfectly. Admin can create unlimited BaZi reports for any user, each with a unique ID. The API correctly returns arrays of reports (not single objects), and all CRUD operations work as expected.
