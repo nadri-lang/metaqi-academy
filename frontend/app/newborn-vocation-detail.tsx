@@ -243,15 +243,17 @@ export default function NewbornVocationDetailScreen() {
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
             
-            {/* SIMPLIFIED HEADER - Single title with date */}
+            {/* SIMPLIFIED HEADER - Title and date on separate full-width row */}
             <View style={styles.simplifiedHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.simplifiedTitle}>
-                  {language === 'es' 
-                    ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
-                    : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
-                  }
-                </Text>
+              <Text style={styles.simplifiedTitle}>
+                {language === 'es' 
+                  ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
+                  : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
+                }
+              </Text>
+              
+              {/* Row with badge and favorite button */}
+              <View style={styles.badgeRow}>
                 {isToday && (
                   <View style={styles.todayBadge}>
                     <Text style={styles.todayBadgeText}>
@@ -259,13 +261,13 @@ export default function NewbornVocationDetailScreen() {
                     </Text>
                   </View>
                 )}
+                <FavoriteButton 
+                  itemType="newborn_vocation" 
+                  itemId={data.date} 
+                  size={24} 
+                  color={Colors.white}
+                />
               </View>
-              <FavoriteButton 
-                itemType="newborn_vocation" 
-                itemId={data.date} 
-                size={24} 
-                color={Colors.white}
-              />
             </View>
 
             {/* Navigation Arrows */}
@@ -436,9 +438,8 @@ const styles = StyleSheet.create({
   },
   // Simplified Header for Baby Vocation
   simplifiedHeader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
   },
   simplifiedTitle: {
     fontFamily: Typography.serifBold,
@@ -447,6 +448,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 28,
     marginBottom: Spacing.sm,
+    width: '100%',
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.sm,
   },
   iconRow: {
     flexDirection: 'row',
@@ -488,6 +496,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
+    alignSelf: 'center',
   },
   todayBadgeText: {
     fontFamily: Typography.sansSemiBold,
