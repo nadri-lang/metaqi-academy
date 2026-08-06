@@ -813,3 +813,10 @@ class UserContent(BaseModel):
     url: str
     created_by: str  # User ID of who created/uploaded this
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserContentCreate(BaseModel):
+    """Create user content (admin only)"""
+    user_email: str
+    type: UserContentType
+    title: str
+    url: Optional[str] = None  # If not uploading file, provide URL directly

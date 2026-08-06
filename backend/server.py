@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Header
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, Header, File, UploadFile, Form
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -40,7 +40,7 @@ from models import (
     PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
     GoogleAuthSession, GoogleAuthResponse, UserSession,
     AnalyticsSummary, VisitorLog,
-    UserContent,
+    UserContent, UserContentCreate,
 )
 from auth import (
     get_password_hash, 
@@ -1963,6 +1963,140 @@ async def get_my_user_content(
     
     content_clean = [{k: v for k, v in c.items() if k != "_id"} for c in content]
     return {"has_content": True, "content": content_clean}
+
+@api_router.post("/admin/user-content", response_model=UserContent)
+async def create_user_content(
+    user_email: str = Form(...),
+    type: str = Form(...),
+    title: str = Form(...),
+    url: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Admin: Create user content by uploading file or providing URL.
+    Validates user by email similar to /admin/bazi-reports.
+    """
+    # Find user by email
+    user = await db.users.find_one({"email": user_email.lower().strip()})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Validate type
+    valid_types = ["image", "video", "pdf", "web"]
+    if type not in valid_types:
+        raise HTTPException(status_code=400, detail=f"Tipo inválido. Use: {', '.join(valid_types)}")
+    
+    final_url = url
+    
+    # If file is uploaded, send to Object Store
+    if file:
+        # Validate file type based on content type
+        allowed_types = {
+            "image": ["image/jpeg", "image/png", "image/webp"],
+            "pdf": ["application/pdf"]
+        }
+        
+        content_type = file.content_type or ""
+        if type in allowed_types and content_type not in allowed_types[type]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Archivo inválido para tipo '{type}'. Tipos aceptados: {', '.join(allowed_types.get(type, []))}"
+            )
+        
+        # Read file content
+        max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))
+        file_data = bytearray()
+        
+        while chunk := await file.read(1024 * 1024):  # Read 1MB at a time
+            file_data.extend(chunk)
+            if len(file_data) > max_upload_bytes:
+                raise HTTPException(status_code=413, detail="Archivo excede el límite de tamaño")
+        
+        if not file_data:
+            raise HTTPException(status_code=400, detail="Archivo vacío")
+        
+        # Upload to Emergent Object Store
+        object_store_base_url = os.getenv("EMERGENT_OBJECT_STORE_BASE_URL", "").rstrip("/")
+        emergent_jwt = os.getenv("EMERGENT_JWT", "")
+        emergent_project_id = os.getenv("EMERGENT_PROJECT_ID", "")
+        
+        if not all([object_store_base_url, emergent_jwt, emergent_project_id]):
+            raise HTTPException(
+                status_code=500, 
+                detail="Object Store no configurado. Configure EMERGENT_OBJECT_STORE_BASE_URL, EMERGENT_JWT y EMERGENT_PROJECT_ID"
+            )
+        
+        # Generate unique key
+        extension = Path(file.filename or "upload").suffix.lower()
+        object_key = f"user-content/{uuid.uuid4().hex}{extension}"
+        
+        object_store_url = f"{object_store_base_url}/assets/files"
+        
+        form_data = {
+            "key": object_key,
+            "name": file.filename or "upload",
+            "description": f"User content: {title}",
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {emergent_jwt}",
+            "X-Project-ID": emergent_project_id,
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(
+                    object_store_url,
+                    headers=headers,
+                    files={"file": (file.filename, bytes(file_data), content_type)},
+                    data=form_data,
+                )
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"Object Store no disponible: {str(exc)}")
+        
+        if response.status_code not in (200, 201):
+            raise HTTPException(
+                status_code=502, 
+                detail=f"Error al subir archivo al Object Store (código {response.status_code})"
+            )
+        
+        stored = response.json()
+        if not stored.get("url"):
+            raise HTTPException(status_code=502, detail="Object Store no devolvió una URL")
+        
+        final_url = stored["url"]
+    
+    # If neither file nor URL provided, error
+    if not final_url:
+        raise HTTPException(status_code=400, detail="Debe proporcionar un archivo o una URL")
+    
+    # Create UserContent record
+    content_record = UserContent(
+        id=str(uuid.uuid4()),
+        user_id=user["id"],
+        type=type,
+        title=title,
+        url=final_url,
+        created_by=current_user["id"],
+        created_at=datetime.utcnow()
+    )
+    
+    await db.user_content.insert_one(content_record.model_dump())
+    return content_record
+
+@api_router.delete("/admin/user-content/{content_id}")
+async def delete_user_content(
+    content_id: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Admin: Delete user content by ID"""
+    result = await db.user_content.delete_one({"id": content_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Contenido no encontrado")
+    
+    return {"success": True, "message": f"Contenido {content_id} eliminado"}
 
 # ==================== ADMIN USER MANAGEMENT ENDPOINTS ====================
 
