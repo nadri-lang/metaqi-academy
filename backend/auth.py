@@ -42,16 +42,56 @@ def decode_token(token: str) -> dict:
         )
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Get current user from token.
+    Supports both session tokens (Google Auth) and JWT tokens (password auth).
+    """
+    from database import db
+    
     token = credentials.credentials
-    payload = decode_token(token)
-    user_id: str = payload.get("sub")
-    if user_id is None:
+    
+    # Try session token first (Google auth)
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    
+    if session:
+        # Check expiration
+        expires_at = session["expires_at"]
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        
+        if datetime.utcnow() > expires_at:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session expired"
+            )
+        
+        # Get user
+        user = await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        return {"id": user["id"], "email": user["email"], "role": user["role"]}
+    
+    # Fall back to JWT token (password login)
+    try:
+        payload = decode_token(token)
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return {"id": user_id, "email": payload.get("email"), "role": payload.get("role")}
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return {"id": user_id, "email": payload.get("email"), "role": payload.get("role")}
 
 async def get_current_admin_user(current_user: dict = Depends(get_current_user)):
     if current_user.get("role") not in ["admin", "editor"]:
