@@ -17,58 +17,57 @@ import { useLanguage } from '@/src/context/LanguageContext';
 
 interface Course {
   id: string;
-  title: string;
+  titleKey: string;
   price: string;
-  description: string;
+  descriptionKey: string;
   icon: string;
 }
 
 const COURSES: Course[] = [
   {
     id: '1',
-    title: 'Curso Básico BAZI - Carta Natal y los 12 Animales',
+    titleKey: 'courses.bazi_basic_title',
     price: '19,90€',
-    description: 'Aprende a interpretar tu Carta Natal BaZi y descubre cómo los 12 animales del zodiaco influyen en tu personalidad, talentos, relaciones, oportunidades y ciclos de vida.',
+    descriptionKey: 'courses.bazi_basic_desc',
     icon: 'sparkles',
   },
   {
     id: '2',
-    title: 'Curso Básico Qi Men Dun Jia',
+    titleKey: 'courses.qimen_basic_title',
     price: '19,90€',
-    description: 'Conoce tu Carta Natal Qi Men y descubre cómo aprovechar tus fortalezas, superar obstáculos, descubrir tus puntos débiles y aplicar estrategias para tomar mejores decisiones.',
+    descriptionKey: 'courses.qimen_basic_desc',
     icon: 'compass',
   },
   {
     id: '3',
-    title: 'Curso de los 5 Elementos - Equilibrio y Energía',
+    titleKey: 'courses.five_elements_title',
     price: '19,90€',
-    description: 'Aprende cómo interactúan los Cinco Elementos y descubre cómo equilibrar tu energía para potenciar la salud, las relaciones, la prosperidad y el bienestar.',
+    descriptionKey: 'courses.five_elements_desc',
     icon: 'flame',
   },
   {
     id: '4',
-    title: 'Curso del Número Personal Gua - Direcciones y Energía Personal',
+    titleKey: 'courses.gua_number_title',
     price: '9,90€',
-    description: 'Descubre tu Número Personal Gua y aprende a utilizar tus direcciones favorables para potenciar la salud, las relaciones, la prosperidad y el éxito.',
+    descriptionKey: 'courses.gua_number_desc',
     icon: 'navigate',
   },
   {
     id: '5',
-    title: 'Curso Básico I Ching – El Oráculo de la Sabiduría',
+    titleKey: 'courses.iching_basic_title',
     price: '19,90€',
-    description: 'Aprende a consultar e interpretar el I Ching para comprender las situaciones de tu vida, tomar mejores decisiones y encontrar la orientación más adecuada en cada momento.',
+    descriptionKey: 'courses.iching_basic_desc',
     icon: 'book',
   },
 ];
 
 export default function CoursesScreen() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-  const handleWhatsAppContact = (courseTitle: string) => {
-    const message = language === 'es'
-      ? `Hola, me interesa este curso: ${courseTitle}. ¿Podríais enviarme el temario, por favor? Me gustaría conocer los contenidos antes de realizar la inscripción. Muchas gracias.`
-      : `Hello, I'm interested in this course: ${courseTitle}. Could you send me the syllabus, please? I would like to know the contents before enrolling. Thank you very much.`;
+  const handleWhatsAppContact = (courseTitleKey: string) => {
+    const courseTitle = t(courseTitleKey);
+    const message = t('courses.whatsapp_message').replace('{course}', courseTitle);
     
     // Get WhatsApp from app config (hardcoded for now, can be loaded from API)
     const whatsapp = '34640510085';
@@ -79,10 +78,10 @@ export default function CoursesScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <Text style={styles.headerLabel}>
-          {language === 'es' ? 'APRENDE' : 'LEARN'}
+          {t('courses.label')}
         </Text>
         <Text style={styles.headerTitle}>
-          {language === 'es' ? 'Cursos' : 'Courses'}
+          {t('courses.title')}
         </Text>
       </LinearGradient>
 
@@ -100,7 +99,7 @@ export default function CoursesScreen() {
               </View>
               <View style={styles.courseTextContainer}>
                 <Text style={styles.courseTitle} numberOfLines={2}>
-                  {course.title}
+                  {t(course.titleKey)}
                 </Text>
                 <Text style={styles.coursePrice}>{course.price}</Text>
               </View>
@@ -141,20 +140,18 @@ export default function CoursesScreen() {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.modalContent}
                   >
-                    <Text style={styles.modalTitle}>{selectedCourse.title}</Text>
+                    <Text style={styles.modalTitle}>{t(selectedCourse.titleKey)}</Text>
                     <Text style={styles.modalPrice}>{selectedCourse.price}</Text>
                     
                     <View style={styles.divider} />
                     
-                    <Text style={styles.modalDescription}>{selectedCourse.description}</Text>
+                    <Text style={styles.modalDescription}>{t(selectedCourse.descriptionKey)}</Text>
 
                     {/* Notice */}
                     <View style={styles.noticeCard}>
                       <MaterialCommunityIcons name="information" size={24} color={Colors.accent} />
                       <Text style={styles.noticeText}>
-                        {language === 'es'
-                          ? 'Una vez confirmado el pago, el curso se activará en tu sección "Mis Compras" con acceso al vídeo del curso.'
-                          : 'Once payment is confirmed, the course will be activated in your "My Purchases" section with access to the course video.'}
+                        {t('courses.payment_notice')}
                       </Text>
                     </View>
 
@@ -162,16 +159,14 @@ export default function CoursesScreen() {
                     <TouchableOpacity
                       style={styles.whatsappButton}
                       onPress={() => {
-                        handleWhatsAppContact(selectedCourse.title);
+                        handleWhatsAppContact(selectedCourse.titleKey);
                         setSelectedCourse(null);
                       }}
                       activeOpacity={0.85}
                     >
                       <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
-                        {language === 'es' 
-                          ? 'Solicitar Información / Comprar por WhatsApp'
-                          : 'Request Information / Buy via WhatsApp'}
+                        {t('courses.request_info_whatsapp')}
                       </Text>
                     </TouchableOpacity>
 

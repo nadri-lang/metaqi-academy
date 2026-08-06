@@ -31,7 +31,7 @@ interface CustomService {
 export default function ServicesScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [services, setServices] = useState<CustomService[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -95,15 +95,15 @@ export default function ServicesScreen() {
             <View style={styles.specialFeatures}>
               <View style={styles.specialFeatureItem}>
                 <MaterialCommunityIcons name="calendar" size={18} color={Colors.accent} />
-                <Text style={styles.specialFeatureText}>365 días analizados</Text>
+                <Text style={styles.specialFeatureText}>{t('services.wedding_365_days')}</Text>
               </View>
               <View style={styles.specialFeatureItem}>
                 <MaterialCommunityIcons name="star" size={18} color={Colors.accent} />
-                <Text style={styles.specialFeatureText}>Fechas más auspiciosas</Text>
+                <Text style={styles.specialFeatureText}>{t('services.wedding_auspicious')}</Text>
               </View>
               <View style={styles.specialFeatureItem}>
                 <MaterialCommunityIcons name="book-open-variant" size={18} color={Colors.accent} />
-                <Text style={styles.specialFeatureText}>Guía completa</Text>
+                <Text style={styles.specialFeatureText}>{t('services.wedding_guide')}</Text>
               </View>
             </View>
 
@@ -112,7 +112,7 @@ export default function ServicesScreen() {
               style={styles.specialButton}
               onPress={() => router.push('/agenda-2027-info')}
             >
-              <Text style={styles.specialButtonText}>Ver Detalles</Text>
+              <Text style={styles.specialButtonText}>{t('services.view_details')}</Text>
               <MaterialCommunityIcons name="arrow-right" size={18} color={Colors.primary} />
             </TouchableOpacity>
           </LinearGradient>
@@ -145,7 +145,7 @@ export default function ServicesScreen() {
 
             {service.includes.length > 0 && (
               <View style={styles.includesSection}>
-                <Text style={styles.includesTitle}>Incluye:</Text>
+                <Text style={styles.includesTitle}>{t('services.includes')}</Text>
                 {service.includes.map((item, index) => (
                   <View key={index} style={styles.includeItem}>
                     <MaterialCommunityIcons name="check-circle" size={16} color={Colors.jade} />
@@ -161,7 +161,7 @@ export default function ServicesScreen() {
               onPress={() => handleRequestService(service)}
             >
               <Text style={styles.requestButtonText}>
-                {user ? `Solicitar por €${service.price.toFixed(2)}` : 'Inicia sesión para solicitar'}
+                {user ? t('services.request_for').replace('{price}', `€${service.price.toFixed(2)}`) : t('services.login_to_request')}
               </Text>
               <MaterialCommunityIcons name="arrow-right" size={16} color={Colors.primary} />
             </TouchableOpacity>
