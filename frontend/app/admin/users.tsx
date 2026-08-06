@@ -18,6 +18,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import api from '@/src/services/api';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface User {
   id: string;
@@ -43,6 +45,12 @@ export default function AdminUsersScreen() {
   const [selectedSubscription, setSelectedSubscription] = useState('free');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Content delivery states
+  const [videoUrl, setVideoUrl] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [webUrl, setWebUrl] = useState('');
+  const [uploadingContent, setUploadingContent] = useState(false);
 
   useEffect(() => {
     if (currentUser && currentUser.role === 'admin') {
@@ -112,6 +120,164 @@ export default function AdminUsersScreen() {
       Alert.alert('Error', 'No se pudo actualizar el usuario');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!selectedUser) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    const formData = new FormData();
+    
+    formData.append('user_email', selectedUser.email);
+    formData.append('type', 'image');
+    formData.append('title', `Imagen - ${new Date().toLocaleDateString()}`);
+    
+    // @ts-ignore - React Native FormData handles this
+    formData.append('file', {
+      uri: asset.uri,
+      name: asset.fileName || 'image.jpg',
+      type: asset.mimeType || 'image/jpeg',
+    });
+
+    setUploadingContent(true);
+    try {
+      await api.post('/admin/user-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      Alert.alert('Éxito', 'Imagen subida correctamente');
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo subir la imagen');
+    } finally {
+      setUploadingContent(false);
+    }
+  };
+
+  const uploadPDF = async () => {
+    if (!selectedUser) return;
+
+    const result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+      copyToCacheDirectory: true,
+    });
+
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    const formData = new FormData();
+    
+    formData.append('user_email', selectedUser.email);
+    formData.append('type', 'pdf');
+    formData.append('title', asset.name || `PDF - ${new Date().toLocaleDateString()}`);
+    
+    // @ts-ignore - React Native FormData handles this
+    formData.append('file', {
+      uri: asset.uri,
+      name: asset.name,
+      type: asset.mimeType || 'application/pdf',
+    });
+
+    setUploadingContent(true);
+    try {
+      await api.post('/admin/user-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      Alert.alert('Éxito', 'PDF subido correctamente');
+    } catch (error: any) {
+      console.error('Error uploading PDF:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo subir el PDF');
+    } finally {
+      setUploadingContent(false);
+    }
+  };
+
+  const submitVideoUrl = async () => {
+    if (!selectedUser || !videoUrl.trim()) {
+      Alert.alert('Error', 'Ingresa una URL de video');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('user_email', selectedUser.email);
+    formData.append('type', 'video');
+    formData.append('title', `Video - ${new Date().toLocaleDateString()}`);
+    formData.append('url', videoUrl.trim());
+
+    setUploadingContent(true);
+    try {
+      await api.post('/admin/user-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      Alert.alert('Éxito', 'Enlace de video guardado');
+      setVideoUrl('');
+    } catch (error: any) {
+      console.error('Error submitting video URL:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
+    } finally {
+      setUploadingContent(false);
+    }
+  };
+
+  const submitPdfUrl = async () => {
+    if (!selectedUser || !pdfUrl.trim()) {
+      Alert.alert('Error', 'Ingresa una URL de PDF');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('user_email', selectedUser.email);
+    formData.append('type', 'pdf');
+    formData.append('title', `PDF - ${new Date().toLocaleDateString()}`);
+    formData.append('url', pdfUrl.trim());
+
+    setUploadingContent(true);
+    try {
+      await api.post('/admin/user-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      Alert.alert('Éxito', 'Enlace de PDF guardado');
+      setPdfUrl('');
+    } catch (error: any) {
+      console.error('Error submitting PDF URL:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
+    } finally {
+      setUploadingContent(false);
+    }
+  };
+
+  const submitWebUrl = async () => {
+    if (!selectedUser || !webUrl.trim()) {
+      Alert.alert('Error', 'Ingresa una URL web');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('user_email', selectedUser.email);
+    formData.append('type', 'web');
+    formData.append('title', `Enlace Web - ${new Date().toLocaleDateString()}`);
+    formData.append('url', webUrl.trim());
+
+    setUploadingContent(true);
+    try {
+      await api.post('/admin/user-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      Alert.alert('Éxito', 'Enlace web guardado');
+      setWebUrl('');
+    } catch (error: any) {
+      console.error('Error submitting web URL:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
+    } finally {
+      setUploadingContent(false);
     }
   };
 
@@ -335,6 +501,98 @@ export default function AdminUsersScreen() {
                   <Text style={styles.passwordHint}>
                     Solo completa este campo si deseas cambiar la contraseña del usuario
                   </Text>
+
+                  {/* Content Delivery Section */}
+                  <View style={styles.contentDeliverySection}>
+                    <Text style={styles.sectionHeader}>Entrega de Contenidos</Text>
+                    
+                    {/* Upload Image */}
+                    <TouchableOpacity
+                      style={styles.contentButton}
+                      onPress={uploadImage}
+                      disabled={uploadingContent}
+                    >
+                      <MaterialCommunityIcons name="image-plus" size={20} color={Colors.accent} />
+                      <Text style={styles.contentButtonText}>Subir Imagen</Text>
+                    </TouchableOpacity>
+
+                    {/* Upload PDF */}
+                    <TouchableOpacity
+                      style={styles.contentButton}
+                      onPress={uploadPDF}
+                      disabled={uploadingContent}
+                    >
+                      <MaterialCommunityIcons name="file-pdf-box" size={20} color={Colors.error} />
+                      <Text style={styles.contentButtonText}>Subir PDF</Text>
+                    </TouchableOpacity>
+
+                    {/* Video URL */}
+                    <View style={styles.urlInputContainer}>
+                      <MaterialCommunityIcons name="video" size={20} color={Colors.jade} />
+                      <TextInput
+                        style={styles.urlInput}
+                        value={videoUrl}
+                        onChangeText={setVideoUrl}
+                        placeholder="URL de video (YouTube, Vimeo, etc.)"
+                        placeholderTextColor={Colors.textLight}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        style={styles.urlSubmitButton}
+                        onPress={submitVideoUrl}
+                        disabled={uploadingContent || !videoUrl.trim()}
+                      >
+                        <MaterialCommunityIcons name="send" size={18} color={Colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* PDF URL */}
+                    <View style={styles.urlInputContainer}>
+                      <MaterialCommunityIcons name="link" size={20} color={Colors.error} />
+                      <TextInput
+                        style={styles.urlInput}
+                        value={pdfUrl}
+                        onChangeText={setPdfUrl}
+                        placeholder="URL de PDF"
+                        placeholderTextColor={Colors.textLight}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        style={styles.urlSubmitButton}
+                        onPress={submitPdfUrl}
+                        disabled={uploadingContent || !pdfUrl.trim()}
+                      >
+                        <MaterialCommunityIcons name="send" size={18} color={Colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Web URL */}
+                    <View style={styles.urlInputContainer}>
+                      <MaterialCommunityIcons name="web" size={20} color={Colors.accent} />
+                      <TextInput
+                        style={styles.urlInput}
+                        value={webUrl}
+                        onChangeText={setWebUrl}
+                        placeholder="URL web"
+                        placeholderTextColor={Colors.textLight}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        style={styles.urlSubmitButton}
+                        onPress={submitWebUrl}
+                        disabled={uploadingContent || !webUrl.trim()}
+                      >
+                        <MaterialCommunityIcons name="send" size={18} color={Colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {uploadingContent && (
+                      <View style={styles.uploadingIndicator}>
+                        <ActivityIndicator color={Colors.accent} size="small" />
+                        <Text style={styles.uploadingText}>Procesando...</Text>
+                      </View>
+                    )}
+                  </View>
 
                   <TouchableOpacity
                     style={[styles.saveButton, saving && styles.saveButtonDisabled]}
@@ -634,5 +892,73 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginTop: Spacing.xs,
     fontStyle: 'italic',
+  },
+  contentDeliverySection: {
+    marginTop: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.cardBorder,
+  },
+  sectionHeader: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  contentButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  contentButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  urlInputContainer: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  urlInput: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
+    paddingVertical: Spacing.xs,
+  },
+  urlSubmitButton: {
+    backgroundColor: Colors.accent,
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+  },
+  uploadingText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
   },
 });
