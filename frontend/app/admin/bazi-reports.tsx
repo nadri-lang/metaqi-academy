@@ -391,6 +391,9 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -430,6 +433,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
     backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
