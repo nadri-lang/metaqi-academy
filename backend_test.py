@@ -1,378 +1,417 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for MetaQi Academy
-Testing BaZi Reports Multiple-Reports-Per-User Functionality
+Backend API Testing Script for MetaQi Academy - Newborn Vocation Admin Endpoints
+Tests date format validation and CRUD operations
 """
 
 import requests
 import json
 from datetime import datetime
 
-# Configuration
+# Backend URL from environment
 BACKEND_URL = "https://feng-shui-learn.preview.emergentagent.com/api"
+
+# Admin credentials
 ADMIN_EMAIL = "nnikholk@gmail.com"
 ADMIN_PASSWORD = "admin123"
 
-def print_test_header(test_num, description):
-    """Print formatted test header"""
-    print(f"\n{'='*80}")
-    print(f"TEST {test_num}: {description}")
-    print(f"{'='*80}")
+# Test results storage
+test_results = []
 
-def print_result(success, message):
-    """Print test result"""
-    status = "✅ PASSED" if success else "❌ FAILED"
-    print(f"{status}: {message}")
+def log_test(test_name, passed, details=""):
+    """Log test result"""
+    status = "✅ PASSED" if passed else "❌ FAILED"
+    result = f"{status} - {test_name}"
+    if details:
+        result += f"\n   Details: {details}"
+    test_results.append(result)
+    print(result)
+    return passed
 
 def test_admin_login():
     """Test 1: Admin Login"""
-    print_test_header(1, "Admin Login")
+    print("\n" + "="*80)
+    print("TEST 1: Admin Login (nnikholk@gmail.com / admin123)")
+    print("="*80)
     
     try:
-        print(f"\n📝 POST {BACKEND_URL}/auth/login")
-        print(f"   Body: {{'email': '{ADMIN_EMAIL}', 'password': '***'}}")
-        
         response = requests.post(
             f"{BACKEND_URL}/auth/login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+            timeout=10
         )
         
-        if response.status_code != 200:
-            print_result(False, f"Login failed: {response.status_code} - {response.text}")
-            return False, None
+        print(f"Status Code: {response.status_code}")
         
-        data = response.json()
-        token = data.get("access_token")
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ Token type: {data.get('token_type')}")
-        print(f"   ✓ Access token: {token[:30]}...")
-        print(f"   ✓ User email: {data.get('user', {}).get('email')}")
-        print(f"   ✓ User role: {data.get('user', {}).get('role')}")
-        
-        print_result(True, "Admin login successful, JWT token obtained")
-        return True, token
-        
+        if response.status_code == 200:
+            data = response.json()
+            token = data.get("access_token")
+            user = data.get("user", {})
+            
+            print(f"Token Type: {data.get('token_type')}")
+            print(f"User Email: {user.get('email')}")
+            print(f"User Role: {user.get('role')}")
+            
+            if token and user.get("role") == "admin":
+                log_test("Admin Login", True, f"Token obtained, role={user.get('role')}")
+                return token
+            else:
+                log_test("Admin Login", False, "Token missing or role is not admin")
+                return None
+        else:
+            log_test("Admin Login", False, f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
-        return False, None
+        log_test("Admin Login", False, f"Exception: {str(e)}")
+        return None
 
-def test_create_first_report(token):
-    """Test 2: Create First BaZi Report for User"""
-    print_test_header(2, "Create First BaZi Report for User")
+def test_create_vocation_aug5(token):
+    """Test 2: Create vocation for 2026-08-05 with correct date format"""
+    print("\n" + "="*80)
+    print("TEST 2: Create Vocation for 2026-08-05 (correct date format with leading zeros)")
+    print("="*80)
     
     try:
-        print(f"\n📝 POST {BACKEND_URL}/admin/bazi-reports")
-        print(f"   Headers: Authorization: Bearer {token[:30]}...")
-        
-        report_data = {
-            "user_email": ADMIN_EMAIL,
-            "report_content": "Test BaZi Report #1 - This is the first report for testing multiple reports per user functionality.",
-            "is_published": True
+        payload = {
+            "date": "2026-08-05",
+            "title": "Test Vocation Aug 5",
+            "content": "Content for Aug 5",
+            "talents": ["Talent 1"],
+            "vocations": ["Vocation 1"],
+            "challenges": ["Challenge 1"]
         }
-        print(f"   Body: {json.dumps(report_data, indent=2)}")
+        
+        print(f"Payload: {json.dumps(payload, indent=2)}")
         
         response = requests.post(
-            f"{BACKEND_URL}/admin/bazi-reports",
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
             headers={"Authorization": f"Bearer {token}"},
-            json=report_data
+            timeout=10
         )
         
-        if response.status_code != 200:
-            print_result(False, f"Create report failed: {response.status_code} - {response.text}")
-            return False, None
+        print(f"Status Code: {response.status_code}")
         
-        data = response.json()
-        report_id = data.get("id")
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ Report ID: {report_id}")
-        print(f"   ✓ User email: {data.get('user_email')}")
-        print(f"   ✓ Is published: {data.get('is_published')}")
-        print(f"   ✓ Report content length: {len(data.get('report_content', ''))} chars")
-        
-        print_result(True, f"First report created successfully with ID: {report_id}")
-        return True, report_id
-        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Verify date format
+            returned_date = data.get("date")
+            if returned_date == "2026-08-05":
+                log_test("Create Vocation Aug 5", True, f"Date format correct: {returned_date}")
+                return data
+            else:
+                log_test("Create Vocation Aug 5", False, f"Date format incorrect: {returned_date} (expected 2026-08-05)")
+                return None
+        else:
+            log_test("Create Vocation Aug 5", False, f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
-        return False, None
+        log_test("Create Vocation Aug 5", False, f"Exception: {str(e)}")
+        return None
 
-def test_create_second_report(token):
-    """Test 3: Create SECOND BaZi Report for SAME User (Critical Test)"""
-    print_test_header(3, "Create SECOND BaZi Report for SAME User (Should NOT Return 400)")
+def test_create_vocation_aug6(token):
+    """Test 3: Create vocation for 2026-08-06 with DIFFERENT content"""
+    print("\n" + "="*80)
+    print("TEST 3: Create Vocation for 2026-08-06 (different content)")
+    print("="*80)
     
     try:
-        print(f"\n📝 POST {BACKEND_URL}/admin/bazi-reports")
-        print(f"   Headers: Authorization: Bearer {token[:30]}...")
-        print(f"   ⚠️  CRITICAL: Creating second report for SAME user ({ADMIN_EMAIL})")
-        
-        report_data = {
-            "user_email": ADMIN_EMAIL,
-            "report_content": "Test BaZi Report #2 - This is the SECOND report for the same user. This proves multiple reports per user works!",
-            "is_published": True
+        payload = {
+            "date": "2026-08-06",
+            "title": "Test Vocation Aug 6",
+            "content": "Different content for Aug 6",
+            "talents": ["Talent 2"],
+            "vocations": ["Vocation 2"],
+            "challenges": ["Challenge 2"]
         }
-        print(f"   Body: {json.dumps(report_data, indent=2)}")
+        
+        print(f"Payload: {json.dumps(payload, indent=2)}")
         
         response = requests.post(
-            f"{BACKEND_URL}/admin/bazi-reports",
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
             headers={"Authorization": f"Bearer {token}"},
-            json=report_data
+            timeout=10
         )
         
-        if response.status_code == 400:
-            print(f"   ❌ Status: 400 Bad Request")
-            print(f"   ❌ Response: {response.text}")
-            print_result(False, "CRITICAL BUG: Cannot create multiple reports per user (returns 400)")
-            return False, None
+        print(f"Status Code: {response.status_code}")
         
-        if response.status_code != 200:
-            print_result(False, f"Create second report failed: {response.status_code} - {response.text}")
-            return False, None
-        
-        data = response.json()
-        report_id = data.get("id")
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ Report ID: {report_id}")
-        print(f"   ✓ User email: {data.get('user_email')}")
-        print(f"   ✓ Is published: {data.get('is_published')}")
-        print(f"   ✓ Report content length: {len(data.get('report_content', ''))} chars")
-        
-        print_result(True, f"SECOND report created successfully with DIFFERENT ID: {report_id}")
-        return True, report_id
-        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Verify date format and content
+            returned_date = data.get("date")
+            returned_content = data.get("content")
+            
+            if returned_date == "2026-08-06" and returned_content == "Different content for Aug 6":
+                log_test("Create Vocation Aug 6", True, f"Date format correct: {returned_date}, content is different")
+                return data
+            else:
+                log_test("Create Vocation Aug 6", False, f"Date or content incorrect")
+                return None
+        else:
+            log_test("Create Vocation Aug 6", False, f"Status {response.status_code}: {response.text}")
+            return None
+            
     except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
-        return False, None
+        log_test("Create Vocation Aug 6", False, f"Exception: {str(e)}")
+        return None
 
-def test_search_user_reports(token):
-    """Test 4: Search User Reports (Should Return Array)"""
-    print_test_header(4, "Search User Reports - GET /admin/bazi-reports/search")
+def test_get_all_vocations(token):
+    """Test 4: Get all scheduled vocations"""
+    print("\n" + "="*80)
+    print("TEST 4: Get All Scheduled Vocations")
+    print("="*80)
     
     try:
-        print(f"\n📝 GET {BACKEND_URL}/admin/bazi-reports/search?email={ADMIN_EMAIL}")
-        print(f"   Headers: Authorization: Bearer {token[:30]}...")
-        
         response = requests.get(
-            f"{BACKEND_URL}/admin/bazi-reports/search",
+            f"{BACKEND_URL}/admin/newborn-vocation/all",
             headers={"Authorization": f"Bearer {token}"},
-            params={"email": ADMIN_EMAIL}
+            timeout=10
         )
         
-        if response.status_code != 200:
-            print_result(False, f"Search failed: {response.status_code} - {response.text}")
-            return False, []
+        print(f"Status Code: {response.status_code}")
         
-        data = response.json()
-        reports = data.get("reports", [])
-        user = data.get("user", {})
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ User ID: {user.get('id')}")
-        print(f"   ✓ User email: {user.get('email')}")
-        print(f"   ✓ User name: {user.get('name')}")
-        print(f"   ✓ Reports count: {len(reports)}")
-        
-        if not isinstance(reports, list):
-            print_result(False, f"CRITICAL: 'reports' is not an array, it's a {type(reports).__name__}")
-            return False, []
-        
-        if len(reports) < 2:
-            print(f"   ⚠️  WARNING: Expected at least 2 reports, found {len(reports)}")
-        
-        for idx, report in enumerate(reports, 1):
-            print(f"\n   Report #{idx}:")
-            print(f"      - ID: {report.get('id')}")
-            print(f"      - Content preview: {report.get('report_content', '')[:60]}...")
-            print(f"      - Is published: {report.get('is_published')}")
-        
-        print_result(True, f"Search returned {len(reports)} reports as an array")
-        return True, reports
-        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Total vocations: {len(data)}")
+            
+            # Find our test vocations
+            aug5_found = False
+            aug6_found = False
+            date_format_issues = []
+            
+            for vocation in data:
+                date = vocation.get("date")
+                print(f"  - Date: {date}, Title: {vocation.get('title')}")
+                
+                # Check date format (YYYY-MM-DD with leading zeros)
+                if date and not is_valid_date_format(date):
+                    date_format_issues.append(date)
+                
+                if date == "2026-08-05":
+                    aug5_found = True
+                    aug5_content = vocation.get("content")
+                    print(f"    Aug 5 Content: {aug5_content}")
+                    
+                if date == "2026-08-06":
+                    aug6_found = True
+                    aug6_content = vocation.get("content")
+                    print(f"    Aug 6 Content: {aug6_content}")
+            
+            # Verify both vocations exist and have different content
+            if aug5_found and aug6_found:
+                if date_format_issues:
+                    log_test("Get All Vocations", False, f"Date format issues found: {date_format_issues}")
+                    return False
+                else:
+                    log_test("Get All Vocations", True, f"Both vocations found with correct date format")
+                    return True
+            else:
+                log_test("Get All Vocations", False, f"Aug 5 found: {aug5_found}, Aug 6 found: {aug6_found}")
+                return False
+        else:
+            log_test("Get All Vocations", False, f"Status {response.status_code}: {response.text}")
+            return False
+            
     except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
-        return False, []
-
-def test_get_my_bazi_reports(token):
-    """Test 5: Get My BaZi Reports (Should Return Array)"""
-    print_test_header(5, "Get My BaZi Reports - GET /my-bazi-report")
-    
-    try:
-        print(f"\n📝 GET {BACKEND_URL}/my-bazi-report")
-        print(f"   Headers: Authorization: Bearer {token[:30]}...")
-        
-        response = requests.get(
-            f"{BACKEND_URL}/my-bazi-report",
-            headers={"Authorization": f"Bearer {token}"}
-        )
-        
-        if response.status_code != 200:
-            print_result(False, f"Get my reports failed: {response.status_code} - {response.text}")
-            return False
-        
-        data = response.json()
-        has_reports = data.get("has_reports")
-        reports = data.get("reports", [])
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ has_reports: {has_reports}")
-        print(f"   ✓ reports count: {len(reports)}")
-        
-        # Check for old single-report structure
-        if "report" in data and not isinstance(data["report"], list):
-            print_result(False, "CRITICAL: Response has 'report' (singular) instead of 'reports' (plural)")
-            return False
-        
-        if not isinstance(reports, list):
-            print_result(False, f"CRITICAL: 'reports' is not an array, it's a {type(reports).__name__}")
-            return False
-        
-        if has_reports and len(reports) == 0:
-            print_result(False, "CRITICAL: has_reports=true but reports array is empty")
-            return False
-        
-        if len(reports) < 2:
-            print(f"   ⚠️  WARNING: Expected at least 2 reports, found {len(reports)}")
-        
-        for idx, report in enumerate(reports, 1):
-            print(f"\n   Report #{idx}:")
-            print(f"      - ID: {report.get('id')}")
-            print(f"      - Content preview: {report.get('report_content', '')[:60]}...")
-            print(f"      - Is published: {report.get('is_published')}")
-        
-        print_result(True, f"Endpoint returns has_reports={has_reports} and {len(reports)} reports as array")
-        return True
-        
-    except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
+        log_test("Get All Vocations", False, f"Exception: {str(e)}")
         return False
 
-def test_update_specific_report(token, report_id):
-    """Test 6: Update Specific Report by ID"""
-    print_test_header(6, "Update Specific Report by ID")
+def test_update_vocation_aug5(token):
+    """Test 5: Update existing vocation (same date, different content)"""
+    print("\n" + "="*80)
+    print("TEST 5: Update Vocation for 2026-08-05 (same date, different content)")
+    print("="*80)
     
     try:
-        print(f"\n📝 PUT {BACKEND_URL}/admin/bazi-reports/{report_id}")
-        print(f"   Headers: Authorization: Bearer {token[:30]}...")
-        
-        update_data = {
-            "report_content": "UPDATED: This report has been updated to verify the PUT endpoint works correctly.",
-            "is_published": True
+        payload = {
+            "date": "2026-08-05",
+            "title": "UPDATED Aug 5",
+            "content": "Updated content",
+            "talents": [],
+            "vocations": [],
+            "challenges": []
         }
-        print(f"   Body: {json.dumps(update_data, indent=2)}")
         
-        response = requests.put(
-            f"{BACKEND_URL}/admin/bazi-reports/{report_id}",
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
             headers={"Authorization": f"Bearer {token}"},
-            json=update_data
+            timeout=10
         )
         
-        if response.status_code != 200:
-            print_result(False, f"Update report failed: {response.status_code} - {response.text}")
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Verify update worked
+            returned_title = data.get("title")
+            returned_content = data.get("content")
+            
+            if returned_title == "UPDATED Aug 5" and returned_content == "Updated content":
+                log_test("Update Vocation Aug 5", True, "Update successful, content changed")
+                return True
+            else:
+                log_test("Update Vocation Aug 5", False, f"Update failed, title={returned_title}, content={returned_content}")
+                return False
+        else:
+            log_test("Update Vocation Aug 5", False, f"Status {response.status_code}: {response.text}")
             return False
-        
-        data = response.json()
-        
-        print(f"   ✓ Status: 200 OK")
-        print(f"   ✓ Report ID: {data.get('id')}")
-        print(f"   ✓ Updated content: {data.get('report_content')[:80]}...")
-        print(f"   ✓ Is published: {data.get('is_published')}")
-        
-        if data.get('id') != report_id:
-            print_result(False, f"CRITICAL: Report ID changed after update (was {report_id}, now {data.get('id')})")
-            return False
-        
-        if "UPDATED:" not in data.get('report_content', ''):
-            print_result(False, "CRITICAL: Report content was not updated")
-            return False
-        
-        print_result(True, f"Report {report_id} updated successfully")
-        return True
-        
+            
     except Exception as e:
-        print_result(False, f"Exception occurred: {str(e)}")
+        log_test("Update Vocation Aug 5", False, f"Exception: {str(e)}")
+        return False
+
+def test_delete_vocation_aug6(token):
+    """Test 6: Delete vocation by date"""
+    print("\n" + "="*80)
+    print("TEST 6: Delete Vocation for 2026-08-06")
+    print("="*80)
+    
+    try:
+        response = requests.delete(
+            f"{BACKEND_URL}/admin/newborn-vocation/2026-08-06",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            log_test("Delete Vocation Aug 6", True, "Deletion successful")
+            return True
+        else:
+            log_test("Delete Vocation Aug 6", False, f"Status {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        log_test("Delete Vocation Aug 6", False, f"Exception: {str(e)}")
+        return False
+
+def test_verify_deletion(token):
+    """Test 7: Verify deletion - Aug 6 should not exist"""
+    print("\n" + "="*80)
+    print("TEST 7: Verify Deletion (Aug 6 should not exist)")
+    print("="*80)
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/admin/newborn-vocation/all",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Total vocations: {len(data)}")
+            
+            # Check if Aug 6 still exists
+            aug6_found = False
+            for vocation in data:
+                date = vocation.get("date")
+                if date == "2026-08-06":
+                    aug6_found = True
+                    print(f"  ❌ Aug 6 still exists: {vocation}")
+            
+            if not aug6_found:
+                log_test("Verify Deletion", True, "Aug 6 successfully deleted")
+                return True
+            else:
+                log_test("Verify Deletion", False, "Aug 6 still exists after deletion")
+                return False
+        else:
+            log_test("Verify Deletion", False, f"Status {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        log_test("Verify Deletion", False, f"Exception: {str(e)}")
+        return False
+
+def is_valid_date_format(date_str):
+    """Check if date is in YYYY-MM-DD format with leading zeros"""
+    try:
+        # Check format with regex
+        import re
+        pattern = r'^\d{4}-\d{2}-\d{2}$'
+        if not re.match(pattern, date_str):
+            return False
+        
+        # Verify it's a valid date
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except (ValueError, TypeError):
         return False
 
 def main():
     """Run all tests"""
     print("\n" + "="*80)
-    print("BAZI REPORTS MULTIPLE-REPORTS-PER-USER TEST SUITE")
-    print("Testing: Admin can create multiple BaZi reports for a single user")
+    print("NEWBORN VOCATION ADMIN ENDPOINTS - DATE FORMAT & CRUD TESTING")
     print("="*80)
-    
-    results = {}
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Admin Email: {ADMIN_EMAIL}")
+    print(f"Test Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Test 1: Admin Login
-    success, token = test_admin_login()
-    results["Test 1: Admin Login"] = success
-    
-    if not success or not token:
-        print("\n❌ CRITICAL: Cannot proceed without admin token")
+    token = test_admin_login()
+    if not token:
+        print("\n❌ CRITICAL: Admin login failed. Cannot proceed with tests.")
         return
     
-    # Test 2: Create First Report
-    success, first_report_id = test_create_first_report(token)
-    results["Test 2: Create First Report"] = success
+    # Test 2: Create vocation for Aug 5
+    test_create_vocation_aug5(token)
     
-    # Test 3: Create Second Report (CRITICAL TEST)
-    success, second_report_id = test_create_second_report(token)
-    results["Test 3: Create SECOND Report for SAME User"] = success
+    # Test 3: Create vocation for Aug 6
+    test_create_vocation_aug6(token)
     
-    # Test 4: Search User Reports
-    success, reports = test_search_user_reports(token)
-    results["Test 4: Search User Reports (Returns Array)"] = success
+    # Test 4: Get all vocations
+    test_get_all_vocations(token)
     
-    # Test 5: Get My BaZi Reports
-    success = test_get_my_bazi_reports(token)
-    results["Test 5: Get My BaZi Reports (Returns Array)"] = success
+    # Test 5: Update vocation for Aug 5
+    test_update_vocation_aug5(token)
     
-    # Test 6: Update Specific Report
-    if first_report_id:
-        success = test_update_specific_report(token, first_report_id)
-        results["Test 6: Update Specific Report by ID"] = success
-    else:
-        results["Test 6: Update Specific Report by ID"] = False
-        print_result(False, "Skipped - no report ID available")
+    # Test 6: Delete vocation for Aug 6
+    test_delete_vocation_aug6(token)
     
-    # Summary
+    # Test 7: Verify deletion
+    test_verify_deletion(token)
+    
+    # Print summary
     print("\n" + "="*80)
     print("TEST SUMMARY")
     print("="*80)
     
-    passed = sum(1 for result in results.values() if result)
-    total = len(results)
+    passed_count = sum(1 for result in test_results if "✅ PASSED" in result)
+    failed_count = sum(1 for result in test_results if "❌ FAILED" in result)
+    total_count = len(test_results)
     
-    for test_name, result in results.items():
-        status = "✅ PASSED" if result else "❌ FAILED"
-        print(f"{status}: {test_name}")
+    for result in test_results:
+        print(result)
     
-    print(f"\n{'='*80}")
-    print(f"TOTAL: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
-    print(f"{'='*80}")
-    
-    # Critical Validations
     print("\n" + "="*80)
-    print("CRITICAL VALIDATIONS")
+    print(f"TOTAL: {total_count} tests")
+    print(f"PASSED: {passed_count} tests ✅")
+    print(f"FAILED: {failed_count} tests ❌")
+    print(f"SUCCESS RATE: {(passed_count/total_count*100):.1f}%")
     print("="*80)
     
-    critical_checks = {
-        "✅ Creating multiple reports for same user does NOT return 400": results.get("Test 3: Create SECOND Report for SAME User", False),
-        "✅ Search endpoint returns 'reports' array (not single 'report')": results.get("Test 4: Search User Reports (Returns Array)", False),
-        "✅ /my-bazi-report returns 'has_reports' and 'reports' (plural)": results.get("Test 5: Get My BaZi Reports (Returns Array)", False),
-        "✅ Can update specific report by ID": results.get("Test 6: Update Specific Report by ID", False),
-    }
-    
-    for check, passed in critical_checks.items():
-        print(check if passed else check.replace("✅", "❌"))
-    
-    all_critical_passed = all(critical_checks.values())
-    print(f"\n{'='*80}")
-    if all_critical_passed:
-        print("🎉 ALL CRITICAL VALIDATIONS PASSED - MULTIPLE REPORTS PER USER WORKING!")
+    if failed_count == 0:
+        print("\n🎉 ALL TESTS PASSED! Newborn Vocation Admin endpoints working correctly.")
     else:
-        print("⚠️ SOME CRITICAL VALIDATIONS FAILED - REVIEW FAILED TESTS")
-    print(f"{'='*80}\n")
+        print(f"\n⚠️  {failed_count} TEST(S) FAILED. Please review the failures above.")
 
 if __name__ == "__main__":
     main()

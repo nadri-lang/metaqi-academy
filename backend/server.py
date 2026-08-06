@@ -1516,6 +1516,14 @@ async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[s
     
     return [NewbornVocation(**v) for v in vocations]
 
+@api_router.get("/admin/newborn-vocation/all", response_model=List[NewbornVocation])
+async def get_all_newborn_vocations(
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Get all scheduled newborn vocations (admin only)"""
+    vocations = await db.newborn_vocation.find().sort("date", -1).to_list(1000)
+    return [NewbornVocation(**v) for v in vocations]
+
 @api_router.post("/admin/newborn-vocation", response_model=NewbornVocation)
 async def create_newborn_vocation(
     vocation_data: NewbornVocationCreate,
@@ -1545,6 +1553,17 @@ async def create_newborn_vocation(
         await db.newborn_vocation.insert_one(vocation_dict)
     
     return NewbornVocation(**vocation_dict)
+
+@api_router.delete("/admin/newborn-vocation/{date}")
+async def delete_newborn_vocation(
+    date: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a scheduled newborn vocation by date (admin only)"""
+    result = await db.newborn_vocation.delete_one({"date": date})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Vocación no encontrada")
+    return {"success": True, "message": f"Vocación del {date} eliminada"}
 
 # ============= AGENDA MONTHS (Content sections per month) =============
 

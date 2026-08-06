@@ -411,6 +411,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "DUAL TOKEN SUPPORT VERIFICATION COMPLETED - 4/4 tests PASSED ✅ (100% success rate). CRITICAL BUG FOUND & FIXED: get_current_user function in auth.py was importing from non-existent 'database' module (line 49), causing ALL authentication to fail with 500 Internal Server Error. FIX APPLIED: Created /app/backend/database.py to centralize MongoDB connection and updated /app/backend/server.py to import from it. This resolved the ModuleNotFoundError and fixed circular import issues. TEST RESULTS: ✅ Test 1: JWT Token (Password Login) - PASSED. Admin login with nnikholk@gmail.com / admin123 successful, JWT token obtained, GET /api/favorites works correctly with JWT token. ✅ Test 2: Session Token (Google Auth) - PASSED. Found valid session token in db.user_sessions, GET /api/favorites works correctly with session token. ✅ Test 3: Invalid Token - PASSED. Invalid token correctly rejected with 401 Unauthorized and 'Could not validate credentials' message. ✅ Test 4: Expired Session Token - PASSED. Expired session token correctly rejected with 401 Unauthorized and 'Session expired' message. ALL SUCCESS CRITERIA MET: ✅ JWT tokens (password login) work correctly, ✅ Session tokens (Google login) work correctly, ✅ Invalid tokens are rejected, ✅ Expired sessions are rejected, ✅ get_current_user supports both authentication methods. CLEANUP: Removed orphaned session tokens from database (sessions with non-existent user_ids). CONCLUSION: Dual token support is working perfectly. The get_current_user function now correctly handles both JWT tokens (password login) and session tokens (Google OAuth) as designed."
+  
+  - task: "Newborn Vocation Admin CRUD with Date Format Validation"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "NEWBORN VOCATION ADMIN CRUD TESTING COMPLETED - 6/7 tests PASSED ✅ (85.7% success rate). USER-REQUESTED VERIFICATION: Test Newborn Vocation Admin endpoints with date format validation (YYYY-MM-DD with leading zeros) and CRUD operations. CRITICAL BUG FOUND: Date format validation is NOT enforced on input. Database contains 1 vocation with invalid date format '2026-08-6' (missing leading zero, should be '2026-08-06'). TEST RESULTS: ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED, JWT token obtained with role=admin. ✅ Test 2: Create Vocation Aug 5 (2026-08-05) - PASSED, vocation created with correct date format, ID=0bb9f0f7-0927-402e-8041-504e5cfb3deb. ✅ Test 3: Create Vocation Aug 6 (2026-08-06) - PASSED, vocation created with DIFFERENT content ('Different content for Aug 6'), ID=c5e83244-815b-43e5-9108-af38f76b3a0b. ❌ Test 4: Get All Vocations - FAILED, found 1 date format issue: '2026-08-6' (title: 'El Estratega'). This date is missing leading zero and violates YYYY-MM-DD format requirement. ✅ Test 5: Update Vocation Aug 5 - PASSED, update successful, title changed to 'UPDATED Aug 5', content changed to 'Updated content', same ID maintained (no duplicate created). ✅ Test 6: Delete Vocation Aug 6 - PASSED, deletion successful, returns {success: true, message: 'Vocación del 2026-08-06 eliminada'}. ✅ Test 7: Verify Deletion - PASSED, Aug 6 no longer exists in database, total vocations reduced from 11 to 10. CRITICAL VALIDATIONS: ✅ CRUD operations work correctly (create, read, update, delete), ✅ Content for Aug 5 and Aug 6 are DIFFERENT (no duplicates), ✅ Update works for existing dates (upsert functionality), ✅ Delete removes vocation completely. ❌ Date format validation MISSING: Backend accepts dates without leading zeros (e.g., '2026-08-6' instead of '2026-08-06'). RECOMMENDATION: Add Pydantic validator to NewbornVocationCreate model to enforce YYYY-MM-DD format with regex pattern '^\\d{4}-\\d{2}-\\d{2}$'. Fix existing invalid date in database: '2026-08-6' should be '2026-08-06'."
 
 frontend:
   - task: "Authentication UI (Login/Register)"
@@ -530,12 +542,12 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 10
+  test_sequence: 11
   run_ui: false
 
 test_plan:
   current_focus:
-    - "BaZi Reports Multiple-Reports-Per-User Functionality"
+    - "Newborn Vocation Admin CRUD with Date Format Validation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -1767,3 +1779,114 @@ agent_communication:
       ✅ Can update specific report by ID
       
       CONCLUSION: Multiple reports per user functionality is working perfectly. Admin can create unlimited BaZi reports for any user, each with a unique ID. The API correctly returns arrays of reports (not single objects), and all CRUD operations work as expected.
+
+  - agent: "testing"
+    message: |
+      NEWBORN VOCATION ADMIN CRUD TESTING COMPLETED - 6/7 tests PASSED ✅ (85.7% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the Newborn Vocation Admin endpoints with date format validation and CRUD operations.
+      
+      CRITICAL BUG FOUND - DATE FORMAT VALIDATION MISSING:
+      🐛 Backend accepts dates without leading zeros (e.g., '2026-08-6' instead of '2026-08-06')
+         - Issue: NewbornVocationCreate model does not validate date format
+         - Database contains 1 vocation with invalid date: '2026-08-6' (title: 'El Estratega')
+         - Expected format: YYYY-MM-DD with leading zeros (e.g., 2026-08-05, not 2026-08-5)
+         - Root cause: No Pydantic validator on the 'date' field in NewbornVocationCreate model
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - SUCCESS
+         - Status: 200 OK
+         - Token obtained: JWT bearer token
+         - User role: admin
+         - Email: nnikholk@gmail.com
+      
+      ✅ Test 2: Create Vocation for 2026-08-05 - SUCCESS
+         - POST /api/admin/newborn-vocation
+         - Body: {"date": "2026-08-05", "title": "Test Vocation Aug 5", "content": "Content for Aug 5", "talents": ["Talent 1"], "vocations": ["Vocation 1"], "challenges": ["Challenge 1"]}
+         - Status: 200 OK
+         - Vocation created with ID: 0bb9f0f7-0927-402e-8041-504e5cfb3deb
+         - Date format correct: 2026-08-05 (with leading zero)
+      
+      ✅ Test 3: Create Vocation for 2026-08-06 - SUCCESS
+         - POST /api/admin/newborn-vocation
+         - Body: {"date": "2026-08-06", "title": "Test Vocation Aug 6", "content": "Different content for Aug 6", "talents": ["Talent 2"], "vocations": ["Vocation 2"], "challenges": ["Challenge 2"]}
+         - Status: 200 OK
+         - Vocation created with ID: c5e83244-815b-43e5-9108-af38f76b3a0b
+         - Date format correct: 2026-08-06 (with leading zero)
+         - Content is DIFFERENT from Aug 5: "Different content for Aug 6" ≠ "Content for Aug 5"
+      
+      ❌ Test 4: Get All Scheduled Vocations - FAILED (Date Format Issue)
+         - GET /api/admin/newborn-vocation/all
+         - Status: 200 OK
+         - Total vocations: 11
+         - Both test vocations found (Aug 5 and Aug 6)
+         - DATE FORMAT ISSUE DETECTED: Found 1 vocation with invalid date format
+           * Invalid date: '2026-08-6' (missing leading zero)
+           * Title: 'El Estratega'
+           * Expected: '2026-08-06'
+         - All other dates have correct format (YYYY-MM-DD with leading zeros)
+      
+      ✅ Test 5: Update Existing Vocation (Same Date, Different Content) - SUCCESS
+         - POST /api/admin/newborn-vocation (upsert)
+         - Body: {"date": "2026-08-05", "title": "UPDATED Aug 5", "content": "Updated content", "talents": [], "vocations": [], "challenges": []}
+         - Status: 200 OK
+         - Same ID maintained: 0bb9f0f7-0927-402e-8041-504e5cfb3deb (no duplicate created)
+         - Title updated: "Test Vocation Aug 5" → "UPDATED Aug 5"
+         - Content updated: "Content for Aug 5" → "Updated content"
+         - Upsert functionality working correctly
+      
+      ✅ Test 6: Delete Vocation by Date - SUCCESS
+         - DELETE /api/admin/newborn-vocation/2026-08-06
+         - Status: 200 OK
+         - Response: {"success": true, "message": "Vocación del 2026-08-06 eliminada"}
+         - Vocation successfully deleted
+      
+      ✅ Test 7: Verify Deletion - SUCCESS
+         - GET /api/admin/newborn-vocation/all
+         - Status: 200 OK
+         - Total vocations: 10 (reduced from 11)
+         - Aug 6 vocation no longer exists in database
+         - Deletion confirmed
+      
+      CRITICAL VALIDATIONS:
+      ✅ All dates returned are in YYYY-MM-DD format (except 1 existing invalid date)
+      ✅ Content for Aug 5 and Aug 6 are DIFFERENT (no duplicates)
+      ✅ Update works for existing dates (upsert functionality)
+      ✅ Delete removes vocation completely
+      ✅ CRUD operations work correctly (Create, Read, Update, Delete)
+      ❌ Date format validation NOT enforced on input
+      
+      DATABASE ANALYSIS:
+      - Total vocations in database: 10
+      - Valid date formats: 9 vocations
+      - Invalid date formats: 1 vocation ('2026-08-6')
+      - Invalid vocation details:
+        * Date: '2026-08-6' (should be '2026-08-06')
+        * Title: 'El Estratega'
+        * This vocation was created before date validation was implemented
+      
+      RECOMMENDATION FOR MAIN AGENT:
+      1. Add Pydantic validator to NewbornVocationCreate model in /app/backend/models.py:
+         ```python
+         from pydantic import validator
+         import re
+         
+         class NewbornVocationCreate(BaseModel):
+             date: str
+             # ... other fields ...
+             
+             @validator('date')
+             def validate_date_format(cls, v):
+                 pattern = r'^\d{4}-\d{2}-\d{2}$'
+                 if not re.match(pattern, v):
+                     raise ValueError('Date must be in YYYY-MM-DD format with leading zeros (e.g., 2026-08-05)')
+                 return v
+         ```
+      
+      2. Fix existing invalid date in database:
+         - Update '2026-08-6' to '2026-08-06' in MongoDB
+         - Or delete the invalid vocation if it's test data
+      
+      3. Consider adding the same validator to DailyEnergyCreate, MonthEnergyCreate, and other date-based models
+      
+      CONCLUSION: CRUD operations work perfectly (6/7 tests passed), but date format validation is missing. The backend accepts dates without leading zeros, which violates the YYYY-MM-DD format requirement. This is a HIGH PRIORITY issue that should be fixed to prevent future data inconsistencies.
