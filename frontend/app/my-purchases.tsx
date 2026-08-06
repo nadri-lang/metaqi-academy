@@ -40,12 +40,24 @@ interface BaziReport {
   published_at?: string;
 }
 
+interface UserContent {
+  id: string;
+  user_id: string;
+  type: 'image' | 'video' | 'pdf' | 'web';
+  title: string;
+  url: string;
+  created_by: string;
+  created_at: string;
+}
+
 export default function MyPurchasesScreen() {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [baziReport, setBaziReport] = useState<BaziReport | null>(null);
   const [hasBaziReport, setHasBaziReport] = useState(false);
+  const [userContent, setUserContent] = useState<UserContent[]>([]);
+  const [hasUserContent, setHasUserContent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -61,8 +73,15 @@ export default function MyPurchasesScreen() {
 
       // Load BaZi report
       const reportResponse = await api.get('/my-bazi-report');
-      setHasBaziReport(reportResponse.data.has_report);
-      setBaziReport(reportResponse.data.report);
+      setHasBaziReport(reportResponse.data.has_reports || false);
+      if (reportResponse.data.reports && reportResponse.data.reports.length > 0) {
+        setBaziReport(reportResponse.data.reports[0]);
+      }
+
+      // Load user content
+      const contentResponse = await api.get('/user-content/mine');
+      setHasUserContent(contentResponse.data.has_content || false);
+      setUserContent(contentResponse.data.content || []);
     } catch (error) {
       console.error('Error loading purchases:', error);
     } finally {
@@ -101,6 +120,15 @@ export default function MyPurchasesScreen() {
     });
   };
 
+  const handleOpenLink = (url: string) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert(
+        language === 'es' ? 'Error' : 'Error',
+        language === 'es' ? 'No se pudo abrir el enlace' : 'Could not open link'
+      );
+    });
+  };
+
   const handleViewBaziReport = () => {
     router.push('/my-bazi-report');
   };
@@ -118,6 +146,36 @@ export default function MyPurchasesScreen() {
     }
   };
 
+  const getContentIcon = (type: string) => {
+    switch (type) {
+      case 'image':
+        return 'image';
+      case 'video':
+        return 'video';
+      case 'pdf':
+        return 'file-pdf-box';
+      case 'web':
+        return 'web';
+      default:
+        return 'link';
+    }
+  };
+
+  const getContentColor = (type: string) => {
+    switch (type) {
+      case 'image':
+        return Colors.jade;
+      case 'video':
+        return Colors.error;
+      case 'pdf':
+        return Colors.accent;
+      case 'web':
+        return Colors.primary;
+      default:
+        return Colors.textLight;
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -126,7 +184,7 @@ export default function MyPurchasesScreen() {
     );
   }
 
-  const hasContent = purchases.length > 0 || hasBaziReport;
+  const hasContent = purchases.length > 0 || hasBaziReport || hasUserContent;
 
   return (
     <View style={styles.container}>
@@ -247,6 +305,56 @@ export default function MyPurchasesScreen() {
                       )}
                     </View>
                   </View>
+                ))}
+              </View>
+            )}
+
+            {/* Exclusive Content Section */}
+            {hasUserContent && userContent.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {language === 'es' ? 'Contenido Exclusivo' : 'Exclusive Content'}
+                </Text>
+                {userContent.map((content) => (
+                  <TouchableOpacity
+                    key={content.id}
+                    style={styles.purchaseCard}
+                    onPress={() => handleOpenLink(content.url)}
+                  >
+                    <View style={[
+                      styles.purchaseIcon,
+                      { backgroundColor: getContentColor(content.type) + '20' }
+                    ]}>
+                      <MaterialCommunityIcons 
+                        name={getContentIcon(content.type)} 
+                        size={24} 
+                        color={getContentColor(content.type)} 
+                      />
+                    </View>
+                    <View style={styles.purchaseInfo}>
+                      <Text style={styles.purchaseName}>{content.title}</Text>
+                      <Text style={styles.purchaseDate}>
+                        {language === 'es' ? 'Añadido: ' : 'Added: '}
+                        {formatDate(content.created_at)}
+                      </Text>
+                      <View style={[
+                        styles.publishedBadge,
+                        { backgroundColor: getContentColor(content.type) + '20' }
+                      ]}>
+                        <Text style={[
+                          styles.publishedText,
+                          { color: getContentColor(content.type) }
+                        ]}>
+                          {content.type.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+                    <MaterialCommunityIcons 
+                      name="open-in-new" 
+                      size={24} 
+                      color={Colors.textLight} 
+                    />
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
