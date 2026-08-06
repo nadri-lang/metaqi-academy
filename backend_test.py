@@ -356,14 +356,204 @@ def is_valid_date_format(date_str):
     except (ValueError, TypeError):
         return False
 
+def test_invalid_date_missing_day_zero(token):
+    """Test 2: Try to create with INVALID date (missing leading zero in day)"""
+    print("\n" + "="*80)
+    print("TEST 2: Create with INVALID date '2026-08-6' (missing leading zero in day)")
+    print("="*80)
+    
+    try:
+        payload = {
+            "date": "2026-08-6",
+            "title": "Invalid Date Test",
+            "content": "This should be rejected",
+            "talents": [],
+            "vocations": [],
+            "challenges": []
+        }
+        
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response: {response.text}")
+        
+        if response.status_code == 422:
+            data = response.json()
+            error_detail = str(data.get("detail", ""))
+            print(f"Validation Error: {error_detail}")
+            
+            # Check if error message mentions date format
+            if "fecha" in error_detail.lower() or "date" in error_detail.lower() or "formato" in error_detail.lower():
+                log_test("Invalid Date (2026-08-6)", True, f"Correctly rejected with 422: {error_detail}")
+                return True
+            else:
+                log_test("Invalid Date (2026-08-6)", False, f"422 returned but error message unclear: {error_detail}")
+                return False
+        else:
+            log_test("Invalid Date (2026-08-6)", False, f"Expected 422, got {response.status_code}")
+            return False
+            
+    except Exception as e:
+        log_test("Invalid Date (2026-08-6)", False, f"Exception: {str(e)}")
+        return False
+
+def test_invalid_date_missing_month_zero(token):
+    """Test 3: Try to create with INVALID date (missing leading zero in month)"""
+    print("\n" + "="*80)
+    print("TEST 3: Create with INVALID date '2026-8-06' (missing leading zero in month)")
+    print("="*80)
+    
+    try:
+        payload = {
+            "date": "2026-8-06",
+            "title": "Invalid Month Test",
+            "content": "This should be rejected",
+            "talents": [],
+            "vocations": [],
+            "challenges": []
+        }
+        
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        print(f"Response: {response.text}")
+        
+        if response.status_code == 422:
+            data = response.json()
+            error_detail = str(data.get("detail", ""))
+            print(f"Validation Error: {error_detail}")
+            
+            # Check if error message mentions date format
+            if "fecha" in error_detail.lower() or "date" in error_detail.lower() or "formato" in error_detail.lower():
+                log_test("Invalid Date (2026-8-06)", True, f"Correctly rejected with 422: {error_detail}")
+                return True
+            else:
+                log_test("Invalid Date (2026-8-06)", False, f"422 returned but error message unclear: {error_detail}")
+                return False
+        else:
+            log_test("Invalid Date (2026-8-06)", False, f"Expected 422, got {response.status_code}")
+            return False
+            
+    except Exception as e:
+        log_test("Invalid Date (2026-8-06)", False, f"Exception: {str(e)}")
+        return False
+
+def test_valid_date_format(token):
+    """Test 4: Create with VALID date format"""
+    print("\n" + "="*80)
+    print("TEST 4: Create with VALID date '2026-08-15' (correct format)")
+    print("="*80)
+    
+    try:
+        payload = {
+            "date": "2026-08-15",
+            "title": "Valid Date Test",
+            "content": "This should work",
+            "talents": ["Test"],
+            "vocations": ["Test"],
+            "challenges": []
+        }
+        
+        print(f"Payload: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(
+            f"{BACKEND_URL}/admin/newborn-vocation",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Verify date format
+            returned_date = data.get("date")
+            if returned_date == "2026-08-15":
+                log_test("Valid Date (2026-08-15)", True, f"Correctly accepted with 200, date={returned_date}")
+                return data
+            else:
+                log_test("Valid Date (2026-08-15)", False, f"Date format incorrect: {returned_date}")
+                return None
+        else:
+            log_test("Valid Date (2026-08-15)", False, f"Expected 200, got {response.status_code}: {response.text}")
+            return None
+            
+    except Exception as e:
+        log_test("Valid Date (2026-08-15)", False, f"Exception: {str(e)}")
+        return None
+
+def test_verify_all_dates_format(token):
+    """Test 5: Verify ALL dates in database have correct format"""
+    print("\n" + "="*80)
+    print("TEST 5: Verify ALL dates match regex ^\\d{4}-\\d{2}-\\d{2}$")
+    print("="*80)
+    
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/admin/newborn-vocation/all",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=10
+        )
+        
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Total vocations: {len(data)}")
+            
+            invalid_dates = []
+            
+            for vocation in data:
+                date = vocation.get("date")
+                title = vocation.get("title", "")
+                
+                # Check date format (YYYY-MM-DD with leading zeros)
+                if date and not is_valid_date_format(date):
+                    invalid_dates.append({"date": date, "title": title})
+                    print(f"  ❌ Invalid date format: {date} (title: {title})")
+                else:
+                    print(f"  ✅ Valid date format: {date} (title: {title})")
+            
+            if not invalid_dates:
+                log_test("Verify All Dates Format", True, f"All {len(data)} dates have correct format")
+                return True
+            else:
+                log_test("Verify All Dates Format", False, f"Found {len(invalid_dates)} invalid dates: {invalid_dates}")
+                return False
+        else:
+            log_test("Verify All Dates Format", False, f"Status {response.status_code}: {response.text}")
+            return False
+            
+    except Exception as e:
+        log_test("Verify All Dates Format", False, f"Exception: {str(e)}")
+        return False
+
 def main():
     """Run all tests"""
     print("\n" + "="*80)
-    print("NEWBORN VOCATION ADMIN ENDPOINTS - DATE FORMAT & CRUD TESTING")
+    print("NEWBORN VOCATION DATE FORMAT VALIDATION TESTING")
     print("="*80)
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Admin Email: {ADMIN_EMAIL}")
     print(f"Test Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("\nTesting Pydantic validator for date format (YYYY-MM-DD with leading zeros)")
     
     # Test 1: Admin Login
     token = test_admin_login()
@@ -371,23 +561,17 @@ def main():
         print("\n❌ CRITICAL: Admin login failed. Cannot proceed with tests.")
         return
     
-    # Test 2: Create vocation for Aug 5
-    test_create_vocation_aug5(token)
+    # Test 2: Invalid date (missing leading zero in day)
+    test_invalid_date_missing_day_zero(token)
     
-    # Test 3: Create vocation for Aug 6
-    test_create_vocation_aug6(token)
+    # Test 3: Invalid date (missing leading zero in month)
+    test_invalid_date_missing_month_zero(token)
     
-    # Test 4: Get all vocations
-    test_get_all_vocations(token)
+    # Test 4: Valid date format
+    test_valid_date_format(token)
     
-    # Test 5: Update vocation for Aug 5
-    test_update_vocation_aug5(token)
-    
-    # Test 6: Delete vocation for Aug 6
-    test_delete_vocation_aug6(token)
-    
-    # Test 7: Verify deletion
-    test_verify_deletion(token)
+    # Test 5: Verify all dates in database
+    test_verify_all_dates_format(token)
     
     # Print summary
     print("\n" + "="*80)

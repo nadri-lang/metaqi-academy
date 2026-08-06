@@ -414,8 +414,8 @@ backend:
   
   - task: "Newborn Vocation Admin CRUD with Date Format Validation"
     implemented: true
-    working: false
-    file: "/app/backend/server.py"
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -423,6 +423,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "NEWBORN VOCATION ADMIN CRUD TESTING COMPLETED - 6/7 tests PASSED ✅ (85.7% success rate). USER-REQUESTED VERIFICATION: Test Newborn Vocation Admin endpoints with date format validation (YYYY-MM-DD with leading zeros) and CRUD operations. CRITICAL BUG FOUND: Date format validation is NOT enforced on input. Database contains 1 vocation with invalid date format '2026-08-6' (missing leading zero, should be '2026-08-06'). TEST RESULTS: ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED, JWT token obtained with role=admin. ✅ Test 2: Create Vocation Aug 5 (2026-08-05) - PASSED, vocation created with correct date format, ID=0bb9f0f7-0927-402e-8041-504e5cfb3deb. ✅ Test 3: Create Vocation Aug 6 (2026-08-06) - PASSED, vocation created with DIFFERENT content ('Different content for Aug 6'), ID=c5e83244-815b-43e5-9108-af38f76b3a0b. ❌ Test 4: Get All Vocations - FAILED, found 1 date format issue: '2026-08-6' (title: 'El Estratega'). This date is missing leading zero and violates YYYY-MM-DD format requirement. ✅ Test 5: Update Vocation Aug 5 - PASSED, update successful, title changed to 'UPDATED Aug 5', content changed to 'Updated content', same ID maintained (no duplicate created). ✅ Test 6: Delete Vocation Aug 6 - PASSED, deletion successful, returns {success: true, message: 'Vocación del 2026-08-06 eliminada'}. ✅ Test 7: Verify Deletion - PASSED, Aug 6 no longer exists in database, total vocations reduced from 11 to 10. CRITICAL VALIDATIONS: ✅ CRUD operations work correctly (create, read, update, delete), ✅ Content for Aug 5 and Aug 6 are DIFFERENT (no duplicates), ✅ Update works for existing dates (upsert functionality), ✅ Delete removes vocation completely. ❌ Date format validation MISSING: Backend accepts dates without leading zeros (e.g., '2026-08-6' instead of '2026-08-06'). RECOMMENDATION: Add Pydantic validator to NewbornVocationCreate model to enforce YYYY-MM-DD format with regex pattern '^\\d{4}-\\d{2}-\\d{2}$'. Fix existing invalid date in database: '2026-08-6' should be '2026-08-06'."
+      - working: true
+        agent: "testing"
+        comment: "DATE FORMAT VALIDATION TESTING COMPLETED - 5/5 tests PASSED ✅ (100% success rate). USER-REQUESTED VERIFICATION: Test date format validation in Newborn Vocation endpoint after Pydantic validator was added. VALIDATION FIX VERIFIED: Pydantic validator added to NewbornVocationCreate model (lines 522-530 in models.py) enforces YYYY-MM-DD format with regex pattern '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$'. TEST RESULTS: ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED, JWT token obtained with role=admin. ✅ Test 2: Invalid Date '2026-08-6' (missing leading zero in day) - PASSED, correctly rejected with 422 Validation Error. Error message: 'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. Ejemplo: 2026-08-05 (no 2026-08-5)'. ✅ Test 3: Invalid Date '2026-8-06' (missing leading zero in month) - PASSED, correctly rejected with 422 Validation Error. Error message: 'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. Ejemplo: 2026-08-05 (no 2026-08-5)'. ✅ Test 4: Valid Date '2026-08-15' - PASSED, correctly accepted with 200, vocation created successfully. ✅ Test 5: Verify All Dates Format - PASSED, all 11 vocations in database have correct date format matching regex ^\\d{4}-\\d{2}-\\d{2}$. DATA CLEANUP: Fixed existing invalid date in database: '2026-08-6' (title: 'El Estratega') was deleted and recreated with correct date '2026-08-06'. ALL SUCCESS CRITERIA MET: ✅ Invalid dates ('2026-08-6', '2026-8-06') are rejected with 422 error, ✅ Error message clearly mentions required format, ✅ Valid dates ('2026-08-15') are accepted with 200, ✅ All existing dates in database have correct format. CONCLUSION: Date format validation is working perfectly. Backend now enforces YYYY-MM-DD format with leading zeros for all newborn vocation dates."
 
 frontend:
   - task: "Authentication UI (Login/Register)"
@@ -542,17 +545,66 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 11
+  test_sequence: 12
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Newborn Vocation Admin CRUD with Date Format Validation"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      DATE FORMAT VALIDATION TESTING COMPLETED - 5/5 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test date format validation in Newborn Vocation endpoint after Pydantic validator was added.
+      
+      VALIDATION FIX VERIFIED:
+      ✅ Pydantic validator added to NewbornVocationCreate model (lines 522-530 in models.py)
+      ✅ Enforces YYYY-MM-DD format with regex: ^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$
+      ✅ Rejects dates without leading zeros (e.g., '2026-08-6', '2026-8-06')
+      ✅ Error message: "Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. Ejemplo: 2026-08-05 (no 2026-08-5)"
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED
+         - JWT token obtained successfully
+         - Token type: bearer, Role: admin
+      
+      ✅ Test 2: Invalid Date '2026-08-6' (missing leading zero in day) - PASSED
+         - POST /api/admin/newborn-vocation with date='2026-08-6'
+         - Response: 422 Validation Error
+         - Error message clearly states required format
+      
+      ✅ Test 3: Invalid Date '2026-8-06' (missing leading zero in month) - PASSED
+         - POST /api/admin/newborn-vocation with date='2026-8-06'
+         - Response: 422 Validation Error
+         - Error message clearly states required format
+      
+      ✅ Test 4: Valid Date '2026-08-15' - PASSED
+         - POST /api/admin/newborn-vocation with date='2026-08-15'
+         - Response: 200 OK
+         - Vocation created successfully with correct date format
+      
+      ✅ Test 5: Verify All Dates Format - PASSED
+         - GET /api/admin/newborn-vocation/all
+         - All 11 vocations have correct date format
+         - All dates match regex ^\d{4}-\d{2}-\d{2}$
+      
+      DATA CLEANUP:
+      ✅ Fixed existing invalid date in database:
+         - Old: '2026-08-6' (title: 'El Estratega')
+         - New: '2026-08-06' (same title and content)
+         - Method: Deleted old entry, created new with correct format
+      
+      ALL SUCCESS CRITERIA MET:
+      ✅ Invalid dates ('2026-08-6', '2026-8-06') are rejected with 422 error
+      ✅ Error message clearly mentions required format
+      ✅ Valid dates ('2026-08-15') are accepted with 200
+      ✅ All existing dates in database have correct format
+      
+      CONCLUSION: Date format validation is working perfectly. Backend now enforces YYYY-MM-DD format with leading zeros for all newborn vocation dates. The Pydantic validator prevents any invalid dates from being saved to the database.
   - agent: "testing"
     message: |
       GOOGLE AUTH ROLE VALIDATION FIX COMPLETED - 7/7 tests PASSED ✅ (100% success rate)

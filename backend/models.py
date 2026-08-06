@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+import re
 
 class UserRole(str, Enum):
     ADMIN = "admin"
@@ -517,6 +518,16 @@ class NewbornVocationCreate(BaseModel):
     talents: List[str] = []
     vocations: List[str] = []
     challenges: List[str] = []
+    
+    @validator('date')
+    def validate_date_format(cls, v):
+        """Validate date format is YYYY-MM-DD with leading zeros"""
+        if not re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$', v):
+            raise ValueError(
+                'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. '
+                'Ejemplo: 2026-08-05 (no 2026-08-5)'
+            )
+        return v
 
 # Concept Cards (Home intro - What is BaZi, Qi Men, etc)
 class Concept(BaseModel):
