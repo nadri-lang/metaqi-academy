@@ -1964,6 +1964,31 @@ async def get_my_user_content(
     content_clean = [{k: v for k, v in c.items() if k != "_id"} for c in content]
     return {"has_content": True, "content": content_clean}
 
+@api_router.get("/admin/user-content")
+async def get_user_content_by_email(
+    email: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Admin: Get all content for a specific user by email"""
+    # Find user by email
+    user = await db.users.find_one({"email": email.lower().strip()})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Get all content for this user
+    content_cursor = db.user_content.find({"user_id": user["id"]})
+    content = await content_cursor.to_list(1000)
+    
+    content_clean = [{k: v for k, v in c.items() if k != "_id"} for c in content]
+    return {
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "name": user.get("name", "")
+        },
+        "content": content_clean
+    }
+
 @api_router.post("/admin/user-content", response_model=UserContent)
 async def create_user_content(
     user_email: str = Form(...),

@@ -51,6 +51,8 @@ export default function AdminUsersScreen() {
   const [pdfUrl, setPdfUrl] = useState('');
   const [webUrl, setWebUrl] = useState('');
   const [uploadingContent, setUploadingContent] = useState(false);
+  const [userContentList, setUserContentList] = useState<any[]>([]);
+  const [loadingContent, setLoadingContent] = useState(false);
 
   useEffect(() => {
     if (currentUser && currentUser.role === 'admin') {
@@ -93,6 +95,20 @@ export default function AdminUsersScreen() {
     setSelectedSubscription(user.subscription || 'free');
     setNewPassword('');
     setEditModalVisible(true);
+    loadUserContent(user.email);
+  };
+
+  const loadUserContent = async (email: string) => {
+    setLoadingContent(true);
+    try {
+      const response = await api.get(`/admin/user-content?email=${encodeURIComponent(email)}`);
+      setUserContentList(response.data.content || []);
+    } catch (error) {
+      console.error('Error loading user content:', error);
+      setUserContentList([]);
+    } finally {
+      setLoadingContent(false);
+    }
   };
 
   const handleSave = async () => {
@@ -154,6 +170,7 @@ export default function AdminUsersScreen() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       Alert.alert('Éxito', 'Imagen subida correctamente');
+      loadUserContent(selectedUser.email); // Reload list
     } catch (error: any) {
       console.error('Error uploading image:', error);
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo subir la imagen');
@@ -192,6 +209,7 @@ export default function AdminUsersScreen() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       Alert.alert('Éxito', 'PDF subido correctamente');
+      loadUserContent(selectedUser.email); // Reload list
     } catch (error: any) {
       console.error('Error uploading PDF:', error);
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo subir el PDF');
@@ -219,6 +237,7 @@ export default function AdminUsersScreen() {
       });
       Alert.alert('Éxito', 'Enlace de video guardado');
       setVideoUrl('');
+      loadUserContent(selectedUser.email); // Reload list
     } catch (error: any) {
       console.error('Error submitting video URL:', error);
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
@@ -246,6 +265,7 @@ export default function AdminUsersScreen() {
       });
       Alert.alert('Éxito', 'Enlace de PDF guardado');
       setPdfUrl('');
+      loadUserContent(selectedUser.email); // Reload list
     } catch (error: any) {
       console.error('Error submitting PDF URL:', error);
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
@@ -273,12 +293,39 @@ export default function AdminUsersScreen() {
       });
       Alert.alert('Éxito', 'Enlace web guardado');
       setWebUrl('');
+      loadUserContent(selectedUser.email); // Reload list
     } catch (error: any) {
       console.error('Error submitting web URL:', error);
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo guardar el enlace');
     } finally {
       setUploadingContent(false);
     }
+  };
+
+  const handleDeleteContent = (contentId: string, title: string) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      `¿Eliminar "${title}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/admin/user-content/${contentId}`);
+              Alert.alert('Éxito', 'Contenido eliminado');
+              if (selectedUser) {
+                loadUserContent(selectedUser.email);
+              }
+            } catch (error: any) {
+              console.error('Error deleting content:', error);
+              Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -302,6 +349,26 @@ export default function AdminUsersScreen() {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  const getContentIcon = (type: string) => {
+    switch (type) {
+      case 'image': return 'image';
+      case 'video': return 'video';
+      case 'pdf': return 'file-pdf-box';
+      case 'web': return 'web';
+      default: return 'link';
+    }
+  };
+
+  const getContentColor = (type: string) => {
+    switch (type) {
+      case 'image': return Colors.jade;
+      case 'video': return Colors.error;
+      case 'pdf': return Colors.accent;
+      case 'web': return Colors.primary;
+      default: return Colors.textLight;
+    }
   };
 
   if (!currentUser || currentUser.role !== 'admin') {
@@ -501,6 +568,48 @@ export default function AdminUsersScreen() {
                   <Text style={styles.passwordHint}>
                     Solo completa este campo si deseas cambiar la contraseña del usuario
                   </Text>
+
+                  {/* Existing Content List */}
+                  {loadingContent ? (
+                    <View style={styles.loadingContentContainer}>
+                      <ActivityIndicator color={Colors.accent} size="small" />
+                      <Text style={styles.loadingContentText}>Cargando contenido...</Text>
+                    </View>
+                  ) : userContentList.length > 0 && (
+                    <View style={styles.existingContentSection}>
+                      <Text style={styles.sectionHeader}>
+                        Contenido Entregado ({userContentList.length})
+                      </Text>
+                      {userContentList.map((content) => (
+                        <View key={content.id} style={styles.contentListItem}>
+                          <View style={[
+                            styles.contentListIcon,
+                            { backgroundColor: getContentColor(content.type) + '20' }
+                          ]}>
+                            <MaterialCommunityIcons
+                              name={getContentIcon(content.type)}
+                              size={20}
+                              color={getContentColor(content.type)}
+                            />
+                          </View>
+                          <View style={styles.contentListInfo}>
+                            <Text style={styles.contentListTitle} numberOfLines={1}>
+                              {content.title}
+                            </Text>
+                            <Text style={styles.contentListDate}>
+                              {formatDate(content.created_at)}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.deleteContentButton}
+                            onPress={() => handleDeleteContent(content.id, content.title)}
+                          >
+                            <MaterialCommunityIcons name="delete-outline" size={20} color={Colors.error} />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
 
                   {/* Content Delivery Section */}
                   <View style={styles.contentDeliverySection}>
@@ -960,5 +1069,64 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
     color: Colors.textSecondary,
+  },
+  loadingContentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.md,
+  },
+  loadingContentText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  existingContentSection: {
+    marginTop: Spacing.xl,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.cardBorder,
+  },
+  contentListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  contentListIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  contentListInfo: {
+    flex: 1,
+  },
+  contentListTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
+  },
+  contentListDate: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  deleteContentButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.error + '10',
+    borderRadius: BorderRadius.sm,
   },
 });
