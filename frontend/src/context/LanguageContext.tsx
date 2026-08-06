@@ -23,17 +23,17 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const getNested = (obj: any, path: string): string => {
+const getNested = (obj: any, path: string): string | null => {
   const keys = path.split('.');
   let current = obj;
   for (const key of keys) {
     if (current && typeof current === 'object' && key in current) {
       current = current[key];
     } else {
-      return path; // Return the key if not found (for debugging)
+      return null; // Return null if not found
     }
   }
-  return typeof current === 'string' ? current : path;
+  return typeof current === 'string' ? current : null;
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -75,7 +75,20 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const t = (key: TranslationKey): string => {
-    return getNested(translations[language], key);
+    // Try current language
+    let result = getNested(translations[language], key);
+    if (result !== null) return result;
+
+    // Fallback to Spanish
+    result = getNested(translations.es, key);
+    if (result !== null) return result;
+
+    // Fallback to English
+    result = getNested(translations.en, key);
+    if (result !== null) return result;
+
+    // Last resort: return empty string (never show the key literal)
+    return '';
   };
 
   const localizeContent = (baseValue: string | null | undefined, enValue?: string | null | undefined): string => {
