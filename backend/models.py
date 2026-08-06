@@ -795,3 +795,21 @@ class VisitorLog(BaseModel):
     session_id: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     date: str  # YYYY-MM-DD for grouping
+
+
+# User Content Models
+class UserContentType(str, Enum):
+    IMAGE = "image"
+    VIDEO = "video"
+    PDF = "pdf"
+    WEB = "web"
+
+class UserContent(BaseModel):
+    """User-uploaded or user-associated content"""
+    id: str
+    user_id: str
+    type: UserContentType
+    title: str
+    url: str
+    created_by: str  # User ID of who created/uploaded this
+    created_at: datetime = Field(default_factory=datetime.utcnow)

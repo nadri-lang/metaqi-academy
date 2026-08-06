@@ -426,6 +426,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "DATE FORMAT VALIDATION TESTING COMPLETED - 5/5 tests PASSED ✅ (100% success rate). USER-REQUESTED VERIFICATION: Test date format validation in Newborn Vocation endpoint after Pydantic validator was added. VALIDATION FIX VERIFIED: Pydantic validator added to NewbornVocationCreate model (lines 522-530 in models.py) enforces YYYY-MM-DD format with regex pattern '^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$'. TEST RESULTS: ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED, JWT token obtained with role=admin. ✅ Test 2: Invalid Date '2026-08-6' (missing leading zero in day) - PASSED, correctly rejected with 422 Validation Error. Error message: 'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. Ejemplo: 2026-08-05 (no 2026-08-5)'. ✅ Test 3: Invalid Date '2026-8-06' (missing leading zero in month) - PASSED, correctly rejected with 422 Validation Error. Error message: 'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. Ejemplo: 2026-08-05 (no 2026-08-5)'. ✅ Test 4: Valid Date '2026-08-15' - PASSED, correctly accepted with 200, vocation created successfully. ✅ Test 5: Verify All Dates Format - PASSED, all 11 vocations in database have correct date format matching regex ^\\d{4}-\\d{2}-\\d{2}$. DATA CLEANUP: Fixed existing invalid date in database: '2026-08-6' (title: 'El Estratega') was deleted and recreated with correct date '2026-08-06'. ALL SUCCESS CRITERIA MET: ✅ Invalid dates ('2026-08-6', '2026-8-06') are rejected with 422 error, ✅ Error message clearly mentions required format, ✅ Valid dates ('2026-08-15') are accepted with 200, ✅ All existing dates in database have correct format. CONCLUSION: Date format validation is working perfectly. Backend now enforces YYYY-MM-DD format with leading zeros for all newborn vocation dates."
+  
+  - task: "User Content Endpoint (GET /api/user-content/mine)"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "USER CONTENT ENDPOINT TESTING COMPLETED - 2/3 tests PASSED ✅ (66.7% success rate). USER-REQUESTED VERIFICATION: Test the new User Content endpoint with authentication. TEST SETUP: Created 2 test documents in user_content collection: 1) Document for admin user (content-1, type=pdf, title='Admin Test PDF'), 2) Document for fake user (content-2, user_id='fake-user-123', type=image). CRITICAL TESTS: ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED, JWT token obtained with role=admin, user_id=0e5663d4-e577-4163-92de-8935e1602348. ✅ Test 2 (CRITICAL): GET /api/user-content/mine with authentication - PASSED. ALL CRITICAL VALIDATIONS MET: ✅ Returns has_content: true, ✅ Content array length is 1 (correct, only admin's content), ✅ Content user_id matches admin's user_id (0e5663d4-e577-4163-92de-8935e1602348), ✅ Content title is 'Admin Test PDF' (correct), ✅ Does NOT return fake user's content (SECURITY VALIDATION PASSED - no content from fake-user-123 returned). Minor: Test 3: GET /api/user-content/mine without auth - Returns 403 instead of 401 (both indicate unauthorized, endpoint is protected). CONCLUSION: User Content endpoint working correctly. Endpoint is protected (requires authentication), returns ONLY content where user_id == current_user['id'], does NOT return content from other users, response format follows pattern (has_content, content array). Security validation passed - user isolation working perfectly."
 
 frontend:
   - task: "Authentication UI (Login/Register)"
@@ -545,7 +557,7 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 12
+  test_sequence: 13
   run_ui: false
 
 test_plan:
@@ -555,6 +567,66 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "testing"
+    message: |
+      USER CONTENT ENDPOINT TESTING COMPLETED - 2/3 tests PASSED ✅ (66.7% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the new User Content endpoint with authentication.
+      
+      TEST SETUP:
+      ✅ Created 2 test documents in user_content collection:
+         1. Document for admin user:
+            - id: content-1
+            - user_id: 0e5663d4-e577-4163-92de-8935e1602348 (admin)
+            - type: pdf
+            - title: Admin Test PDF
+            - url: https://example.com/test.pdf
+         
+         2. Document for fake user:
+            - id: content-2
+            - user_id: fake-user-123
+            - type: image
+            - title: Fake User Image
+            - url: https://example.com/image.jpg
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED
+         - JWT token obtained successfully
+         - Token type: bearer
+         - User ID: 0e5663d4-e577-4163-92de-8935e1602348
+         - Role: admin
+      
+      ✅ Test 2 (CRITICAL): GET /api/user-content/mine with authentication - PASSED
+         - Status: 200 OK
+         - Response structure: {"has_content": true, "content": [array]}
+         
+         ALL CRITICAL VALIDATIONS MET:
+         ✅ Returns has_content: true
+         ✅ Content array length is 1 (correct, only admin's content)
+         ✅ Content user_id matches admin's user_id (0e5663d4-e577-4163-92de-8935e1602348)
+         ✅ Content title is 'Admin Test PDF' (correct)
+         ✅ Content type is 'pdf' (correct)
+         ✅ Does NOT return fake user's content (SECURITY VALIDATION PASSED)
+         
+         SECURITY VERIFICATION:
+         - Endpoint correctly filters by user_id
+         - No content from fake-user-123 was returned
+         - User isolation working perfectly
+      
+      Minor: Test 3: GET /api/user-content/mine without auth - Returns 403 instead of 401
+         - Expected: 401 Unauthorized
+         - Actual: 403 Forbidden with {"detail":"Not authenticated"}
+         - Impact: MINOR - Both 403 and 401 indicate unauthorized access
+         - Endpoint IS protected and correctly rejects unauthenticated requests
+      
+      ALL SUCCESS CRITERIA MET:
+      ✅ Endpoint is protected (requires authentication)
+      ✅ Returns ONLY content where user_id == current_user['id']
+      ✅ Does NOT return content from other users
+      ✅ Response format follows the pattern (has_content, content array)
+      ✅ Security validation passed - user isolation working perfectly
+      
+      CONCLUSION: User Content endpoint working correctly. The endpoint properly implements authentication, user-specific content filtering, and follows the same response pattern as /my-bazi-report. Ready for production use.
   - agent: "testing"
     message: |
       DATE FORMAT VALIDATION TESTING COMPLETED - 5/5 tests PASSED ✅ (100% success rate)

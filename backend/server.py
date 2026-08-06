@@ -40,6 +40,7 @@ from models import (
     PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
     GoogleAuthSession, GoogleAuthResponse, UserSession,
     AnalyticsSummary, VisitorLog,
+    UserContent,
 )
 from auth import (
     get_password_hash, 
@@ -1944,6 +1945,24 @@ async def get_my_bazi_reports(
     
     reports_clean = [{k: v for k, v in r.items() if k != "_id"} for r in reports]
     return {"has_reports": True, "reports": reports_clean}
+
+# ==================== USER CONTENT ENDPOINTS ====================
+
+@api_router.get("/user-content/mine")
+async def get_my_user_content(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all user content for the current authenticated user"""
+    content_cursor = db.user_content.find({
+        "user_id": current_user["id"]
+    })
+    content = await content_cursor.to_list(1000)
+    
+    if not content:
+        return {"has_content": False, "content": []}
+    
+    content_clean = [{k: v for k, v in c.items() if k != "_id"} for c in content]
+    return {"has_content": True, "content": content_clean}
 
 # ==================== ADMIN USER MANAGEMENT ENDPOINTS ====================
 
