@@ -18,68 +18,50 @@ import { useLanguage } from '@/src/context/LanguageContext';
 
 interface Quarter {
   id: number;
-  titleEs: string;
-  titleEn: string;
-  monthsEs: string;
-  monthsEn: string;
-  datesEs: string;
-  datesEn: string;
+  titleKey: string;
+  monthsKey: string;
+  datesKey: string;
   price: string;
 }
 
 const QUARTERS: Quarter[] = [
   {
     id: 1,
-    titleEs: 'TRIM. 1 Enero-Marzo 2027',
-    titleEn: 'Q1 January-March 2027',
-    monthsEs: 'Enero, Febrero y Marzo',
-    monthsEn: 'January, February and March',
-    datesEs: '1 de enero hasta 31 de marzo',
-    datesEn: 'January 1st to March 31st',
+    titleKey: 'wedding_agenda_2027.quarter_1_title',
+    monthsKey: 'wedding_agenda_2027.quarter_1_months',
+    datesKey: 'wedding_agenda_2027.quarter_1_dates',
     price: '9,90€',
   },
   {
     id: 2,
-    titleEs: 'TRIM. 2 Abril-Junio 2027',
-    titleEn: 'Q2 April-June 2027',
-    monthsEs: 'Abril, Mayo y Junio',
-    monthsEn: 'April, May and June',
-    datesEs: '1 de abril hasta 30 de junio',
-    datesEn: 'April 1st to June 30th',
+    titleKey: 'wedding_agenda_2027.quarter_2_title',
+    monthsKey: 'wedding_agenda_2027.quarter_2_months',
+    datesKey: 'wedding_agenda_2027.quarter_2_dates',
     price: '9,90€',
   },
   {
     id: 3,
-    titleEs: 'TRIM. 3 Julio-Septiembre 2027',
-    titleEn: 'Q3 July-September 2027',
-    monthsEs: 'Julio, Agosto y Septiembre',
-    monthsEn: 'July, August and September',
-    datesEs: '1 de julio hasta 30 de septiembre',
-    datesEn: 'July 1st to September 30th',
+    titleKey: 'wedding_agenda_2027.quarter_3_title',
+    monthsKey: 'wedding_agenda_2027.quarter_3_months',
+    datesKey: 'wedding_agenda_2027.quarter_3_dates',
     price: '9,90€',
   },
   {
     id: 4,
-    titleEs: 'TRIM. 4 Octubre-Diciembre 2027',
-    titleEn: 'Q4 October-December 2027',
-    monthsEs: 'Octubre, Noviembre y Diciembre',
-    monthsEn: 'October, November and December',
-    datesEs: '1 de octubre hasta 31 de diciembre',
-    datesEn: 'October 1st to December 31st',
+    titleKey: 'wedding_agenda_2027.quarter_4_title',
+    monthsKey: 'wedding_agenda_2027.quarter_4_months',
+    datesKey: 'wedding_agenda_2027.quarter_4_dates',
     price: '9,90€',
   },
 ];
 
 export default function WeddingAgenda2027Screen() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [selectedQuarter, setSelectedQuarter] = useState<Quarter | null>(null);
 
   const handleWhatsAppPurchase = (quarterId: number) => {
-    const message = language === 'es'
-      ? `Hola, me interesa comprar la Agenda de Bodas 2027 del trimestre nº ${quarterId}. ¿Podríais facilitarme la información de pago para realizar la compra? Muchas gracias.`
-      : `Hello, I'm interested in purchasing the Wedding Agenda 2027 for quarter ${quarterId}. Could you provide me with the payment information to complete the purchase? Thank you very much.`;
-    
+    const message = t('wedding_agenda_2027.whatsapp_message').replace('{quarter}', String(quarterId));
     const whatsapp = '34640510085';
     Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
   };
@@ -97,7 +79,7 @@ export default function WeddingAgenda2027Screen() {
             >
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
               <Text style={styles.backButtonText}>
-                {language === 'es' ? 'Volver' : 'Back'}
+                {t('wedding_agenda_2027.back')}
               </Text>
             </TouchableOpacity>
             
@@ -106,10 +88,10 @@ export default function WeddingAgenda2027Screen() {
                 <MaterialCommunityIcons name="heart" size={32} color={Colors.accent} />
               </View>
               <Text style={styles.headerTitle}>
-                {language === 'es' ? 'AGENDA DE BODAS 2027' : 'WEDDING AGENDA 2027'}
+                {t('wedding_agenda_2027.header_title')}
               </Text>
               <Text style={styles.headerSubtitle}>
-                {language === 'es' ? 'Trimestral' : 'Quarterly'}
+                {t('wedding_agenda_2027.header_subtitle')}
               </Text>
             </View>
           </View>
@@ -123,18 +105,16 @@ export default function WeddingAgenda2027Screen() {
         {/* Main Description */}
         <View style={styles.descriptionCard}>
           <Text style={styles.descriptionTitle}>
-            {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
+            {t('wedding_agenda_2027.what_includes')}
           </Text>
           <Text style={styles.description}>
-            {language === 'es'
-              ? 'La Agenda de Bodas 2027 TRIMESTRAL es una guía que te ayudará a elegir la fecha perfecta para tu boda según los principios de la metafísica china. Se analizan todos los días del año 2027 evaluados según Feng Shui, BaZi y Qi Men Dun Jia para encontrar las fechas más auspiciosas para bodas, ceremonias, uniones, declaraciones y compromisos.'
-              : 'The 2027 QUARTERLY Wedding Agenda is a guide that will help you choose the perfect date for your wedding according to the principles of Chinese metaphysics. All days of 2027 are evaluated according to Feng Shui, BaZi and Qi Men Dun Jia to find the most auspicious dates for weddings, ceremonies, unions, declarations and commitments.'}
+            {t('wedding_agenda_2027.main_description')}
           </Text>
         </View>
 
         {/* Quarter Buttons */}
         <Text style={styles.sectionLabel}>
-          {language === 'es' ? 'SELECCIONA TU TRIMESTRE' : 'SELECT YOUR QUARTER'}
+          {t('wedding_agenda_2027.select_quarter')}
         </Text>
 
         {QUARTERS.map((quarter) => (
@@ -150,7 +130,7 @@ export default function WeddingAgenda2027Screen() {
               </View>
               <View style={styles.quarterTextContainer}>
                 <Text style={styles.quarterTitle}>
-                  {language === 'es' ? quarter.titleEs : quarter.titleEn}
+                  {t(quarter.titleKey)}
                 </Text>
                 <Text style={styles.quarterPrice}>{quarter.price}</Text>
               </View>
@@ -192,16 +172,14 @@ export default function WeddingAgenda2027Screen() {
                     contentContainerStyle={styles.modalContent}
                   >
                     <Text style={styles.modalTitle}>
-                      {language === 'es' ? selectedQuarter.titleEs : selectedQuarter.titleEn}
+                      {t(selectedQuarter.titleKey)}
                     </Text>
                     <Text style={styles.modalPrice}>{selectedQuarter.price}</Text>
                     
                     <View style={styles.divider} />
                     
                     <Text style={styles.modalDescription}>
-                      {language === 'es'
-                        ? 'Esta agenda contiene una selección exclusiva de los días más favorables de este trimestre para elegir la fecha de tu boda, una ceremonia de unión, una petición de mano, un compromiso o una declaración de amor. Todas las fechas han sido seleccionadas según los principios de la metafísica china para ayudarte a escoger el momento más propicio.'
-                        : 'This agenda contains an exclusive selection of the most favorable days of this quarter to choose the date for your wedding, a union ceremony, a marriage proposal, an engagement or a declaration of love. All dates have been selected according to the principles of Chinese metaphysics to help you choose the most propitious moment.'}
+                      {t('wedding_agenda_2027.modal_description')}
                     </Text>
 
                     {/* Features */}
@@ -209,25 +187,19 @@ export default function WeddingAgenda2027Screen() {
                       <View style={styles.featureItem}>
                         <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
-                          {language === 'es' 
-                            ? 'Días específicos con horarios favorables'
-                            : 'Specific days with favorable times'}
+                          {t('wedding_agenda_2027.feature_specific_days')}
                         </Text>
                       </View>
                       <View style={styles.featureItem}>
                         <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
-                          {language === 'es' 
-                            ? 'Análisis según Feng Shui, BaZi y Qi Men'
-                            : 'Analysis according to Feng Shui, BaZi and Qi Men'}
+                          {t('wedding_agenda_2027.feature_analysis')}
                         </Text>
                       </View>
                       <View style={styles.featureItem}>
                         <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
-                          {language === 'es' 
-                            ? 'Orientaciones auspiciosas para la ceremonia'
-                            : 'Auspicious orientations for the ceremony'}
+                          {t('wedding_agenda_2027.feature_orientations')}
                         </Text>
                       </View>
                     </View>
@@ -243,9 +215,7 @@ export default function WeddingAgenda2027Screen() {
                     >
                       <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
-                        {language === 'es' 
-                          ? 'Comprar por WhatsApp'
-                          : 'Buy via WhatsApp'}
+                        {t('wedding_agenda_2027.buy_whatsapp')}
                       </Text>
                     </TouchableOpacity>
 
@@ -255,7 +225,7 @@ export default function WeddingAgenda2027Screen() {
                       onPress={() => setSelectedQuarter(null)}
                     >
                       <Text style={styles.modalBackButtonText}>
-                        {language === 'es' ? 'Volver' : 'Back'}
+                        {t('wedding_agenda_2027.back')}
                       </Text>
                     </TouchableOpacity>
 
