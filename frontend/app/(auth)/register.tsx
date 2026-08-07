@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const goToLogin = () => {
@@ -35,7 +35,7 @@ export default function RegisterScreen() {
         </View>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>
-            {language === 'es' ? 'Registro' : 'Sign Up'}
+            {t('auth.signup')}
           </Text>
         </View>
       </LinearGradient>
@@ -46,36 +46,32 @@ export default function RegisterScreen() {
         </View>
 
         <Text style={styles.title}>
-          {language === 'es' 
-            ? 'Únete con Google' 
-            : 'Join with Google'}
+          {t('auth.continue_with_google')}
         </Text>
 
         <Text style={styles.description}>
-          {language === 'es'
-            ? 'MetaQi Academy utiliza Google Sign-In para garantizar la seguridad de tu cuenta y ofrecerte una experiencia de inicio de sesión rápida y confiable.'
-            : 'MetaQi Academy uses Google Sign-In to ensure your account security and provide you with a fast and reliable login experience.'}
+          {t('auth.access_description')}
         </Text>
 
         <View style={styles.benefitsContainer}>
           <View style={styles.benefitItem}>
             <MaterialCommunityIcons name="shield-check" size={24} color={Colors.jade} />
             <Text style={styles.benefitText}>
-              {language === 'es' ? 'Seguro y protegido' : 'Safe and secure'}
+              {t('auth.safe_secure')}
             </Text>
           </View>
 
           <View style={styles.benefitItem}>
             <MaterialCommunityIcons name="lightning-bolt" size={24} color={Colors.accent} />
             <Text style={styles.benefitText}>
-              {language === 'es' ? 'Acceso instantáneo' : 'Instant access'}
+              {t('auth.instant_access')}
             </Text>
           </View>
 
           <View style={styles.benefitItem}>
             <MaterialCommunityIcons name="account-check" size={24} color={Colors.jade} />
             <Text style={styles.benefitText}>
-              {language === 'es' ? 'Sin necesidad de contraseña' : 'No password needed'}
+              {t('auth.no_password_needed')}
             </Text>
           </View>
         </View>
@@ -86,7 +82,7 @@ export default function RegisterScreen() {
         >
           <MaterialCommunityIcons name="google" size={24} color={Colors.primary} />
           <Text style={styles.googleButtonText}>
-            {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
+            {t('auth.continue_with_google')}
           </Text>
         </TouchableOpacity>
 
@@ -95,7 +91,7 @@ export default function RegisterScreen() {
           onPress={goToLogin}
         >
           <Text style={styles.loginLinkText}>
-            {language === 'es' ? '¿Ya tienes cuenta? Inicia sesión' : 'Already have an account? Sign in'}
+            {t('auth.already_have_account')}
           </Text>
         </TouchableOpacity>
       </View>

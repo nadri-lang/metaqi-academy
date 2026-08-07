@@ -33,7 +33,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { login, loginWithGoogle } = useAuth();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
@@ -54,8 +54,8 @@ export default function LoginScreen() {
         router.replace('/(tabs)/home');
       } catch (error: any) {
         Alert.alert(
-          language === 'es' ? 'Error' : 'Error',
-          error.message || (language === 'es' ? 'Error al iniciar sesión con Google' : 'Error signing in with Google')
+          t('common.error'),
+          error.message || t('auth.error_google_signin')
         );
       } finally {
         setGoogleLoading(false);
@@ -123,8 +123,8 @@ export default function LoginScreen() {
     } catch (error: any) {
       console.error('Google login error:', error);
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'Error al iniciar sesión con Google' : 'Error signing in with Google'
+        t('common.error'),
+        t('auth.error_google_signin')
       );
     } finally {
       setGoogleLoading(false);
@@ -161,12 +161,10 @@ export default function LoginScreen() {
           {/* Form */}
           <View style={styles.formContainer}>
             <Text style={styles.title}>
-              {language === 'es' ? 'Bienvenido a MetaQi Academy' : 'Welcome to MetaQi Academy'}
+              {t('auth.welcome_metaqi')}
             </Text>
             <Text style={styles.description}>
-              {language === 'es' 
-                ? 'Inicia sesión con tu cuenta de Google para acceder' 
-                : 'Sign in with your Google account to access'}
+              {t('auth.access_description')}
             </Text>
 
             {/* Google Sign-In Button - Primary */}
@@ -182,7 +180,7 @@ export default function LoginScreen() {
                 <>
                   <MaterialCommunityIcons name="google" size={24} color={Colors.textPrimary} />
                   <Text style={styles.googleButtonText}>
-                    {language === 'es' ? 'Continuar con Google' : 'Continue with Google'}
+                    {t('auth.continue_with_google')}
                   </Text>
                 </>
               )}
@@ -195,7 +193,7 @@ export default function LoginScreen() {
                 onPress={() => setShowAdminLogin(true)}
               >
                 <Text style={styles.adminAccessText}>
-                  {language === 'es' ? 'Acceso administrador' : 'Admin access'}
+                  {t('auth.admin_access')}
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -204,7 +202,7 @@ export default function LoginScreen() {
                 <View style={styles.divider}>
                   <View style={styles.dividerLine} />
                   <Text style={styles.dividerText}>
-                    {language === 'es' ? 'Acceso Admin' : 'Admin Access'}
+                    {t('auth.admin_access_btn')}
                   </Text>
                   <View style={styles.dividerLine} />
                 </View>
@@ -282,7 +280,7 @@ export default function LoginScreen() {
                     onPress={() => setShowAdminLogin(false)}
                   >
                     <Text style={styles.hideAdminText}>
-                      {language === 'es' ? '← Volver al inicio de sesión con Google' : '← Back to Google sign in'}
+                      {t('auth.back_to_google')}
                     </Text>
                   </TouchableOpacity>
                 </View>
