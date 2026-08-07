@@ -110,8 +110,9 @@ export default function NewbornVocationDetailScreen() {
     try {
       const response = await api.get('/newborn-vocation/by-date', {
         params: { 
-          date: date,
-          client_date: clientToday
+          date,
+          client_date: clientToday,
+          lang: language
         }
       });
       setData(response.data);
@@ -121,7 +122,10 @@ export default function NewbornVocationDetailScreen() {
       if (error.response?.status === 404 || error.response?.status === 403) {
         try {
           const fallbackResponse = await api.get('/newborn-vocation/today', {
-            params: { client_date: clientToday }
+            params: { 
+              client_date: clientToday,
+              lang: language
+            }
           });
           setData(fallbackResponse.data);
           if (fallbackResponse.data?.date) {

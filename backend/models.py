@@ -490,28 +490,22 @@ class YearEnergyCreate(BaseModel):
 class NewbornVocation(BaseModel):
     id: str
     date: str  # YYYY-MM-DD
-    title: str
-    title_en: Optional[str] = None
-    title_zh: Optional[str] = None
-    content: str  # General analysis for babies born today
-    content_en: Optional[str] = None
-    content_zh: Optional[str] = None
-    talents: List[str] = []
-    vocations: List[str] = []
-    challenges: List[str] = []
+    title: str  # Spanish (default)
+    content: str  # Spanish (default) - General analysis for babies born today
+    talents: List[str] = []  # Spanish (default)
+    vocations: List[str] = []  # Spanish (default)
+    challenges: List[str] = []  # Spanish (default)
+    translations: Optional[Dict[str, Dict[str, Any]]] = {}  # {'en': {'title': '...', 'content': '...', 'talents': [...], ...}}
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class NewbornVocationCreate(BaseModel):
     date: str
     title: str
-    title_en: Optional[str] = None
-    title_zh: Optional[str] = None
     content: str
-    content_en: Optional[str] = None
-    content_zh: Optional[str] = None
     talents: List[str] = []
     vocations: List[str] = []
     challenges: List[str] = []
+    translations: Optional[Dict[str, Dict[str, Any]]] = {}
     
     @validator('date')
     def validate_date_format(cls, v):

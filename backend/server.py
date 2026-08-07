@@ -1395,19 +1395,18 @@ async def delete_year_energy(
 @api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
 async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str] = None):
     """
-    Get newborn vocation for today (based on client's date).
+    Get newborn vocation for today (based on client's date) with translations.
     User visibility rules:
     - Can see: Client's today + 2 previous days
     - Cannot see: Future dates (hidden even if admin scheduled them)
     
     Args:
-        lang: Language code for translation
+        lang: Language code (es, en, fr, de, ro)
         client_date: Optional client-side date (YYYY-MM-DD) to handle timezone differences
     """
     # Use client's date if provided, otherwise use server UTC date
     if client_date:
         try:
-            # Validate the date format
             datetime.strptime(client_date, "%Y-%m-%d")
             today = client_date
         except ValueError:
@@ -1419,36 +1418,45 @@ async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str
     today_dt = datetime.strptime(today, "%Y-%m-%d")
     two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
     
-    # Query for today or up to 2 days ago (NOT future dates relative to client)
-    # First try to get today's vocation
+    # Query for today or up to 2 days ago
     vocation = await db.newborn_vocation.find_one({"date": today})
     
     if not vocation:
-        # Fallback: get the most recent vocation within the allowed range (today - 2 days)
-        # But NEVER show future dates
         vocation = await db.newborn_vocation.find_one(
             {"date": {"$gte": two_days_ago, "$lte": today}},
-            sort=[("date", -1)]  # Most recent first
+            sort=[("date", -1)]
         )
     
     if not vocation:
         raise HTTPException(status_code=404, detail="No newborn vocation available")
     
-    # Translate if not Spanish
-    if lang != "es":
-        vocation = await translate_dict(vocation, lang, ["title", "content", "element", "personality", "career_paths"])
+    result = NewbornVocation(**vocation)
     
-    return NewbornVocation(**vocation)
+    # Apply translations if lang is not Spanish and translations exist
+    if lang != "es" and result.translations and lang in result.translations:
+        trans = result.translations[lang]
+        if 'title' in trans:
+            result.title = trans['title']
+        if 'content' in trans:
+            result.content = trans['content']
+        if 'talents' in trans:
+            result.talents = trans['talents']
+        if 'vocations' in trans:
+            result.vocations = trans['vocations']
+        if 'challenges' in trans:
+            result.challenges = trans['challenges']
+    
+    return result
 
 @api_router.get("/newborn-vocation/by-date", response_model=NewbornVocation)
 async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date: Optional[str] = None):
     """
-    Get newborn vocation for a specific date.
+    Get newborn vocation for a specific date with translations.
     Only allows access to dates within the 3-day window (client's today + 2 previous days).
     
     Args:
         date: The date to fetch (YYYY-MM-DD)
-        lang: Language code for translation
+        lang: Language code (es, en, fr, de, ro)
         client_date: Client's current date for validation (YYYY-MM-DD)
     """
     # Determine the client's "today" for validation
@@ -1476,11 +1484,23 @@ async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date:
     if not vocation:
         raise HTTPException(status_code=404, detail=f"No newborn vocation for date {date}")
     
-    # Translate if not Spanish
-    if lang != "es":
-        vocation = await translate_dict(vocation, lang, ["title", "content", "element", "personality", "career_paths"])
+    result = NewbornVocation(**vocation)
     
-    return NewbornVocation(**vocation)
+    # Apply translations
+    if lang != "es" and result.translations and lang in result.translations:
+        trans = result.translations[lang]
+        if 'title' in trans:
+            result.title = trans['title']
+        if 'content' in trans:
+            result.content = trans['content']
+        if 'talents' in trans:
+            result.talents = trans['talents']
+        if 'vocations' in trans:
+            result.vocations = trans['vocations']
+        if 'challenges' in trans:
+            result.challenges = trans['challenges']
+    
+    return result
 
 @api_router.get("/newborn-vocation/available-dates")
 async def get_available_newborn_vocation_dates(client_date: Optional[str] = None):
@@ -1524,7 +1544,7 @@ async def get_available_newborn_vocation_dates(client_date: Optional[str] = None
 @api_router.get("/newborn-vocation/recent", response_model=List[NewbornVocation])
 async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[str] = None):
     """
-    Get newborn vocations for today and the 2 previous days.
+    Get newborn vocations for today and the 2 previous days with translations.
     Useful for displaying recent history to users.
     """
     # Determine the client's "today"
@@ -1540,16 +1560,32 @@ async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[s
     today_dt = datetime.strptime(today, "%Y-%m-%d")
     two_days_ago = (today_dt - timedelta(days=2)).strftime("%Y-%m-%d")
     
-    # Get vocations within allowed range (today - 2 days), excluding future
+    # Get vocations within allowed range
     vocations = await db.newborn_vocation.find(
         {"date": {"$gte": two_days_ago, "$lte": today}}
     ).sort("date", -1).to_list(3)
     
-    # Translate if not Spanish
-    if lang != "es":
-        vocations = await translate_list_of_dicts(vocations, lang, ["title", "content", "element", "personality", "career_paths"])
+    result = []
+    for v in vocations:
+        vocation = NewbornVocation(**v)
+        
+        # Apply translations
+        if lang != "es" and vocation.translations and lang in vocation.translations:
+            trans = vocation.translations[lang]
+            if 'title' in trans:
+                vocation.title = trans['title']
+            if 'content' in trans:
+                vocation.content = trans['content']
+            if 'talents' in trans:
+                vocation.talents = trans['talents']
+            if 'vocations' in trans:
+                vocation.vocations = trans['vocations']
+            if 'challenges' in trans:
+                vocation.challenges = trans['challenges']
+        
+        result.append(vocation)
     
-    return [NewbornVocation(**v) for v in vocations]
+    return result
 
 @api_router.get("/admin/newborn-vocation/all", response_model=List[NewbornVocation])
 async def get_all_newborn_vocations(
