@@ -883,17 +883,51 @@ async def update_progress(
 # ============= CUSTOM SERVICES ENDPOINTS =============
 
 @api_router.get("/services", response_model=List[CustomService])
-async def get_services():
+async def get_services(lang: str = 'es'):
+    """
+    Get all active services with translations applied based on lang parameter.
+    Supported: es, en, fr, de, ro
+    """
     services = await db.custom_services.find({"is_active": True}).to_list(100)
-    return [CustomService(**s) for s in services]
+    
+    result = []
+    for s in services:
+        service = CustomService(**s)
+        
+        # Apply translations if lang is not Spanish and translations exist
+        if lang != 'es' and service.translations and lang in service.translations:
+            trans = service.translations[lang]
+            if 'title' in trans:
+                service.title = trans['title']
+            if 'description' in trans:
+                service.description = trans['description']
+            if 'includes' in trans:
+                service.includes = trans['includes']
+        
+        result.append(service)
+    
+    return result
 
 @api_router.get("/services/{service_id}", response_model=CustomService)
-async def get_service_by_id(service_id: str):
-    """Get a single service by ID"""
-    service = await db.custom_services.find_one({"id": service_id})
-    if not service:
+async def get_service_by_id(service_id: str, lang: str = 'es'):
+    """Get a single service by ID with translations applied"""
+    service_doc = await db.custom_services.find_one({"id": service_id})
+    if not service_doc:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
-    return CustomService(**service)
+    
+    service = CustomService(**service_doc)
+    
+    # Apply translations if lang is not Spanish and translations exist
+    if lang != 'es' and service.translations and lang in service.translations:
+        trans = service.translations[lang]
+        if 'title' in trans:
+            service.title = trans['title']
+        if 'description' in trans:
+            service.description = trans['description']
+        if 'includes' in trans:
+            service.includes = trans['includes']
+    
+    return service
 
 @api_router.post("/services", response_model=CustomService)
 async def create_service(

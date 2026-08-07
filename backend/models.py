@@ -310,13 +310,10 @@ class CourseProgressUpdate(BaseModel):
 # Custom Services
 class CustomService(BaseModel):
     id: str
-    title: str
-    title_en: Optional[str] = None
-    title_zh: Optional[str] = None
-    description: str
-    description_en: Optional[str] = None
-    description_zh: Optional[str] = None
-    includes: List[str] = []
+    title: str  # Spanish (default)
+    description: str  # Spanish (default)
+    includes: List[str] = []  # Spanish (default)
+    translations: Optional[Dict[str, Dict[str, Any]]] = {}  # {'en': {'title': '...', 'description': '...', 'includes': [...]}, 'fr': {...}}
     price: float
     original_price: Optional[float] = None  # For displaying discounts
     is_offer: bool = False
@@ -325,12 +322,9 @@ class CustomService(BaseModel):
 
 class CustomServiceCreate(BaseModel):
     title: str
-    title_en: Optional[str] = None
-    title_zh: Optional[str] = None
     description: str
-    description_en: Optional[str] = None
-    description_zh: Optional[str] = None
     includes: List[str] = []
+    translations: Optional[Dict[str, Dict[str, Any]]] = {}
     price: float
     original_price: Optional[float] = None
     is_offer: bool = False

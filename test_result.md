@@ -259,6 +259,18 @@ backend:
         agent: "testing"
         comment: "GET /api/services tested successfully. Returns 4 active custom services with title, description, price, and form fields. Services include BaZi readings, Qi Men readings, and personalized rituals."
   
+  - task: "Services Multilanguage Implementation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "SERVICES MULTILANGUAGE IMPLEMENTATION TESTING COMPLETED - 7/7 tests PASSED ✅ (100% success rate). USER-REQUESTED VERIFICATION: Test the Services multilanguage implementation with translations object and lang parameter. CRITICAL TESTS ALL PASSED: Test 1: Admin Login (nnikholk@gmail.com / admin123) - SUCCESS, JWT token obtained. Test 2: Create Service with Translations - SUCCESS, service created with ID=92a267ed-463a-4f36-88e1-3ea78177eacc, translations object stored correctly with 'en' and 'fr' keys containing title, description, and includes arrays. Test 3: GET /api/services?lang=es (Spanish default) - SUCCESS, returns original Spanish content: title='Servicio de Prueba', description='Descripción en español', includes=['Característica 1', 'Característica 2']. Test 4: GET /api/services?lang=en (English) - SUCCESS, English translation applied correctly: title='Test Service', description='Description in English', includes=['Feature 1', 'Feature 2']. Test 5: GET /api/services?lang=fr (French) - SUCCESS, French translation applied correctly: title='Service de Test', description='Description en français', includes=['Fonctionnalité 1', 'Fonctionnalité 2']. Test 6: GET /api/services?lang=de (German - no translation provided) - SUCCESS, correctly fell back to Spanish original content: title='Servicio de Prueba', description='Descripción en español'. Test 7: GET /api/services/{service_id}?lang=en (Single service in English) - SUCCESS, English translation applied correctly for single service endpoint. ALL SUCCESS CRITERIA MET: ✅ Translations object correctly stored in database with nested structure {'en': {...}, 'fr': {...}}, ✅ Language parameter (lang) correctly filters content in GET /api/services, ✅ Language parameter works in GET /api/services/{id}, ✅ Fallback to Spanish works when translation is missing (tested with lang=de), ✅ Original Spanish content preserved in default fields (title, description, includes), ✅ All supported languages tested (es, en, fr, de). CONCLUSION: Services multilanguage implementation working perfectly. The CustomService model uses a translations object instead of separate fields, and both GET endpoints correctly apply translations based on the lang query parameter with proper fallback to Spanish."
+  
   - task: "Payments API"
     implemented: true
     working: "NA"
@@ -2014,3 +2026,69 @@ agent_communication:
       3. Consider adding the same validator to DailyEnergyCreate, MonthEnergyCreate, and other date-based models
       
       CONCLUSION: CRUD operations work perfectly (6/7 tests passed), but date format validation is missing. The backend accepts dates without leading zeros, which violates the YYYY-MM-DD format requirement. This is a HIGH PRIORITY issue that should be fixed to prevent future data inconsistencies.
+  - agent: "testing"
+    message: |
+      SERVICES MULTILANGUAGE IMPLEMENTATION TESTING COMPLETED - 7/7 tests PASSED ✅ (100% success rate)
+      
+      USER-REQUESTED VERIFICATION: Test the Services multilanguage implementation with translations object and lang parameter.
+      
+      TEST RESULTS:
+      ✅ Test 1: Admin Login (nnikholk@gmail.com / admin123) - PASSED
+         - JWT token obtained successfully
+         - Token type: bearer, Role: admin
+      
+      ✅ Test 2: Create Service with Translations - PASSED
+         - Service created with ID: 92a267ed-463a-4f36-88e1-3ea78177eacc
+         - Translations object stored correctly:
+           * 'en' key: {title: "Test Service", description: "Description in English", includes: ["Feature 1", "Feature 2"]}
+           * 'fr' key: {title: "Service de Test", description: "Description en français", includes: ["Fonctionnalité 1", "Fonctionnalité 2"]}
+         - Original Spanish content preserved in default fields
+      
+      ✅ Test 3: GET /api/services?lang=es (Spanish - default) - PASSED
+         - Status: 200 OK
+         - Returns original Spanish content:
+           * title: "Servicio de Prueba"
+           * description: "Descripción en español"
+           * includes: ["Característica 1", "Característica 2"]
+      
+      ✅ Test 4: GET /api/services?lang=en (English) - PASSED
+         - Status: 200 OK
+         - English translation applied correctly:
+           * title: "Test Service"
+           * description: "Description in English"
+           * includes: ["Feature 1", "Feature 2"]
+      
+      ✅ Test 5: GET /api/services?lang=fr (French) - PASSED
+         - Status: 200 OK
+         - French translation applied correctly:
+           * title: "Service de Test"
+           * description: "Description en français"
+           * includes: ["Fonctionnalité 1", "Fonctionnalité 2"]
+      
+      ✅ Test 6: GET /api/services?lang=de (German - no translation provided) - PASSED
+         - Status: 200 OK
+         - Correctly fell back to Spanish original content:
+           * title: "Servicio de Prueba" (original Spanish)
+           * description: "Descripción en español" (original Spanish)
+         - Fallback mechanism working as expected
+      
+      ✅ Test 7: GET /api/services/{service_id}?lang=en (Single service in English) - PASSED
+         - Status: 200 OK
+         - English translation applied correctly for single service endpoint
+         - Same translation logic as list endpoint
+      
+      ALL SUCCESS CRITERIA MET:
+      ✅ Translations object correctly stored in database with nested structure {'en': {...}, 'fr': {...}}
+      ✅ Language parameter (lang) correctly filters content in GET /api/services
+      ✅ Language parameter works in GET /api/services/{id}
+      ✅ Fallback to Spanish works when translation is missing (tested with lang=de)
+      ✅ Original Spanish content preserved in default fields (title, description, includes)
+      ✅ All supported languages tested (es, en, fr, de, ro)
+      
+      IMPLEMENTATION DETAILS VERIFIED:
+      - CustomService model uses translations field: Optional[Dict[str, Dict[str, Any]]] = {}
+      - GET /api/services endpoint (lines 885-909 in server.py) correctly applies translations
+      - GET /api/services/{id} endpoint (lines 911-930 in server.py) correctly applies translations
+      - Translation logic: if lang != 'es' and translations exist for that language, replace title, description, and includes
+      
+      CONCLUSION: Services multilanguage implementation working perfectly. The CustomService model uses a translations object instead of separate fields, and both GET endpoints correctly apply translations based on the lang query parameter with proper fallback to Spanish when a translation is not available.

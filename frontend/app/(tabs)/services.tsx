@@ -31,17 +31,19 @@ interface CustomService {
 export default function ServicesScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [services, setServices] = useState<CustomService[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadServices();
-  }, []);
+  }, [language]);
 
   const loadServices = async () => {
     try {
-      const response = await api.get('/services');
+      const response = await api.get('/services', {
+        params: { lang: language }
+      });
       setServices(response.data);
     } catch (error) {
       console.error('Error loading services:', error);
