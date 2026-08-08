@@ -128,24 +128,32 @@ export default function AdminNewbornVocationScreen() {
   };
 
   const handleDeleteVocation = (vocation: VocationData) => {
+    const doDelete = async () => {
+      try {
+        await api.delete(`/admin/newborn-vocation/${vocation.date}`);
+        Alert.alert('Éxito', 'Vocación eliminada');
+        loadAllScheduled();
+      } catch (error: any) {
+        Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+      }
+    };
+
+    // Alert.alert's multi-button form has no web implementation (RN Web only supports
+    // a single-button alert), so the confirm dialog never appears and Eliminar's
+    // onPress never fires on web — use window.confirm there instead.
+    if (Platform.OS === 'web') {
+      if (window.confirm(`¿Eliminar la vocación del ${vocation.date}?`)) {
+        doDelete();
+      }
+      return;
+    }
+
     Alert.alert(
       'Confirmar eliminación',
       `¿Eliminar la vocación del ${vocation.date}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/admin/newborn-vocation/${vocation.date}`);
-              Alert.alert('Éxito', 'Vocación eliminada');
-              loadAllScheduled();
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
-            }
-          },
-        },
+        { text: 'Eliminar', style: 'destructive', onPress: doDelete },
       ]
     );
   };
