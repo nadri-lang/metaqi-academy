@@ -176,7 +176,7 @@ export default function CoursesScreen() {
                       onPress={() => setSelectedCourse(null)}
                     >
                       <Text style={styles.backButtonText}>
-                        {language === 'es' ? 'Volver' : 'Back'}
+                        {t('common.back')}
                       </Text>
                     </TouchableOpacity>
 
