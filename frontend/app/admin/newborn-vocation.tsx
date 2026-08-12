@@ -52,6 +52,7 @@ export default function AdminNewbornVocationScreen() {
   const [loading, setLoading] = useState(false);
   const [scheduledVocations, setScheduledVocations] = useState<VocationData[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const [showEditor, setShowEditor] = useState(false);
 
@@ -61,11 +62,13 @@ export default function AdminNewbornVocationScreen() {
 
   const loadAllScheduled = async () => {
     setLoadingList(true);
+    setLoadError(false);
     try {
       const response = await api.get('/admin/newborn-vocation/all');
       setScheduledVocations(response.data);
     } catch (error) {
       console.error('Error loading scheduled vocations:', error);
+      setLoadError(true);
     } finally {
       setLoadingList(false);
     }
@@ -188,7 +191,15 @@ export default function AdminNewbornVocationScreen() {
       handleCancelEdit();
       loadAllScheduled();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
+      if (!error.response) {
+        // No response at all means the request never reached the server (dropped
+        // connection, sandbox pod restart, etc.) - distinct from a validation/server
+        // error, and worth telling the admin explicitly so they know to retry rather
+        // than assume it saved.
+        Alert.alert('Error de conexión', 'No se pudo conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
+      } else {
+        Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
+      }
     } finally {
       setLoading(false);
     }
@@ -290,6 +301,16 @@ export default function AdminNewbornVocationScreen() {
 
                   {loadingList ? (
                     <ActivityIndicator color={Colors.accent} style={{ marginVertical: Spacing.xl }} />
+                  ) : loadError ? (
+                    <View style={styles.emptyContainer}>
+                      <MaterialCommunityIcons name="alert-circle-outline" size={48} color={Colors.error} />
+                      <Text style={styles.emptyText}>No se pudieron cargar los datos</Text>
+                      <Text style={styles.emptySubtext}>Verifica tu conexión e inténtalo de nuevo</Text>
+                      <TouchableOpacity style={styles.retryButton} onPress={loadAllScheduled}>
+                        <MaterialCommunityIcons name="refresh" size={18} color="#FFFFFF" />
+                        <Text style={styles.retryButtonText}>Reintentar</Text>
+                      </TouchableOpacity>
+                    </View>
                   ) : scheduledVocations.length === 0 ? (
                     <View style={styles.emptyContainer}>
                       <MaterialCommunityIcons name="calendar-blank" size={48} color={Colors.textLight} />
@@ -490,6 +511,21 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   newButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: '#FFFFFF',
+  },
+  retryButton: {
+    backgroundColor: Colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    gap: 4,
+    marginTop: Spacing.md,
+  },
+  retryButtonText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: '#FFFFFF',
