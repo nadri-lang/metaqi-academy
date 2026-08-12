@@ -890,21 +890,22 @@ async def get_services(lang: str = 'es'):
     """
     services = await db.custom_services.find({"is_active": True}).to_list(100)
     
-    result = []
-    for s in services:
-        service = CustomService(**s)
+    if lang != 'es':
+        services = await translate_list_of_dicts(services, lang, ["title", "description"])
         
-        # Apply translations if lang is not Spanish and translations exist
-        if lang != 'es' and service.translations and lang in service.translations:
-            trans = service.translations[lang]
-            if 'title' in trans:
-                service.title = trans['title']
-            if 'description' in trans:
-                service.description = trans['description']
-            if 'includes' in trans:
-                service.includes = trans['includes']
-        
-        result.append(service)
+        # Flatten all services' "includes" items into one list so every item
+        # across every service translates concurrently in a single batch.
+        includes_lists = [s.get("includes") or [] for s in services]
+        flat_items = [{"text": item} for includes in includes_lists for item in includes]
+        if flat_items:
+            translated_flat = await translate_list_of_dicts(flat_items, lang, ["text"])
+            idx = 0
+            for s, includes in zip(services, includes_lists):
+                if includes:
+                    s["includes"] = [translated_flat[idx + i]["text"] for i in range(len(includes))]
+                    idx += len(includes)
+    
+    result = [CustomService(**s) for s in services]
     
     return result
 
@@ -915,19 +916,15 @@ async def get_service_by_id(service_id: str, lang: str = 'es'):
     if not service_doc:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
     
-    service = CustomService(**service_doc)
+    if lang != 'es':
+        service_doc = await translate_dict(service_doc, lang, ["title", "description"])
+        if service_doc.get("includes"):
+            translated_items = await translate_list_of_dicts(
+                [{"text": item} for item in service_doc["includes"]], lang, ["text"]
+            )
+            service_doc["includes"] = [item["text"] for item in translated_items]
     
-    # Apply translations if lang is not Spanish and translations exist
-    if lang != 'es' and service.translations and lang in service.translations:
-        trans = service.translations[lang]
-        if 'title' in trans:
-            service.title = trans['title']
-        if 'description' in trans:
-            service.description = trans['description']
-        if 'includes' in trans:
-            service.includes = trans['includes']
-    
-    return service
+    return CustomService(**service_doc)
 
 @api_router.post("/services", response_model=CustomService)
 async def create_service(
@@ -1199,15 +1196,26 @@ async def update_settings(
 # ============= CONCEPTS (Home Intro Cards) =============
 
 @api_router.get("/concepts", response_model=List[Concept])
-async def get_concepts():
+async def get_concepts(lang: str = "es"):
     concepts = await db.concepts.find().sort("order", 1).to_list(100)
-    return [Concept(**c) for c in concepts]
+
+    result = []
+    for c in concepts:
+        if lang != "es":
+            c = await translate_dict(c, lang, ["title", "short_description", "full_description"])
+        result.append(Concept(**c))
+
+    return result
 
 @api_router.get("/concepts/{slug}", response_model=Concept)
-async def get_concept(slug: str):
+async def get_concept(slug: str, lang: str = "es"):
     concept = await db.concepts.find_one({"slug": slug})
     if not concept:
         raise HTTPException(status_code=404, detail="Concept not found")
+
+    if lang != "es":
+        concept = await translate_dict(concept, lang, ["title", "short_description", "full_description"])
+
     return Concept(**concept)
 
 @api_router.post("/concepts", response_model=Concept)
@@ -1430,23 +1438,14 @@ async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str
     if not vocation:
         raise HTTPException(status_code=404, detail="No newborn vocation available")
     
-    result = NewbornVocation(**vocation)
+    if lang != "es":
+        vocation = await translate_dict(vocation, lang, ["title", "content"])
+        for field in ("talents", "vocations", "challenges"):
+            if vocation.get(field):
+                vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
+                vocation[field] = [item["text"] for item in vocation[field]]
     
-    # Apply translations if lang is not Spanish and translations exist
-    if lang != "es" and result.translations and lang in result.translations:
-        trans = result.translations[lang]
-        if 'title' in trans:
-            result.title = trans['title']
-        if 'content' in trans:
-            result.content = trans['content']
-        if 'talents' in trans:
-            result.talents = trans['talents']
-        if 'vocations' in trans:
-            result.vocations = trans['vocations']
-        if 'challenges' in trans:
-            result.challenges = trans['challenges']
-    
-    return result
+    return NewbornVocation(**vocation)
 
 @api_router.get("/newborn-vocation/by-date", response_model=NewbornVocation)
 async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date: Optional[str] = None):
@@ -1484,23 +1483,14 @@ async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date:
     if not vocation:
         raise HTTPException(status_code=404, detail=f"No newborn vocation for date {date}")
     
-    result = NewbornVocation(**vocation)
+    if lang != "es":
+        vocation = await translate_dict(vocation, lang, ["title", "content"])
+        for field in ("talents", "vocations", "challenges"):
+            if vocation.get(field):
+                vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
+                vocation[field] = [item["text"] for item in vocation[field]]
     
-    # Apply translations
-    if lang != "es" and result.translations and lang in result.translations:
-        trans = result.translations[lang]
-        if 'title' in trans:
-            result.title = trans['title']
-        if 'content' in trans:
-            result.content = trans['content']
-        if 'talents' in trans:
-            result.talents = trans['talents']
-        if 'vocations' in trans:
-            result.vocations = trans['vocations']
-        if 'challenges' in trans:
-            result.challenges = trans['challenges']
-    
-    return result
+    return NewbornVocation(**vocation)
 
 @api_router.get("/newborn-vocation/available-dates")
 async def get_available_newborn_vocation_dates(client_date: Optional[str] = None):
@@ -1567,23 +1557,14 @@ async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[s
     
     result = []
     for v in vocations:
-        vocation = NewbornVocation(**v)
+        if lang != "es":
+            v = await translate_dict(v, lang, ["title", "content"])
+            for field in ("talents", "vocations", "challenges"):
+                if v.get(field):
+                    v[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in v[field]]
+                    v[field] = [item["text"] for item in v[field]]
         
-        # Apply translations
-        if lang != "es" and vocation.translations and lang in vocation.translations:
-            trans = vocation.translations[lang]
-            if 'title' in trans:
-                vocation.title = trans['title']
-            if 'content' in trans:
-                vocation.content = trans['content']
-            if 'talents' in trans:
-                vocation.talents = trans['talents']
-            if 'vocations' in trans:
-                vocation.vocations = trans['vocations']
-            if 'challenges' in trans:
-                vocation.challenges = trans['challenges']
-        
-        result.append(vocation)
+        result.append(NewbornVocation(**v))
     
     return result
 
@@ -1717,11 +1698,32 @@ async def delete_wedding_agenda(
 # ============= FAQ =============
 
 @api_router.get("/faq", response_model=List[FAQCategory])
-async def get_faq():
+async def get_faq(lang: str = 'es'):
+    """
+    Get all FAQ categories/items with translations applied based on lang parameter.
+    Supported: es, en, fr, de, ro
+    """
     categories = await db.faq_categories.find().sort("order", 1).to_list(100)
     for cat in categories:
         items = await db.faq_items.find({"category_id": cat["id"]}).sort("order", 1).to_list(100)
-        cat["items"] = [FAQItem(**i) for i in items]
+        cat["items"] = items
+
+    if lang != 'es':
+        categories = await translate_list_of_dicts(categories, lang, ["title"])
+
+        # Flatten every category's items into one list so all Q&A across
+        # every category translate concurrently in a single batch.
+        items_lists = [c.get("items") or [] for c in categories]
+        flat_items = [item for items in items_lists for item in items]
+        if flat_items:
+            translated_flat = await translate_list_of_dicts(flat_items, lang, ["question", "answer"])
+            idx = 0
+            for c, items in zip(categories, items_lists):
+                c["items"] = translated_flat[idx: idx + len(items)]
+                idx += len(items)
+
+    for cat in categories:
+        cat["items"] = [FAQItem(**i) for i in cat["items"]]
     return [FAQCategory(**c) for c in categories]
 
 @api_router.post("/faq/categories", response_model=FAQCategory)

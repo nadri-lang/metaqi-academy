@@ -190,6 +190,7 @@ export default {
     what_includes: 'Que comprend-il ?',
     request_service_btn: 'Demander le Service',
     contact_whatsapp_desc: 'Cliquez ici pour demander ce service via WhatsApp. Incluez vos coordonnées pour recevoir les informations de paiement.',
+    contact_footnote: 'Nous vous contacterons pour confirmer les détails du paiement.',
   },
   bazi: {
     service_title: 'Analyse de la Carte Natale BaZi',
@@ -204,6 +205,9 @@ export default {
     published_on: 'Publié le',
     download_pdf: 'Télécharger PDF',
     report_not_ready: 'Votre rapport n\'est pas encore prêt. Veuillez attendre que l\'administrateur le publie.',
+    contact_footnote: 'Nous vous contacterons pour confirmer les détails du paiement et vous demander votre date et heure de naissance.',
+    personalized_note: 'Cette analyse est unique et personnalisée pour vous. Pour des consultations supplémentaires, contactez l\'expert.',
+    report_pending_hint: 'Lorsque votre analyse sera prête, elle apparaîtra ici.',
   },
   admin: {
     panel_title: 'Panneau d\'Admin',
@@ -257,6 +261,10 @@ export default {
     no_dates_yet: 'Aucune date chargée',
     loading_dates: 'Chargement des dates favorables...',
     monthly_content_coming: 'Le contenu mensuel sera bientôt ajouté à cet agenda.',
+    months_available_one: '{count} mois disponible',
+    months_available_other: '{count} mois disponibles',
+    no_dates_desc: 'Les dates favorables pour les mariages seront mises à jour prochainement.',
+    free_content_desc: 'Le contenu gratuit sera mis à jour prochainement.',
   },
   wedding_agenda_2027: {
     header_title: 'AGENDA DE MARIAGE 2027',
@@ -288,7 +296,7 @@ export default {
     title: 'Mes Favoris',
     login_required: 'Connectez-vous pour voir vos favoris',
     no_favorites: 'Pas encore de favoris',
-    no_favorites_desc: 'Enregistrez des articles, énergies quotidiennes et vocations pour un accès rapide.',
+    no_favorites_desc: 'Appuyez sur l\'icône cœur sur n\'importe quel contenu pour l\'enregistrer ici',
     type_daily_energy: 'Énergie du Jour',
     type_baby_vocation: 'Vocation du Bébé',
     type_agenda: 'Agenda',
@@ -297,7 +305,7 @@ export default {
   purchases: {
     title: 'Mes Achats',
     no_purchases: 'Pas encore d\'achats',
-    no_purchases_desc: 'Vos cours, services et contenu acheté apparaîtront ici.',
+    no_purchases_desc: 'Explorez nos cours et services pour commencer',
     your_bazi_report: 'Votre Rapport BaZi',
     personalized_bazi: 'Rapport BaZi Personnalisé',
     available: 'Disponible',
@@ -321,6 +329,8 @@ export default {
     enter_email: 'Veuillez entrer votre email',
     enter_valid_email: 'Veuillez entrer un email valide',
     error_sending: 'Erreur d\'envoi. Veuillez réessayer.',
+    email_sent_desc: 'Si un compte existe pour {email}, vous recevrez un e-mail avec les instructions pour réinitialiser votre mot de passe.',
+    link_expiry_notice: 'Le lien expirera dans 1 heure. Vérifiez votre dossier spam si vous ne voyez pas l\'e-mail.',
   },
   reset_password: {
     title: 'Nouveau Mot de Passe',
@@ -340,6 +350,7 @@ export default {
     passwords_dont_match: 'Les mots de passe ne correspondent pas',
     error_updating: 'Erreur de mise à jour. Veuillez réessayer.',
     invalid_token: 'Ce lien est invalide ou a expiré.',
+    invalid_token_title: 'Jeton invalide',
   },
   newborn_vocation: {
     title: 'Vocation du Bébé',
@@ -347,5 +358,15 @@ export default {
     talents: 'Talents',
     vocations: 'Vocations',
     characteristics: 'Caractéristiques',
+    header_title: 'VOCATION DU BÉBÉ NÉ AUJOURD\'HUI - {date}',
+    dates_available_one: '{count} jour disponible',
+    dates_available_other: '{count} jours disponibles',
+  },
+  faq_screen: {
+    help_label: 'Aide',
+    title: 'Questions Fréquentes',
+    subtitle: 'Trouvez des réponses aux questions les plus courantes',
+    questions_count_one: '{count} question',
+    questions_count_other: '{count} questions',
   },
 };

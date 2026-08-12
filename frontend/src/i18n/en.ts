@@ -190,6 +190,7 @@ export default {
     what_includes: 'What\'s included?',
     request_service_btn: 'Request Service',
     contact_whatsapp_desc: 'Click here to request this service via WhatsApp. Include your personal details to receive payment information.',
+    contact_footnote: 'We will contact you to confirm payment details.',
   },
   bazi: {
     service_title: 'BaZi Natal Chart Analysis',
@@ -204,6 +205,9 @@ export default {
     published_on: 'Published on',
     download_pdf: 'Download PDF',
     report_not_ready: 'Your report is not ready yet. Please wait for the administrator to publish it.',
+    contact_footnote: 'We will contact you to confirm payment details and request your date and time of birth.',
+    personalized_note: 'This analysis is unique and personalized for you. For additional consultations, contact the expert.',
+    report_pending_hint: 'When your analysis is ready, it will appear here.',
   },
   admin: {
     panel_title: 'Admin Panel',
@@ -257,6 +261,10 @@ export default {
     no_dates_yet: 'No dates loaded yet',
     loading_dates: 'Loading favorable dates...',
     monthly_content_coming: 'Monthly content will be added soon to this agenda.',
+    months_available_one: '{count} month available',
+    months_available_other: '{count} months available',
+    no_dates_desc: 'Favorable wedding dates will be updated soon.',
+    free_content_desc: 'Free content will be updated soon.',
   },
   wedding_agenda_2027: {
     header_title: 'WEDDING AGENDA 2027',
@@ -288,7 +296,7 @@ export default {
     title: 'My Favorites',
     login_required: 'Login to see your favorites',
     no_favorites: 'No favorites yet',
-    no_favorites_desc: 'Save articles, daily energies and vocations for quick access.',
+    no_favorites_desc: 'Tap the heart icon on any content to save it here',
     type_daily_energy: 'Daily Energy',
     type_baby_vocation: 'Baby Vocation',
     type_agenda: 'Agenda',
@@ -297,7 +305,7 @@ export default {
   purchases: {
     title: 'My Purchases',
     no_purchases: 'No purchases yet',
-    no_purchases_desc: 'Your courses, services and purchased content will appear here.',
+    no_purchases_desc: 'Explore our courses and services to get started',
     your_bazi_report: 'Your BaZi Report',
     personalized_bazi: 'Personalized BaZi Report',
     available: 'Available',
@@ -321,6 +329,8 @@ export default {
     enter_email: 'Please enter your email',
     enter_valid_email: 'Please enter a valid email',
     error_sending: 'Error sending email. Please try again.',
+    email_sent_desc: 'If an account exists for {email}, you will receive an email with instructions to reset your password.',
+    link_expiry_notice: 'The link will expire in 1 hour. Check your spam folder if you don\'t see the email.',
   },
   reset_password: {
     title: 'New Password',
@@ -340,6 +350,7 @@ export default {
     passwords_dont_match: 'Passwords don\'t match',
     error_updating: 'Error updating password. Please try again.',
     invalid_token: 'This link is invalid or has expired.',
+    invalid_token_title: 'Invalid Token',
   },
   newborn_vocation: {
     title: 'Baby Vocation',
@@ -347,5 +358,15 @@ export default {
     talents: 'Talents',
     vocations: 'Vocations',
     characteristics: 'Characteristics',
+    header_title: 'VOCATION OF BABY BORN TODAY - {date}',
+    dates_available_one: '{count} day available',
+    dates_available_other: '{count} days available',
+  },
+  faq_screen: {
+    help_label: 'Help',
+    title: 'Frequently Asked Questions',
+    subtitle: 'Find answers to the most common questions',
+    questions_count_one: '{count} question',
+    questions_count_other: '{count} questions',
   },
 };

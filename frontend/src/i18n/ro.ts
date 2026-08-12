@@ -190,6 +190,7 @@ export default {
     what_includes: 'Ce include?',
     request_service_btn: 'Solicită Serviciul',
     contact_whatsapp_desc: 'Apasă aici pentru a solicita acest serviciu prin WhatsApp. Include datele tale personale pentru a primi informații despre plată.',
+    contact_footnote: 'Te vom contacta pentru a confirma detaliile plății.',
   },
   bazi: {
     service_title: 'Analiza Hărții Natale BaZi',
@@ -204,6 +205,9 @@ export default {
     published_on: 'Publicat la',
     download_pdf: 'Descarcă PDF',
     report_not_ready: 'Raportul tău nu este încă gata. Te rugăm să aștepți ca administratorul să îl publice.',
+    contact_footnote: 'Te vom contacta pentru a confirma detaliile plății și pentru a-ți solicita data și ora nașterii.',
+    personalized_note: 'Această analiză este unică și personalizată pentru tine. Pentru consultații suplimentare, contactează expertul.',
+    report_pending_hint: 'Când analiza ta este pregatită, va apărea aici.',
   },
   admin: {
     panel_title: 'Panou de Admin',
@@ -257,6 +261,10 @@ export default {
     no_dates_yet: 'Nicio dată încărcată încă',
     loading_dates: 'Se încarcă datele favorabile...',
     monthly_content_coming: 'Conținutul lunar va fi adăugat în curând la această agendă.',
+    months_available_one: '{count} lună disponibilă',
+    months_available_other: '{count} luni disponibile',
+    no_dates_desc: 'Datele favorabile pentru nunți vor fi actualizate în curând.',
+    free_content_desc: 'Conținutul gratuit va fi actualizat în curând.',
   },
   wedding_agenda_2027: {
     header_title: 'AGENDA NUNȚILOR 2027',
@@ -288,7 +296,7 @@ export default {
     title: 'Favoritele Mele',
     login_required: 'Conectează-te pentru a vedea favoritele tale',
     no_favorites: 'Niciun favorit încă',
-    no_favorites_desc: 'Salvează articole, energii zilnice și vocații pentru acces rapid.',
+    no_favorites_desc: 'Apasă pe pictograma inimă de pe orice conținut pentru a-l salva aici',
     type_daily_energy: 'Energia Zilei',
     type_baby_vocation: 'Vocația Bebelușului',
     type_agenda: 'Agendă',
@@ -297,7 +305,7 @@ export default {
   purchases: {
     title: 'Achizițiile Mele',
     no_purchases: 'Nicio achiziție încă',
-    no_purchases_desc: 'Cursurile, serviciile și conținutul cumpărat vor apărea aici.',
+    no_purchases_desc: 'Explorează cursurile și serviciile noastre pentru a începe',
     your_bazi_report: 'Raportul tău BaZi',
     personalized_bazi: 'Raport BaZi Personalizat',
     available: 'Disponibil',
@@ -321,6 +329,8 @@ export default {
     enter_email: 'Te rugăm să introduci email-ul',
     enter_valid_email: 'Te rugăm să introduci un email valid',
     error_sending: 'Eroare la trimitere. Te rugăm să încerci din nou.',
+    email_sent_desc: 'Dacă există un cont asociat cu {email}, vei primi un email cu instrucțiuni pentru resetarea parolei.',
+    link_expiry_notice: 'Linkul va expira în 1 oră. Verifică folderul spam dacă nu vezi emailul.',
   },
   reset_password: {
     title: 'Parolă Nouă',
@@ -340,6 +350,7 @@ export default {
     passwords_dont_match: 'Parolele nu se potrivesc',
     error_updating: 'Eroare la actualizare. Te rugăm să încerci din nou.',
     invalid_token: 'Acest link este invalid sau a expirat.',
+    invalid_token_title: 'Token invalid',
   },
   newborn_vocation: {
     title: 'Vocația Bebelușului',
@@ -347,5 +358,15 @@ export default {
     talents: 'Talente',
     vocations: 'Vocații',
     characteristics: 'Caracteristici',
+    header_title: 'VOCAȚIA BEBELUȘULUI NĂSCUT ASTĂZI - {date}',
+    dates_available_one: '{count} zi disponibilă',
+    dates_available_other: '{count} zile disponibile',
+  },
+  faq_screen: {
+    help_label: 'Ajutor',
+    title: 'Întrebări Frecvente',
+    subtitle: 'Găsește răspunsuri la cele mai frecvente întrebări',
+    questions_count_one: '{count} întrebare',
+    questions_count_other: '{count} întrebări',
   },
 };

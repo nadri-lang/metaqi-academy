@@ -17,6 +17,7 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -37,6 +38,7 @@ interface FAQCategory {
 
 export default function FAQScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -98,10 +100,10 @@ export default function FAQScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.headerContent}>
-            <Text style={styles.headerLabel}>Ayuda</Text>
-            <Text style={styles.title}>Preguntas Frecuentes</Text>
+            <Text style={styles.headerLabel}>{t('faq_screen.help_label')}</Text>
+            <Text style={styles.title}>{t('faq_screen.title')}</Text>
             <Text style={styles.subtitle}>
-              Encuentra respuestas a las dudas más comunes
+              {t('faq_screen.subtitle')}
             </Text>
           </View>
         </SafeAreaView>
@@ -123,7 +125,9 @@ export default function FAQScreen() {
                 </View>
                 <View style={styles.categoryTitleContainer}>
                   <Text style={styles.categoryTitle}>{category.title}</Text>
-                  <Text style={styles.categoryCount}>{category.items.length} preguntas</Text>
+                  <Text style={styles.categoryCount}>
+                    {t(category.items.length === 1 ? 'faq_screen.questions_count_one' : 'faq_screen.questions_count_other').replace('{count}', String(category.items.length))}
+                  </Text>
                 </View>
                 <MaterialCommunityIcons
                   name={isExpanded ? 'chevron-up' : 'chevron-down'}

@@ -190,6 +190,7 @@ export default {
     what_includes: 'Was ist enthalten?',
     request_service_btn: 'Service Anfordern',
     contact_whatsapp_desc: 'Klicken Sie hier, um diesen Service über WhatsApp anzufordern. Fügen Sie Ihre persönlichen Daten bei, um Zahlungsinformationen zu erhalten.',
+    contact_footnote: 'Wir werden Sie kontaktieren, um die Zahlungsdetails zu bestätigen.',
   },
   bazi: {
     service_title: 'BaZi-Geburtshoroskop-Analyse',
@@ -204,6 +205,9 @@ export default {
     published_on: 'Veröffentlicht am',
     download_pdf: 'PDF Herunterladen',
     report_not_ready: 'Ihr Bericht ist noch nicht fertig. Bitte warten Sie, bis der Administrator ihn veröffentlicht.',
+    contact_footnote: 'Wir werden Sie kontaktieren, um die Zahlungsdetails zu bestätigen und Ihr Geburtsdatum und Ihre Geburtszeit zu erfragen.',
+    personalized_note: 'Diese Analyse ist einzigartig und für Sie personalisiert. Für weitere Beratungen wenden Sie sich an den Experten.',
+    report_pending_hint: 'Wenn Ihre Analyse fertig ist, wird sie hier angezeigt.',
   },
   admin: {
     panel_title: 'Admin-Panel',
@@ -257,6 +261,10 @@ export default {
     no_dates_yet: 'Noch keine Daten geladen',
     loading_dates: 'Günstige Daten werden geladen...',
     monthly_content_coming: 'Monatliche Inhalte werden diesem Kalender bald hinzugefügt.',
+    months_available_one: '{count} Monat verfügbar',
+    months_available_other: '{count} Monate verfügbar',
+    no_dates_desc: 'Günstige Hochzeitstermine werden in Kürze aktualisiert.',
+    free_content_desc: 'Kostenlose Inhalte werden in Kürze aktualisiert.',
   },
   wedding_agenda_2027: {
     header_title: 'HOCHZEITSKALENDER 2027',
@@ -288,7 +296,7 @@ export default {
     title: 'Meine Favoriten',
     login_required: 'Melden Sie sich an, um Ihre Favoriten zu sehen',
     no_favorites: 'Noch keine Favoriten',
-    no_favorites_desc: 'Speichern Sie Artikel, Tagesenergien und Berufungen für schnellen Zugriff.',
+    no_favorites_desc: 'Tippen Sie auf das Herz-Symbol bei einem Inhalt, um ihn hier zu speichern',
     type_daily_energy: 'Tagesenergie',
     type_baby_vocation: 'Baby-Berufung',
     type_agenda: 'Kalender',
@@ -297,7 +305,7 @@ export default {
   purchases: {
     title: 'Meine Käufe',
     no_purchases: 'Noch keine Käufe',
-    no_purchases_desc: 'Ihre Kurse, Dienstleistungen und gekauften Inhalte werden hier angezeigt.',
+    no_purchases_desc: 'Entdecken Sie unsere Kurse und Dienstleistungen, um zu beginnen',
     your_bazi_report: 'Ihr BaZi-Bericht',
     personalized_bazi: 'Personalisierter BaZi-Bericht',
     available: 'Verfügbar',
@@ -321,6 +329,8 @@ export default {
     enter_email: 'Bitte geben Sie Ihre E-Mail ein',
     enter_valid_email: 'Bitte geben Sie eine gültige E-Mail ein',
     error_sending: 'Fehler beim Senden. Bitte versuchen Sie es erneut.',
+    email_sent_desc: 'Falls ein Konto für {email} existiert, erhalten Sie eine E-Mail mit Anweisungen zum Zurücksetzen Ihres Passworts.',
+    link_expiry_notice: 'Der Link läuft in 1 Stunde ab. Überprüfen Sie Ihren Spam-Ordner, falls Sie die E-Mail nicht sehen.',
   },
   reset_password: {
     title: 'Neues Passwort',
@@ -340,6 +350,7 @@ export default {
     passwords_dont_match: 'Passwörter stimmen nicht überein',
     error_updating: 'Fehler beim Aktualisieren. Bitte versuchen Sie es erneut.',
     invalid_token: 'Dieser Link ist ungültig oder abgelaufen.',
+    invalid_token_title: 'Ungültiges Token',
   },
   newborn_vocation: {
     title: 'Baby-Berufung',
@@ -347,5 +358,15 @@ export default {
     talents: 'Talente',
     vocations: 'Berufungen',
     characteristics: 'Eigenschaften',
+    header_title: 'BERUFUNG DES HEUTE GEBORENEN BABYS - {date}',
+    dates_available_one: '{count} Tag verfügbar',
+    dates_available_other: '{count} Tage verfügbar',
+  },
+  faq_screen: {
+    help_label: 'Hilfe',
+    title: 'Häufig gestellte Fragen',
+    subtitle: 'Finden Sie Antworten auf die häufigsten Fragen',
+    questions_count_one: '{count} Frage',
+    questions_count_other: '{count} Fragen',
   },
 };

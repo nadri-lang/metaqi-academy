@@ -190,6 +190,7 @@ export default {
     what_includes: '¿Qué incluye?',
     request_service_btn: 'Solicitar Servicio',
     contact_whatsapp_desc: 'Haz clic aquí para solicitar este servicio por WhatsApp. Incluye tus datos personales para recibir información de pago.',
+    contact_footnote: 'Te contactaremos para confirmar los detalles del pago.',
   },
   bazi: {
     service_title: 'Análisis Carta Natal BaZi',
@@ -204,6 +205,9 @@ export default {
     published_on: 'Publicado el',
     download_pdf: 'Descargar PDF',
     report_not_ready: 'Tu reporte aún no está listo. Por favor espera a que el administrador lo publique.',
+    contact_footnote: 'Te contactaremos para confirmar los detalles del pago y solicitar tu fecha y hora de nacimiento.',
+    personalized_note: 'Este análisis es único y personalizado para ti. Para consultas adicionales, contacta con el experto.',
+    report_pending_hint: 'Cuando tu análisis esté listo, aparecerá aquí.',
   },
   admin: {
     panel_title: 'Panel de Admin',
@@ -257,6 +261,10 @@ export default {
     no_dates_yet: 'Sin fechas cargadas aún',
     loading_dates: 'Cargando fechas favorables...',
     monthly_content_coming: 'Próximamente se añadirá contenido mensual a esta agenda.',
+    months_available_one: '{count} mes disponible',
+    months_available_other: '{count} meses disponibles',
+    no_dates_desc: 'Las fechas favorables para bodas se actualizarán próximamente.',
+    free_content_desc: 'El contenido gratuito se actualizará próximamente.',
   },
   wedding_agenda_2027: {
     header_title: 'AGENDA DE BODAS 2027',
@@ -288,7 +296,7 @@ export default {
     title: 'Mis Favoritos',
     login_required: 'Inicia sesión para ver tus favoritos',
     no_favorites: 'No tienes favoritos aún',
-    no_favorites_desc: 'Guarda artículos, energías diarias y vocaciones para acceder rápidamente.',
+    no_favorites_desc: 'Toca el ícono de corazón en cualquier contenido para guardarlo aquí',
     type_daily_energy: 'Energía del Día',
     type_baby_vocation: 'Vocación del Bebé',
     type_agenda: 'Agenda',
@@ -297,7 +305,7 @@ export default {
   purchases: {
     title: 'Mis Compras',
     no_purchases: 'No tienes compras aún',
-    no_purchases_desc: 'Aquí aparecerán tus cursos, servicios y contenido comprado.',
+    no_purchases_desc: 'Explora nuestros cursos y servicios para comenzar',
     your_bazi_report: 'Tu Reporte BaZi',
     personalized_bazi: 'Reporte Personalizado BaZi',
     available: 'Disponible',
@@ -321,6 +329,8 @@ export default {
     enter_email: 'Por favor ingresa tu correo electrónico',
     enter_valid_email: 'Por favor ingresa un correo electrónico válido',
     error_sending: 'Error al enviar el correo. Inténtalo de nuevo.',
+    email_sent_desc: 'Si existe una cuenta asociada a {email}, recibirás un correo con instrucciones para restablecer tu contraseña.',
+    link_expiry_notice: 'El enlace expirará en 1 hora. Revisa tu carpeta de spam si no ves el correo.',
   },
   reset_password: {
     title: 'Nueva Contraseña',
@@ -340,6 +350,7 @@ export default {
     passwords_dont_match: 'Las contraseñas no coinciden',
     error_updating: 'Error al actualizar la contraseña. Inténtalo de nuevo.',
     invalid_token: 'Este enlace es inválido o ha expirado.',
+    invalid_token_title: 'Token inválido',
   },
   newborn_vocation: {
     title: 'Vocación del Bebé',
@@ -347,5 +358,15 @@ export default {
     talents: 'Talentos',
     vocations: 'Vocaciones',
     characteristics: 'Características',
+    header_title: 'VOCACIÓN DEL BEBÉ NACIDO HOY - {date}',
+    dates_available_one: '{count} día disponible',
+    dates_available_other: '{count} días disponibles',
+  },
+  faq_screen: {
+    help_label: 'Ayuda',
+    title: 'Preguntas Frecuentes',
+    subtitle: 'Encuentra respuestas a las dudas más comunes',
+    questions_count_one: '{count} pregunta',
+    questions_count_other: '{count} preguntas',
   },
 };
