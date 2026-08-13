@@ -44,7 +44,7 @@ export default function AdminDailyEnergyScreen() {
 
   const loadExisting = async () => {
     try {
-      const response = await api.get(`/energy/daily?date=${date}`);
+      const response = await api.get('/energy/daily', { params: { date, lang: 'es' } });
       const data = response.data;
       setExisting(data);
       setTitle(data.title || '');
@@ -101,7 +101,11 @@ export default function AdminDailyEnergyScreen() {
       Alert.alert('Éxito', 'Energía del día guardada correctamente');
       loadExisting();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
+      if (!error.response) {
+        Alert.alert('Error de conexión', 'No se pudo contactar al servidor. Verifica tu conexión e intenta de nuevo.');
+      } else {
+        Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
+      }
     } finally {
       setLoading(false);
     }

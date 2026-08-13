@@ -6,6 +6,7 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL + '/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 30000, // fail fast with a clear error instead of hanging forever if the sandbox is unreachable
   headers: {
     'Content-Type': 'application/json',
   },
@@ -34,9 +35,9 @@ api.interceptors.request.use(
     
     if (config.method === 'get') {
       config.params = {
-        ...config.params,
         lang: currentLang,
         client_date: getClientDate(), // Always send client's local date
+        ...config.params, // Let an explicit param from the caller win over the global default
       };
     }
     
