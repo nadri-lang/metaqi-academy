@@ -92,21 +92,29 @@ export default function MyFavoritesScreen() {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'daily_energy':
-        return language === 'es' ? 'Energía del Día' : 'Daily Energy';
+        return t('favorites.type_daily_energy');
       case 'newborn_vocation':
-        return language === 'es' ? 'Vocación del Bebé' : 'Baby Vocation';
+        return t('favorites.type_baby_vocation');
       case 'agenda':
-        return language === 'es' ? 'Agenda' : 'Agenda';
+        return t('favorites.type_agenda');
       case 'concept':
-        return language === 'es' ? 'Concepto' : 'Concept';
+        return t('favorites.type_concept');
       default:
         return type;
     }
   };
 
+  const localeMap: { [key: string]: string } = {
+    es: 'es-ES',
+    en: 'en-US',
+    fr: 'fr-FR',
+    de: 'de-DE',
+    ro: 'ro-RO',
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+    return date.toLocaleDateString(localeMap[language] || 'es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -130,7 +138,7 @@ export default function MyFavoritesScreen() {
         <View style={styles.emptyState}>
           <MaterialCommunityIcons name="heart-outline" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>
-            {language === 'es' ? 'Inicia sesión para ver tus favoritos' : 'Login to see your favorites'}
+            {t('favorites.login_required')}
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
@@ -175,12 +183,10 @@ export default function MyFavoritesScreen() {
           <View style={styles.emptyStateInline}>
             <MaterialCommunityIcons name="heart-outline" size={64} color={Colors.textLight} />
             <Text style={styles.emptyTitle}>
-              {language === 'es' ? 'No tienes favoritos aún' : 'No favorites yet'}
+              {t('favorites.no_favorites')}
             </Text>
             <Text style={styles.emptyText}>
-              {language === 'es' 
-                ? 'Toca el ícono de corazón en cualquier contenido para guardarlo aquí' 
-                : 'Tap the heart icon on any content to save it here'}
+              {t('favorites.no_favorites_desc')}
             </Text>
           </View>
         ) : (
@@ -197,7 +203,7 @@ export default function MyFavoritesScreen() {
                 <Text style={styles.favoriteType}>{getTypeLabel(fav.item_type)}</Text>
                 <Text style={styles.favoriteId}>{fav.item_id}</Text>
                 <Text style={styles.favoriteDate}>
-                  {language === 'es' ? 'Guardado: ' : 'Saved: '}{formatDate(fav.created_at)}
+                  {t('common.saved')}{formatDate(fav.created_at)}
                 </Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.textLight} />

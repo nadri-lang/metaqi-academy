@@ -64,8 +64,8 @@ export default function HomeScreen() {
   const loadData = async () => {
     try {
       const [dailyRes, vocationRes] = await Promise.allSettled([
-        api.get('/energy/daily'),
-        api.get('/newborn-vocation/today'),
+        api.get('/energy/daily', { params: { lang: language } }),
+        api.get('/newborn-vocation/today', { params: { lang: language } }),
       ]);
 
       if (dailyRes.status === 'fulfilled') setDailyEnergy(dailyRes.value.data);

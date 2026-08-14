@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -19,6 +20,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function AdminDailyEnergyScreen() {
   const router = useRouter();
@@ -35,6 +37,10 @@ export default function AdminDailyEnergyScreen() {
   const [favorableHours, setFavorableHours] = useState('');
   const [travelHours, setTravelHours] = useState('');
   const [activations, setActivations] = useState('');
+  const [activationsVideoUrl, setActivationsVideoUrl] = useState('');
+  const [activationsImageUri, setActivationsImageUri] = useState('');
+  const [activationsImageUrl, setActivationsImageUrl] = useState('');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [loading, setLoading] = useState(false);
   const [existing, setExisting] = useState<any>(null);
 
@@ -58,6 +64,8 @@ export default function AdminDailyEnergyScreen() {
       setFavorableHours((data.favorable_hours || []).join('\n'));
       setTravelHours((data.travel_hours || []).join('\n'));
       setActivations(data.activations || '');
+      setActivationsVideoUrl(data.activations_video_url || '');
+      setActivationsImageUrl(data.activations_image_url || '');
     } catch (error) {
       setExisting(null);
       setTitle('');
@@ -71,6 +79,82 @@ export default function AdminDailyEnergyScreen() {
       setFavorableHours('');
       setTravelHours('');
       setActivations('');
+      setActivationsVideoUrl('');
+      setActivationsImageUri('');
+      setActivationsImageUrl('');
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos permiso para acceder a tu galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setActivationsImageUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadActivationsMedia = async () => {
+    if (!existing) {
+      Alert.alert('Error', 'Primero debes guardar la Energía del Día antes de subir imagen/video');
+      return;
+    }
+
+    if (!activationsImageUri && !activationsVideoUrl) {
+      Alert.alert('Info', 'No hay imagen ni URL de video para subir');
+      return;
+    }
+
+    setUploadingMedia(true);
+    try {
+      const formData = new FormData();
+      formData.append('date', date);
+
+      if (activationsVideoUrl.trim()) {
+        formData.append('activations_video_url', activationsVideoUrl.trim());
+      }
+
+      if (activationsImageUri) {
+        const filename = activationsImageUri.split('/').pop() || 'image.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('activations_image', {
+          uri: activationsImageUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      const response = await api.post('/energy/daily/activations-media', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      Alert.alert('Éxito', 'Imagen y/o video de activaciones guardados correctamente');
+      
+      // Update state with new URLs
+      if (response.data.activations_image_url) {
+        setActivationsImageUrl(response.data.activations_image_url);
+        setActivationsImageUri(''); // Clear local URI
+      }
+      if (response.data.activations_video_url) {
+        setActivationsVideoUrl(response.data.activations_video_url);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al subir imagen/video');
+    } finally {
+      setUploadingMedia(false);
     }
   };
 
@@ -288,6 +372,75 @@ export default function AdminDailyEnergyScreen() {
               textAlignVertical="top"
             />
 
+            {/* Activations Media Section */}
+            <View style={styles.mediaSection}>
+              <Text style={styles.mediaSectionTitle}>📸 Multimedia para Activaciones</Text>
+              <Text style={styles.mediaSectionHelper}>
+                Añade imagen y/o video para enriquecer el contenido de las activaciones
+              </Text>
+
+              {/* Video URL Input */}
+              <Text style={styles.label}>🎥 Enlace de Video (YouTube/Vimeo)</Text>
+              <TextInput
+                testID="input-video-url"
+                style={styles.input}
+                value={activationsVideoUrl}
+                onChangeText={setActivationsVideoUrl}
+                placeholder="https://youtube.com/watch?v=..."
+                placeholderTextColor={Colors.textLight}
+                autoCapitalize="none"
+              />
+              {activationsVideoUrl ? (
+                <Text style={styles.helperTextGreen}>✓ URL de video ingresada</Text>
+              ) : null}
+
+              {/* Image Picker */}
+              <Text style={styles.label}>🖼️ Imagen (JPEG/PNG)</Text>
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={pickImage}
+              >
+                <MaterialCommunityIcons name="image-plus" size={24} color={Colors.accent} />
+                <Text style={styles.imagePickerText}>Seleccionar Imagen</Text>
+              </TouchableOpacity>
+
+              {/* Show selected/uploaded image */}
+              {activationsImageUri ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: activationsImageUri }} style={styles.imagePreview} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => setActivationsImageUri('')}
+                  >
+                    <MaterialCommunityIcons name="close-circle" size={24} color={Colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ) : activationsImageUrl ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: activationsImageUrl }} style={styles.imagePreview} />
+                  <Text style={styles.helperTextGreen}>✓ Imagen ya subida</Text>
+                </View>
+              ) : null}
+
+              {/* Upload Media Button */}
+              {(activationsImageUri || activationsVideoUrl) && (
+                <TouchableOpacity
+                  style={[styles.uploadMediaButton, uploadingMedia && styles.saveButtonDisabled]}
+                  onPress={uploadActivationsMedia}
+                  disabled={uploadingMedia}
+                >
+                  {uploadingMedia ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="cloud-upload" size={20} color={Colors.white} />
+                      <Text style={styles.uploadMediaButtonText}>Subir Imagen/Video</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
             <TouchableOpacity
               testID="save-btn"
               style={[styles.saveButton, loading && styles.saveButtonDisabled]}
@@ -398,5 +551,74 @@ const styles = StyleSheet.create({
     color: Colors.error,
     textAlign: 'center',
     marginTop: Spacing['2xl'],
+  },
+  mediaSection: {
+    marginTop: Spacing.xl,
+    padding: Spacing.md,
+    backgroundColor: Colors.accent + '10',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+  },
+  mediaSectionTitle: {
+    fontFamily: Typography.sansBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  mediaSectionHelper: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+  },
+  imagePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  imagePickerText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+  },
+  imagePreviewContainer: {
+    marginTop: Spacing.md,
+    position: 'relative',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.background,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+  },
+  uploadMediaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.jade,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  uploadMediaButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
 });

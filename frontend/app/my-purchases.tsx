@@ -52,7 +52,7 @@ interface UserContent {
 
 export default function MyPurchasesScreen() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [baziReport, setBaziReport] = useState<BaziReport | null>(null);
   const [hasBaziReport, setHasBaziReport] = useState(false);
@@ -114,8 +114,8 @@ export default function MyPurchasesScreen() {
   const handleOpenVideo = (videoUrl: string) => {
     Linking.openURL(videoUrl).catch(() => {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'No se pudo abrir el video' : 'Could not open video'
+        t('common.error'),
+        t('purchases.could_not_open_video')
       );
     });
   };
@@ -123,8 +123,8 @@ export default function MyPurchasesScreen() {
   const handleOpenLink = (url: string) => {
     Linking.openURL(url).catch(() => {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'No se pudo abrir el enlace' : 'Could not open link'
+        t('common.error'),
+        t('purchases.could_not_open_link')
       );
     });
   };
@@ -195,7 +195,7 @@ export default function MyPurchasesScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>
-              {language === 'es' ? 'Mis Compras' : 'My Purchases'}
+              {t('purchases.title')}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -212,12 +212,10 @@ export default function MyPurchasesScreen() {
           <View style={styles.emptyState}>
             <MaterialCommunityIcons name="shopping-outline" size={64} color={Colors.textLight} />
             <Text style={styles.emptyTitle}>
-              {language === 'es' ? 'No tienes compras aún' : 'No purchases yet'}
+              {t('purchases.no_purchases')}
             </Text>
             <Text style={styles.emptyText}>
-              {language === 'es' 
-                ? 'Explora nuestros cursos y servicios para comenzar' 
-                : 'Explore our courses and services to get started'}
+              {t('purchases.no_purchases_desc')}
             </Text>
           </View>
         ) : (
@@ -226,7 +224,7 @@ export default function MyPurchasesScreen() {
             {hasBaziReport && baziReport && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  {language === 'es' ? 'Tu Reporte BaZi' : 'Your BaZi Report'}
+                  {t('purchases.your_bazi_report')}
                 </Text>
                 <TouchableOpacity
                   style={styles.baziCard}
@@ -237,18 +235,18 @@ export default function MyPurchasesScreen() {
                   </View>
                   <View style={styles.baziInfo}>
                     <Text style={styles.baziTitle}>
-                      {language === 'es' ? 'Reporte Personalizado BaZi' : 'Personalized BaZi Report'}
+                      {t('purchases.personalized_bazi')}
                     </Text>
                     {baziReport.published_at && (
                       <Text style={styles.baziDate}>
-                        {language === 'es' ? 'Publicado: ' : 'Published: '}
+                        {t('common.published')}
                         {formatDate(baziReport.published_at)}
                       </Text>
                     )}
                     <View style={styles.publishedBadge}>
                       <MaterialCommunityIcons name="check-circle" size={14} color={Colors.jade} />
                       <Text style={styles.publishedText}>
-                        {language === 'es' ? 'Disponible' : 'Available'}
+                        {t('purchases.available')}
                       </Text>
                     </View>
                   </View>
@@ -261,7 +259,7 @@ export default function MyPurchasesScreen() {
             {purchases.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  {language === 'es' ? 'Cursos y Servicios' : 'Courses & Services'}
+                  {t('purchases.courses_services')}
                 </Text>
                 {purchases.map((purchase) => (
                   <View key={purchase.id} style={styles.purchaseCard}>
@@ -275,12 +273,12 @@ export default function MyPurchasesScreen() {
                     <View style={styles.purchaseInfo}>
                       <Text style={styles.purchaseName}>{purchase.product_name}</Text>
                       <Text style={styles.purchaseDate}>
-                        {language === 'es' ? 'Comprado: ' : 'Purchased: '}
+                        {t('common.purchased')}
                         {formatDate(purchase.purchased_at)}
                       </Text>
                       {purchase.activated_at && (
                         <Text style={styles.purchaseActivated}>
-                          {language === 'es' ? 'Activado: ' : 'Activated: '}
+                          {t('common.activated')}
                           {formatDate(purchase.activated_at)}
                         </Text>
                       )}
@@ -293,13 +291,13 @@ export default function MyPurchasesScreen() {
                         >
                           <MaterialCommunityIcons name="play-circle" size={20} color={Colors.white} />
                           <Text style={styles.videoButtonText}>
-                            {language === 'es' ? 'Ver' : 'Watch'}
+                            {t('common.watch')}
                           </Text>
                         </TouchableOpacity>
                       ) : (
                         <View style={styles.pendingBadge}>
                           <Text style={styles.pendingText}>
-                            {language === 'es' ? 'Pendiente' : 'Pending'}
+                            {t('common.pending')}
                           </Text>
                         </View>
                       )}
@@ -313,7 +311,7 @@ export default function MyPurchasesScreen() {
             {hasUserContent && userContent.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
-                  {language === 'es' ? 'Contenido Exclusivo' : 'Exclusive Content'}
+                  {t('purchases.exclusive_content')}
                 </Text>
                 {userContent.map((content) => (
                   <TouchableOpacity
@@ -334,7 +332,7 @@ export default function MyPurchasesScreen() {
                     <View style={styles.purchaseInfo}>
                       <Text style={styles.purchaseName}>{content.title}</Text>
                       <Text style={styles.purchaseDate}>
-                        {language === 'es' ? 'Añadido: ' : 'Added: '}
+                        {t('common.added')}
                         {formatDate(content.created_at)}
                       </Text>
                       <View style={[

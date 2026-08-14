@@ -99,7 +99,7 @@ export default function MyBaziReportScreen() {
             <View style={styles.dateRow}>
               <MaterialCommunityIcons name="calendar-check" size={16} color={Colors.accent} />
               <Text style={styles.dateText}>
-                {language === 'es' ? 'Publicado el' : 'Published on'} {formatDate(report.published_at)}
+                {t('bazi.published_on')} {formatDate(report.published_at)}
               </Text>
             </View>
           )}
@@ -131,9 +131,7 @@ export default function MyBaziReportScreen() {
           <View style={styles.footerNote}>
             <MaterialCommunityIcons name="information-outline" size={18} color={Colors.textLight} />
             <Text style={styles.footerText}>
-              {language === 'es' 
-                ? 'Este análisis es único y personalizado para ti. Para consultas adicionales, contacta con el experto.'
-                : 'This analysis is unique and personalized for you. For additional consultations, contact the expert.'}
+              {t('bazi.personalized_note')}
             </Text>
           </View>
 
@@ -146,9 +144,7 @@ export default function MyBaziReportScreen() {
           </View>
           <Text style={styles.emptyTitle}>{t('bazi.no_report')}</Text>
           <Text style={styles.emptySubtitle}>
-            {language === 'es'
-              ? 'Cuando tu análisis esté listo, aparecerá aquí.'
-              : 'When your analysis is ready, it will appear here.'}
+            {t('bazi.report_pending_hint')}
           </Text>
           
           <TouchableOpacity 

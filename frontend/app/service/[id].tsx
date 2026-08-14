@@ -42,12 +42,12 @@ export default function ServiceDetailScreen() {
     if (id) {
       loadData();
     }
-  }, [id]);
+  }, [id, language]);
 
   const loadData = async () => {
     try {
       const [serviceRes, appRes] = await Promise.all([
-        api.get(`/services/${id}`),
+        api.get(`/services/${id}`, { params: { lang: language } }),
         api.get('/app-config')
       ]);
       setService(serviceRes.data);
@@ -147,7 +147,7 @@ export default function ServiceDetailScreen() {
         {/* Description */}
         <View style={styles.descriptionCard}>
           <Text style={styles.descriptionTitle}>
-            {language === 'es' ? 'Descripción' : 'Description'}
+            {t('common.description')}
           </Text>
           <Text style={styles.description}>{service.description}</Text>
         </View>
@@ -156,7 +156,7 @@ export default function ServiceDetailScreen() {
         {service.includes && service.includes.length > 0 && (
           <View style={styles.featuresCard}>
             <Text style={styles.featuresTitle}>
-              {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
+              {t('services.what_includes')}
             </Text>
             {service.includes.map((item, index) => (
               <View key={index} style={styles.featureItem}>
@@ -175,14 +175,12 @@ export default function ServiceDetailScreen() {
         >
           <MaterialCommunityIcons name="whatsapp" size={24} color="#FFFFFF" />
           <Text style={styles.whatsappButtonText}>
-            {language === 'es' ? 'Solicitar Servicio' : 'Request Service'}
+            {t('services.request_service_btn')}
           </Text>
         </TouchableOpacity>
 
         <Text style={styles.footnote}>
-          {language === 'es' 
-            ? 'Te contactaremos para confirmar los detalles del pago.'
-            : 'We will contact you to confirm payment details.'}
+          {t('services.contact_footnote')}
         </Text>
 
         <View style={{ height: Spacing.xl }} />

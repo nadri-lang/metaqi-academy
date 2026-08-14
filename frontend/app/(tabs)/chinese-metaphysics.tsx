@@ -14,7 +14,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
-import { useTranslate } from '@/src/hooks/useTranslate';
 import api from '@/src/services/api';
 
 interface Concept {
@@ -29,25 +28,22 @@ interface Concept {
   color: string;
 }
 
-// Component to handle translation of a single concept
+// Component renders a single concept; title/short_description/full_description
+// arrive already translated by the backend based on the `lang` query param.
 function ConceptCard({ concept }: { concept: Concept }) {
-  const translatedTitle = useTranslate(concept.title);
-  const translatedDescription = useTranslate(concept.short_description);
-  const translatedContent = useTranslate(concept.full_description);
-
   return (
     <View style={styles.conceptCard}>
       <View style={styles.conceptHeader}>
         <View style={[styles.conceptIcon, { backgroundColor: concept.color + '20' }]}>
           <MaterialCommunityIcons name={concept.icon as any} size={28} color={concept.color} />
         </View>
-        <Text style={styles.conceptTitle}>{translatedTitle}</Text>
+        <Text style={styles.conceptTitle}>{concept.title}</Text>
       </View>
       
-      <Text style={styles.conceptDescription}>{translatedDescription}</Text>
+      <Text style={styles.conceptDescription}>{concept.short_description}</Text>
 
       {concept.full_description && (
-        <Text style={styles.conceptContent}>{translatedContent}</Text>
+        <Text style={styles.conceptContent}>{concept.full_description}</Text>
       )}
     </View>
   );
@@ -55,17 +51,17 @@ function ConceptCard({ concept }: { concept: Concept }) {
 
 export default function ChineseMetaphysicsScreen() {
   const router = useRouter();
-  const { t, localizeContent } = useLanguage();
+  const { t, language, localizeContent } = useLanguage();
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadConcepts();
-  }, []);
+  }, [language]);
 
   const loadConcepts = async () => {
     try {
-      const response = await api.get('/concepts');
+      const response = await api.get('/concepts', { params: { lang: language } });
       setConcepts(response.data);
     } catch (error) {
       console.error('Error loading concepts:', error);

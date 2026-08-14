@@ -41,7 +41,7 @@ export default function BaziServiceScreen() {
   const loadData = async () => {
     try {
       const [serviceRes, appRes] = await Promise.all([
-        api.get('/bazi-service/config'),
+        api.get('/bazi-service/config', { params: { lang: language } }),
         api.get('/app-config')
       ]);
       setConfig(serviceRes.data);
@@ -133,7 +133,7 @@ export default function BaziServiceScreen() {
         {/* Description */}
         <View style={styles.descriptionCard}>
           <Text style={styles.descriptionTitle}>
-            {language === 'es' ? '¿Qué incluye?' : 'What\'s included?'}
+            {t('services.what_includes')}
           </Text>
           <Text style={styles.description}>{config.description}</Text>
         </View>
@@ -161,9 +161,7 @@ export default function BaziServiceScreen() {
         </TouchableOpacity>
 
         <Text style={styles.footnote}>
-          {language === 'es' 
-            ? 'Te contactaremos para confirmar los detalles del pago y solicitar tu fecha y hora de nacimiento.'
-            : 'We will contact you to confirm payment details and request your date and time of birth.'}
+          {t('bazi.contact_footnote')}
         </Text>
 
         <View style={{ height: Spacing.xl }} />

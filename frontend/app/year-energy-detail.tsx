@@ -40,13 +40,13 @@ export default function YearEnergyDetailScreen() {
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/year/current');
+      const response = await api.get('/energy/year/current', { params: { lang: language } });
       setData(response.data);
     } catch (error) {
       console.error('Error loading year energy:', error);
       // If no current year, try to get the latest
       try {
-        const listResponse = await api.get('/energy/year');
+        const listResponse = await api.get('/energy/year', { params: { lang: language } });
         if (listResponse.data && listResponse.data.length > 0) {
           setData(listResponse.data[0]);
         }

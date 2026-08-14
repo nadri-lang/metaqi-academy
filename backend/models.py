@@ -120,6 +120,8 @@ class DailyEnergy(BaseModel):
     activations_fr: Optional[str] = None
     activations_de: Optional[str] = None
     activations_ro: Optional[str] = None
+    activations_image_url: Optional[str] = None  # Image URL for activations (JPEG/PNG)
+    activations_video_url: Optional[str] = None  # Video URL for activations (YouTube/Vimeo)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -139,6 +141,8 @@ class DailyEnergyCreate(BaseModel):
     favorable_hours: List[str] = []
     travel_hours: List[str] = []  # Hours NOT recommended for travel (Viajes)
     activations: Optional[str] = None  # Daily activations text
+    activations_image_url: Optional[str] = None  # Image URL for activations
+    activations_video_url: Optional[str] = None  # Video URL for activations
 
 class MoonEnergy(BaseModel):
     id: str

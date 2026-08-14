@@ -23,7 +23,7 @@ import api from '@/src/services/api';
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token: string }>();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [validating, setValidating] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [userEmail, setUserEmail] = useState('');
@@ -50,9 +50,8 @@ export default function ResetPasswordScreen() {
       console.error('Token validation error:', error);
       setTokenValid(false);
       Alert.alert(
-        language === 'es' ? 'Token inválido' : 'Invalid Token',
-        error.response?.data?.detail || 
-        (language === 'es' ? 'Este enlace es inválido o ha expirado.' : 'This link is invalid or has expired.')
+        t('reset_password.invalid_token_title'),
+        error.response?.data?.detail || t('reset_password.invalid_token')
       );
     } finally {
       setValidating(false);
@@ -63,26 +62,24 @@ export default function ResetPasswordScreen() {
     // Validation
     if (!newPassword.trim() || !confirmPassword.trim()) {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'Por favor completa ambos campos' : 'Please fill both fields'
+        t('common.error'),
+        t('reset_password.fill_both_fields')
       );
       return;
     }
 
     if (newPassword.trim().length < 6) {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' 
-          ? 'La contraseña debe tener al menos 6 caracteres' 
-          : 'Password must be at least 6 characters'
+        t('common.error'),
+        t('reset_password.password_min_length')
       );
       return;
     }
 
     if (newPassword !== confirmPassword) {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'Las contraseñas no coinciden' : 'Passwords do not match'
+        t('common.error'),
+        t('reset_password.passwords_dont_match')
       );
       return;
     }
@@ -97,11 +94,8 @@ export default function ResetPasswordScreen() {
     } catch (error: any) {
       console.error('Password reset error:', error);
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        error.response?.data?.detail || 
-        (language === 'es' 
-          ? 'No se pudo restablecer la contraseña. Por favor intenta nuevamente.' 
-          : 'Could not reset password. Please try again.')
+        t('common.error'),
+        error.response?.data?.detail || t('reset_password.error_updating')
       );
     } finally {
       setLoading(false);
@@ -113,7 +107,7 @@ export default function ResetPasswordScreen() {
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.accent} />
         <Text style={styles.loadingText}>
-          {language === 'es' ? 'Validando enlace...' : 'Validating link...'}
+          {t('reset_password.validating')}
         </Text>
       </View>
     );
@@ -132,7 +126,7 @@ export default function ResetPasswordScreen() {
                 <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>
-                {language === 'es' ? 'Error' : 'Error'}
+                {t('common.error')}
               </Text>
               <View style={{ width: 40 }} />
             </View>
@@ -142,19 +136,17 @@ export default function ResetPasswordScreen() {
         <View style={styles.errorContainer}>
           <MaterialCommunityIcons name="alert-circle" size={64} color={Colors.error} />
           <Text style={styles.errorTitle}>
-            {language === 'es' ? 'Enlace inválido' : 'Invalid Link'}
+            {t('reset_password.invalid_link')}
           </Text>
           <Text style={styles.errorDescription}>
-            {language === 'es'
-              ? 'Este enlace es inválido o ha expirado. Por favor solicita un nuevo enlace.'
-              : 'This link is invalid or has expired. Please request a new link.'}
+            {t('reset_password.invalid_link_desc')}
           </Text>
           <TouchableOpacity
             style={styles.requestNewButton}
             onPress={() => router.push('/forgot-password')}
           >
             <Text style={styles.requestNewButtonText}>
-              {language === 'es' ? 'Solicitar nuevo enlace' : 'Request new link'}
+              {t('reset_password.request_new_link')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -170,7 +162,7 @@ export default function ResetPasswordScreen() {
             <View style={styles.headerContent}>
               <View style={{ width: 40 }} />
               <Text style={styles.headerTitle}>
-                {language === 'es' ? '¡Éxito!' : 'Success!'}
+                {t('reset_password.success_title')}
               </Text>
               <View style={{ width: 40 }} />
             </View>
@@ -182,12 +174,10 @@ export default function ResetPasswordScreen() {
             <MaterialCommunityIcons name="check-circle" size={64} color={Colors.jade} />
           </View>
           <Text style={styles.successTitle}>
-            {language === 'es' ? '¡Contraseña actualizada!' : 'Password Updated!'}
+            {t('reset_password.password_updated')}
           </Text>
           <Text style={styles.successDescription}>
-            {language === 'es'
-              ? 'Tu contraseña ha sido actualizada exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.'
-              : 'Your password has been updated successfully. You can now login with your new password.'}
+            {t('reset_password.password_updated_desc')}
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
@@ -195,7 +185,7 @@ export default function ResetPasswordScreen() {
           >
             <MaterialCommunityIcons name="login" size={20} color={Colors.primary} />
             <Text style={styles.loginButtonText}>
-              {language === 'es' ? 'Iniciar sesión' : 'Login'}
+              {t('common.login')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -218,7 +208,7 @@ export default function ResetPasswordScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>
-              {language === 'es' ? 'Nueva Contraseña' : 'New Password'}
+              {t('reset_password.title')}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -231,7 +221,7 @@ export default function ResetPasswordScreen() {
         </View>
 
         <Text style={styles.title}>
-          {language === 'es' ? 'Establece tu nueva contraseña' : 'Set your new password'}
+          {t('reset_password.description')}
         </Text>
 
         <Text style={styles.emailText}>
@@ -243,7 +233,7 @@ export default function ResetPasswordScreen() {
           <MaterialCommunityIcons name="lock-outline" size={20} color={Colors.textLight} />
           <TextInput
             style={styles.input}
-            placeholder={language === 'es' ? 'Nueva contraseña' : 'New password'}
+            placeholder={t('reset_password.new_password')}
             placeholderTextColor={Colors.textLight}
             value={newPassword}
             onChangeText={setNewPassword}
@@ -265,7 +255,7 @@ export default function ResetPasswordScreen() {
           <MaterialCommunityIcons name="lock-check-outline" size={20} color={Colors.textLight} />
           <TextInput
             style={styles.input}
-            placeholder={language === 'es' ? 'Confirmar contraseña' : 'Confirm password'}
+            placeholder={t('reset_password.confirm_password')}
             placeholderTextColor={Colors.textLight}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -278,9 +268,7 @@ export default function ResetPasswordScreen() {
         <View style={styles.hintBox}>
           <MaterialCommunityIcons name="information" size={18} color={Colors.textSecondary} />
           <Text style={styles.hintText}>
-            {language === 'es'
-              ? 'La contraseña debe tener al menos 6 caracteres'
-              : 'Password must be at least 6 characters'}
+            {t('reset_password.password_min_length')}
           </Text>
         </View>
 
@@ -295,7 +283,7 @@ export default function ResetPasswordScreen() {
             <>
               <MaterialCommunityIcons name="check" size={20} color={Colors.primary} />
               <Text style={styles.submitButtonText}>
-                {language === 'es' ? 'Actualizar contraseña' : 'Update password'}
+                {t('reset_password.update_password')}
               </Text>
             </>
           )}

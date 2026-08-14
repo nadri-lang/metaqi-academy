@@ -543,6 +543,124 @@ async def create_daily_energy(
     return DailyEnergy(**energy_dict)
 
 
+@api_router.post("/energy/daily/activations-media")
+async def update_daily_energy_activations_media(
+    date: str = Form(...),
+    activations_video_url: Optional[str] = Form(None),
+    activations_image: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Update daily energy activations with image and/or video URL.
+    Only updates the activations_image_url and activations_video_url fields.
+    """
+    # Check if daily energy exists for this date
+    existing = await db.daily_energy.find_one({"date": date})
+    
+    if not existing:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No se encontró Energía del Día para la fecha {date}"
+        )
+    
+    update_fields = {}
+    
+    # Handle video URL
+    if activations_video_url:
+        update_fields["activations_video_url"] = activations_video_url
+    
+    # Handle image upload
+    if activations_image:
+        # Validate image type
+        allowed_types = ["image/jpeg", "image/png"]
+        content_type = activations_image.content_type or ""
+        
+        if content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Tipo de archivo inválido. Solo se permiten imágenes JPEG/PNG. Recibido: {content_type}"
+            )
+        
+        # Read file content
+        max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))
+        file_data = bytearray()
+        
+        while chunk := await activations_image.read(1024 * 1024):  # Read 1MB at a time
+            file_data.extend(chunk)
+            if len(file_data) > max_upload_bytes:
+                raise HTTPException(status_code=413, detail="Imagen excede el límite de tamaño (10MB)")
+        
+        if not file_data:
+            raise HTTPException(status_code=400, detail="Imagen vacía")
+        
+        # Upload to Emergent Object Store
+        object_store_base_url = os.getenv("EMERGENT_OBJECT_STORE_BASE_URL", "https://api.emergent.sh").rstrip("/")
+        emergent_jwt = os.getenv("EMERGENT_JWT", "")
+        emergent_project_id = os.getenv("EMERGENT_PROJECT_ID", "")
+        
+        if not all([emergent_jwt, emergent_project_id]):
+            raise HTTPException(
+                status_code=500,
+                detail="Object Store no configurado. Configure EMERGENT_JWT y EMERGENT_PROJECT_ID en .env"
+            )
+        
+        # Generate unique key
+        extension = Path(activations_image.filename or "upload").suffix.lower()
+        object_key = f"activations/{date}/{uuid.uuid4().hex}{extension}"
+        
+        object_store_url = f"{object_store_base_url}/assets/files"
+        
+        form_data = {
+            "key": object_key,
+            "name": activations_image.filename or "activations_image",
+            "description": f"Activations image for {date}",
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {emergent_jwt}",
+            "X-Project-ID": emergent_project_id,
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=120) as client:
+                response = await client.post(
+                    object_store_url,
+                    headers=headers,
+                    files={"file": (activations_image.filename, bytes(file_data), content_type)},
+                    data=form_data,
+                )
+        except httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"Object Store no disponible: {str(exc)}")
+        
+        if response.status_code not in (200, 201):
+            raise HTTPException(
+                status_code=502,
+                detail=f"Error al subir imagen al Object Store (código {response.status_code})"
+            )
+        
+        stored = response.json()
+        if not stored.get("url"):
+            raise HTTPException(status_code=502, detail="Object Store no devolvió una URL")
+        
+        update_fields["activations_image_url"] = stored["url"]
+    
+    # Update the daily energy record
+    if update_fields:
+        await db.daily_energy.update_one(
+            {"date": date},
+            {"$set": update_fields}
+        )
+    
+    # Fetch updated record
+    updated = await db.daily_energy.find_one({"date": date})
+    
+    return {
+        "message": "Activaciones actualizadas correctamente",
+        "activations_image_url": updated.get("activations_image_url"),
+        "activations_video_url": updated.get("activations_video_url")
+    }
+
+
 
 # ============= ADMIN ANALYTICS ENDPOINTS =============
 

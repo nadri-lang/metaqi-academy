@@ -218,13 +218,13 @@ export default function NewbornVocationDetailScreen() {
         <View style={styles.emptyState}>
           <MaterialCommunityIcons name="star-outline" size={64} color={Colors.textLight} />
           <Text style={styles.emptyTitle}>
-            {language === 'es' ? 'Sin información disponible' : 'No information available'}
+            {t('common.no_info_available')}
           </Text>
           <Text style={styles.emptyText}>
-            {language === 'es' ? 'Vuelve más tarde' : 'Come back later'}
+            {t('common.come_back_later')}
           </Text>
           <Text style={styles.debugText}>
-            {language === 'es' ? `Fecha actual: ${clientToday}` : `Current date: ${clientToday}`}
+            {t('common.current_date').replace('{date}', clientToday)}
           </Text>
         </View>
       </View>
@@ -250,10 +250,7 @@ export default function NewbornVocationDetailScreen() {
             {/* SIMPLIFIED HEADER - Title and date on separate full-width row */}
             <View style={styles.simplifiedHeader}>
               <Text style={styles.simplifiedTitle}>
-                {language === 'es' 
-                  ? `VOCACIÓN DEL BEBÉ NACIDO HOY - ${data.date.split('-').reverse().join('/')}`
-                  : `VOCATION OF BABY BORN TODAY - ${data.date.split('-').reverse().join('/')}`
-                }
+                {t('newborn_vocation.header_title').replace('{date}', data.date.split('-').reverse().join('/'))}
               </Text>
               
               {/* Row with badge and favorite button */}
@@ -261,7 +258,7 @@ export default function NewbornVocationDetailScreen() {
                 {isToday && (
                   <View style={styles.todayBadge}>
                     <Text style={styles.todayBadgeText}>
-                      {language === 'es' ? 'HOY' : 'TODAY'}
+                      {t('common.today')}
                     </Text>
                   </View>
                 )}
@@ -290,7 +287,7 @@ export default function NewbornVocationDetailScreen() {
                     color={canGoPrevious ? Colors.white : Colors.white + '40'} 
                   />
                   <Text style={[styles.navButtonText, !canGoPrevious && styles.navButtonTextDisabled]}>
-                    {language === 'es' ? 'Día Anterior' : 'Previous Day'}
+                    {t('common.previous_day')}
                   </Text>
                 </TouchableOpacity>
 
@@ -302,7 +299,7 @@ export default function NewbornVocationDetailScreen() {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.navButtonText, !canGoNext && styles.navButtonTextDisabled]}>
-                    {language === 'es' ? 'Día Siguiente' : 'Next Day'}
+                    {t('common.next_day')}
                   </Text>
                   <MaterialCommunityIcons 
                     name="chevron-right" 
@@ -366,10 +363,7 @@ export default function NewbornVocationDetailScreen() {
         {availableDates.length > 0 && (
           <View style={styles.datesIndicator}>
             <Text style={styles.datesIndicatorText}>
-              {language === 'es' 
-                ? `${availableDates.length} día${availableDates.length > 1 ? 's' : ''} disponible${availableDates.length > 1 ? 's' : ''}`
-                : `${availableDates.length} day${availableDates.length > 1 ? 's' : ''} available`
-              }
+              {t(availableDates.length === 1 ? 'newborn_vocation.dates_available_one' : 'newborn_vocation.dates_available_other').replace('{count}', String(availableDates.length))}
             </Text>
             <View style={styles.dotsContainer}>
               {availableDates.sort().map((date, idx) => (

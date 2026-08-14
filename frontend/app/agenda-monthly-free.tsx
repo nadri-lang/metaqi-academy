@@ -28,7 +28,7 @@ interface AgendaMonth {
 
 export default function AgendaMonthlyFreeScreen() {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [data, setData] = useState<AgendaMonth | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -127,19 +127,17 @@ export default function AgendaMonthlyFreeScreen() {
             <View style={styles.ctaCard}>
               <MaterialCommunityIcons name="shimmer" size={32} color={Colors.accent} />
               <Text style={styles.ctaTitle}>
-                {language === 'es' ? '¿Quieres la Agenda Completa 2027?' : 'Want the Complete 2027 Agenda?'}
+                {t('agendas.want_complete_agenda')}
               </Text>
               <Text style={styles.ctaDescription}>
-                {language === 'es' 
-                  ? 'Accede a todos los meses del año con fechas y horarios específicos para tu boda perfecta.'
-                  : 'Access all months of the year with specific dates and times for your perfect wedding.'}
+                {t('agendas.complete_agenda_desc')}
               </Text>
               <TouchableOpacity
                 style={styles.ctaButton}
                 onPress={handleGoToFullAgenda}
               >
                 <Text style={styles.ctaButtonText}>
-                  {language === 'es' ? 'Ver Agenda 2027' : 'View 2027 Agenda'}
+                  {t('agendas.view_agenda_2027')}
                 </Text>
                 <MaterialCommunityIcons name="arrow-right" size={20} color={Colors.primary} />
               </TouchableOpacity>
@@ -149,12 +147,10 @@ export default function AgendaMonthlyFreeScreen() {
           <View style={styles.noDataCard}>
             <MaterialCommunityIcons name="information-outline" size={48} color={Colors.textSecondary} />
             <Text style={styles.noDataTitle}>
-              {language === 'es' ? 'Sin contenido disponible' : 'No content available'}
+              {t('agendas.no_content_available')}
             </Text>
             <Text style={styles.noDataDescription}>
-              {language === 'es' 
-                ? 'El contenido gratuito se actualizará próximamente.'
-                : 'Free content will be updated soon.'}
+              {t('agendas.free_content_desc')}
             </Text>
           </View>
         )}

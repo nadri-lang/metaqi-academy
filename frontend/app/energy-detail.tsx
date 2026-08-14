@@ -8,6 +8,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   Modal,
+  Image,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -39,6 +41,8 @@ interface DailyEnergy {
   activations_fr?: string;
   activations_de?: string;
   activations_ro?: string;
+  activations_image_url?: string;
+  activations_video_url?: string;
 }
 
 type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | 'activations' | null;
@@ -57,7 +61,7 @@ export default function EnergyDetailScreen() {
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/daily');
+      const response = await api.get('/energy/daily', { params: { lang: language } });
       setData(response.data);
     } catch (error) {
       console.error('Error loading daily energy:', error);
@@ -95,7 +99,7 @@ export default function EnergyDetailScreen() {
   const buttons = [
     { id: 'hours', label: t('daily.favorable_hours'), icon: 'clock-outline', color: Colors.accent },
     { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
-    { id: 'activations', label: language === 'es' ? 'ACTIVACIONES' : 'ACTIVATIONS', icon: 'star-outline', color: Colors.accent },
+    { id: 'activations', label: t('common.activations'), icon: 'star-outline', color: Colors.accent },
     { id: 'activities', label: t('daily.activities'), icon: 'check-circle-outline', color: Colors.jade },
     { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle-outline', color: Colors.error },
     { id: 'bazi', label: t('daily.bazi'), icon: 'yin-yang', color: Colors.accent },
@@ -123,7 +127,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -145,7 +149,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -166,15 +170,46 @@ export default function EnergyDetailScreen() {
             <View style={styles.modalHeader}>
               <MaterialCommunityIcons name="star-outline" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>
-                {language === 'es' ? 'ACTIVACIONES' : 'ACTIVATIONS'}
+                {t('common.activations')}
               </Text>
             </View>
+            
             {getActivationsText() ? (
               <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
+            )}
+
+            {/* Activations Image */}
+            {data.activations_image_url && (
+              <View style={styles.activationsImageContainer}>
+                <Image 
+                  source={{ uri: data.activations_image_url }} 
+                  style={styles.activationsImage}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+
+            {/* Activations Video Link */}
+            {data.activations_video_url && (
+              <TouchableOpacity
+                style={styles.videoLinkButton}
+                onPress={() => {
+                  if (data.activations_video_url) {
+                    Linking.openURL(data.activations_video_url).catch(err => 
+                      console.error('Error opening video URL:', err)
+                    );
+                  }
+                }}
+              >
+                <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
+                <Text style={styles.videoLinkText}>
+                  {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : 'Vizionează Video'}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         );
@@ -195,7 +230,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -217,7 +252,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -235,7 +270,7 @@ export default function EnergyDetailScreen() {
               <Text style={styles.modalDescription}>{data.bazi_relationships}</Text>
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -258,7 +293,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -281,7 +316,7 @@ export default function EnergyDetailScreen() {
               ))
             ) : (
               <Text style={styles.modalEmptyText}>
-                {language === 'es' ? 'Sin información disponible' : 'No information available'}
+                {t('common.no_info_available')}
               </Text>
             )}
           </View>
@@ -378,7 +413,7 @@ export default function EnergyDetailScreen() {
 
         {/* 2-Column Grid of Buttons */}
         <Text style={styles.sectionLabel}>
-          {language === 'es' ? 'Información del Día' : 'Day Information'}
+          {t('common.day_information')}
         </Text>
         <View style={styles.buttonsGrid}>
           {buttons.map((btn) => (
@@ -651,5 +686,32 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  activationsImageContainer: {
+    marginTop: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: Colors.background,
+  },
+  activationsImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+  },
+  videoLinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.error,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  videoLinkText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
 });

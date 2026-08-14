@@ -40,7 +40,7 @@ export default function MonthEnergyDetailScreen() {
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/month');
+      const response = await api.get('/energy/month', { params: { lang: language } });
       // /energy/month devuelve una lista, tomar el primer elemento
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         setData(response.data[0]);

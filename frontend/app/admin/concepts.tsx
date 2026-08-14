@@ -40,7 +40,7 @@ export default function AdminConceptsScreen() {
 
   const loadConcepts = async () => {
     try {
-      const response = await api.get('/concepts');
+      const response = await api.get('/concepts', { params: { lang: 'es' } });
       setConcepts(response.data);
     } catch (error) {
       console.error('Error loading concepts:', error);

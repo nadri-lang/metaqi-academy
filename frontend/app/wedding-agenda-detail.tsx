@@ -30,7 +30,7 @@ interface AgendaMonth {
 
 export default function WeddingAgendaDetailScreen() {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [months, setMonths] = useState<AgendaMonth[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,7 +104,7 @@ export default function WeddingAgendaDetailScreen() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Colors.accent} />
             <Text style={styles.loadingText}>
-              {language === 'es' ? 'Cargando fechas favorables...' : 'Loading favorable dates...'}
+              {t('agendas.loading_dates')}
             </Text>
           </View>
         ) : (
@@ -115,9 +115,7 @@ export default function WeddingAgendaDetailScreen() {
                 <View style={styles.realDataBanner}>
                   <MaterialCommunityIcons name="check-circle" size={24} color={Colors.accent} />
                   <Text style={styles.realDataText}>
-                    {language === 'es' 
-                      ? `${months.length} ${months.length === 1 ? 'mes disponible' : 'meses disponibles'}` 
-                      : `${months.length} ${months.length === 1 ? 'month available' : 'months available'}`}
+                    {t(months.length === 1 ? 'agendas.months_available_one' : 'agendas.months_available_other').replace('{count}', String(months.length))}
                   </Text>
                 </View>
 
@@ -140,12 +138,10 @@ export default function WeddingAgendaDetailScreen() {
               <View style={styles.noDataCard}>
                 <MaterialCommunityIcons name="information-outline" size={48} color={Colors.textSecondary} />
                 <Text style={styles.noDataTitle}>
-                  {language === 'es' ? 'Sin fechas cargadas aún' : 'No dates loaded yet'}
+                  {t('agendas.no_dates_yet')}
                 </Text>
                 <Text style={styles.noDataDescription}>
-                  {language === 'es' 
-                    ? 'Las fechas favorables para bodas se actualizarán próximamente.'
-                    : 'Favorable wedding dates will be updated soon.'}
+                  {t('agendas.no_dates_desc')}
                 </Text>
               </View>
             )}

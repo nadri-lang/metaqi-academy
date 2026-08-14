@@ -193,7 +193,7 @@ export default function ProfileScreen() {
             >
               <MaterialCommunityIcons name="shopping" size={22} color={Colors.accent} />
               <Text style={styles.menuText}>
-                {language === 'es' ? 'Mis Compras' : 'My Purchases'}
+                {t('profile.my_purchases')}
               </Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>

@@ -58,7 +58,7 @@ export default function AdminServicesScreen() {
   const loadServices = async () => {
     try {
       // Cargar todos los servicios incluyendo inactivos para el admin
-      const response = await api.get('/services');
+      const response = await api.get('/services', { params: { lang: 'es' } });
       setServices(response.data);
     } catch (error) {
       console.error('Error loading services:', error);

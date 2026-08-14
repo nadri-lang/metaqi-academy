@@ -22,7 +22,7 @@ import api from '@/src/services/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -30,8 +30,8 @@ export default function ForgotPasswordScreen() {
   const handleSubmit = async () => {
     if (!email.trim()) {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'Por favor ingresa tu correo electrónico' : 'Please enter your email'
+        t('common.error'),
+        t('forgot_password.enter_email')
       );
       return;
     }
@@ -40,8 +40,8 @@ export default function ForgotPasswordScreen() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' ? 'Por favor ingresa un correo electrónico válido' : 'Please enter a valid email'
+        t('common.error'),
+        t('forgot_password.enter_valid_email')
       );
       return;
     }
@@ -53,10 +53,8 @@ export default function ForgotPasswordScreen() {
     } catch (error) {
       console.error('Error requesting password reset:', error);
       Alert.alert(
-        language === 'es' ? 'Error' : 'Error',
-        language === 'es' 
-          ? 'No se pudo enviar el correo. Por favor intenta nuevamente.' 
-          : 'Could not send email. Please try again.'
+        t('common.error'),
+        t('forgot_password.error_sending')
       );
     } finally {
       setLoading(false);
@@ -78,7 +76,7 @@ export default function ForgotPasswordScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>
-              {language === 'es' ? '¿Olvidaste tu contraseña?' : 'Forgot Password?'}
+              {t('forgot_password.title')}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -93,20 +91,18 @@ export default function ForgotPasswordScreen() {
             </View>
 
             <Text style={styles.title}>
-              {language === 'es' ? 'Restablecer Contraseña' : 'Reset Password'}
+              {t('forgot_password.reset_title')}
             </Text>
 
             <Text style={styles.description}>
-              {language === 'es'
-                ? 'Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.'
-                : 'Enter your email and we will send you a link to reset your password.'}
+              {t('forgot_password.description')}
             </Text>
 
             <View style={styles.inputContainer}>
               <MaterialCommunityIcons name="email-outline" size={20} color={Colors.textLight} />
               <TextInput
                 style={styles.input}
-                placeholder={language === 'es' ? 'Correo electrónico' : 'Email'}
+                placeholder={t('forgot_password.email_placeholder')}
                 placeholderTextColor={Colors.textLight}
                 value={email}
                 onChangeText={setEmail}
@@ -128,7 +124,7 @@ export default function ForgotPasswordScreen() {
                 <>
                   <MaterialCommunityIcons name="send" size={20} color={Colors.primary} />
                   <Text style={styles.submitButtonText}>
-                    {language === 'es' ? 'Enviar enlace' : 'Send link'}
+                    {t('forgot_password.send_link')}
                   </Text>
                 </>
               )}
@@ -139,7 +135,7 @@ export default function ForgotPasswordScreen() {
               onPress={() => router.back()}
             >
               <Text style={styles.backToLoginText}>
-                {language === 'es' ? 'Volver al inicio de sesión' : 'Back to login'}
+                {t('forgot_password.back_to_login')}
               </Text>
             </TouchableOpacity>
           </>
@@ -150,21 +146,17 @@ export default function ForgotPasswordScreen() {
             </View>
 
             <Text style={styles.successTitle}>
-              {language === 'es' ? '¡Correo enviado!' : 'Email sent!'}
+              {t('forgot_password.email_sent')}
             </Text>
 
             <Text style={styles.successDescription}>
-              {language === 'es'
-                ? `Si existe una cuenta asociada a ${email}, recibirás un correo con instrucciones para restablecer tu contraseña.`
-                : `If an account exists for ${email}, you will receive an email with instructions to reset your password.`}
+              {t('forgot_password.email_sent_desc').replace('{email}', email)}
             </Text>
 
             <View style={styles.infoBox}>
               <MaterialCommunityIcons name="information" size={20} color={Colors.accent} />
               <Text style={styles.infoText}>
-                {language === 'es'
-                  ? 'El enlace expirará en 1 hora. Revisa tu carpeta de spam si no ves el correo.'
-                  : 'The link will expire in 1 hour. Check your spam folder if you don\'t see the email.'}
+                {t('forgot_password.link_expiry_notice')}
               </Text>
             </View>
 
@@ -173,7 +165,7 @@ export default function ForgotPasswordScreen() {
               onPress={() => router.push('/(auth)/login')}
             >
               <Text style={styles.doneButtonText}>
-                {language === 'es' ? 'Entendido' : 'Got it'}
+                {t('forgot_password.got_it')}
               </Text>
             </TouchableOpacity>
 
@@ -182,7 +174,7 @@ export default function ForgotPasswordScreen() {
               onPress={() => setEmailSent(false)}
             >
               <Text style={styles.resendButtonText}>
-                {language === 'es' ? 'Enviar de nuevo' : 'Send again'}
+                {t('forgot_password.send_again')}
               </Text>
             </TouchableOpacity>
           </View>
