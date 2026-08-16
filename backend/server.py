@@ -52,6 +52,8 @@ from auth import (
 from translation_service import translate_dict, translate_list_of_dicts
 from email_service import email_service
 from analytics_service import AnalyticsService
+from storage_service import init_storage, put_object
+from concurrent.futures import ThreadPoolExecutor
 import secrets
 import httpx
 
@@ -87,6 +89,15 @@ async def create_indexes():
         await db.analytics.create_index("type", unique=True)
         
         logger.info("MongoDB indexes created successfully")
+        
+        # Initialize Emergent Object Storage
+        try:
+            init_storage()
+            logger.info("Emergent Object Storage initialized successfully")
+        except Exception as storage_error:
+            logger.error(f"Failed to initialize Emergent Object Storage: {storage_error}")
+            logger.warning("Image uploads will not work until storage is properly configured")
+        
     except Exception as e:
         logger.warning(f"Error creating indexes (may already exist): {e}")
 
@@ -553,6 +564,7 @@ async def update_daily_energy_activations_media(
     """
     Update daily energy activations with image and/or video URL.
     Only updates the activations_image_url and activations_video_url fields.
+    Uses Emergent Object Storage for image uploads.
     """
     # Check if daily energy exists for this date
     existing = await db.daily_energy.find_one({"date": date})
@@ -582,7 +594,7 @@ async def update_daily_energy_activations_media(
             )
         
         # Read file content
-        max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))
+        max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))  # 10MB
         file_data = bytearray()
         
         while chunk := await activations_image.read(1024 * 1024):  # Read 1MB at a time
@@ -593,56 +605,34 @@ async def update_daily_energy_activations_media(
         if not file_data:
             raise HTTPException(status_code=400, detail="Imagen vacía")
         
-        # Upload to Emergent Object Store
-        object_store_base_url = os.getenv("EMERGENT_OBJECT_STORE_BASE_URL", "https://api.emergent.sh").rstrip("/")
-        emergent_jwt = os.getenv("EMERGENT_JWT", "")
-        emergent_project_id = os.getenv("EMERGENT_PROJECT_ID", "")
-        
-        if not all([emergent_jwt, emergent_project_id]):
-            raise HTTPException(
-                status_code=500,
-                detail="Object Store no configurado. Configure EMERGENT_JWT y EMERGENT_PROJECT_ID en .env"
-            )
-        
-        # Generate unique key
+        # Generate storage path
         extension = Path(activations_image.filename or "upload").suffix.lower()
-        object_key = f"activations/{date}/{uuid.uuid4().hex}{extension}"
-        
-        object_store_url = f"{object_store_base_url}/assets/files"
-        
-        form_data = {
-            "key": object_key,
-            "name": activations_image.filename or "activations_image",
-            "description": f"Activations image for {date}",
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {emergent_jwt}",
-            "X-Project-ID": emergent_project_id,
-        }
+        if not extension:
+            extension = ".jpg"
+        storage_path = f"metaqi-academy/activations/{date}/{uuid.uuid4().hex}{extension}"
         
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
-                response = await client.post(
-                    object_store_url,
-                    headers=headers,
-                    files={"file": (activations_image.filename, bytes(file_data), content_type)},
-                    data=form_data,
+            # Upload to Emergent Object Storage (sync call, run in thread pool)
+            import asyncio
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as executor:
+                result = await loop.run_in_executor(
+                    executor,
+                    put_object,
+                    storage_path,
+                    bytes(file_data),
+                    content_type
                 )
-        except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Object Store no disponible: {str(exc)}")
-        
-        if response.status_code not in (200, 201):
+            
+            # Store the path - we'll serve it through our own endpoint
+            update_fields["activations_image_url"] = f"/api/storage/objects/{storage_path}"
+            
+        except Exception as e:
+            logger.error(f"Storage upload failed: {e}")
             raise HTTPException(
                 status_code=502,
-                detail=f"Error al subir imagen al Object Store (código {response.status_code})"
+                detail=f"Error al subir imagen: {str(e)}"
             )
-        
-        stored = response.json()
-        if not stored.get("url"):
-            raise HTTPException(status_code=502, detail="Object Store no devolvió una URL")
-        
-        update_fields["activations_image_url"] = stored["url"]
     
     # Update the daily energy record
     if update_fields:
@@ -659,6 +649,33 @@ async def update_daily_energy_activations_media(
         "activations_image_url": updated.get("activations_image_url"),
         "activations_video_url": updated.get("activations_video_url")
     }
+
+
+@api_router.get("/storage/objects/{path:path}")
+async def get_storage_object(path: str):
+    """
+    Serve files from Emergent Object Storage.
+    This endpoint acts as a proxy to retrieve stored files.
+    """
+    from storage_service import get_object
+    from fastapi.responses import Response
+    
+    try:
+        # Get file from storage (sync call, run in thread pool)
+        import asyncio
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            content, content_type = await loop.run_in_executor(
+                executor,
+                get_object,
+                path
+            )
+        
+        return Response(content=content, media_type=content_type)
+    
+    except Exception as e:
+        logger.error(f"Failed to retrieve storage object {path}: {e}")
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
 
 
 
