@@ -19,6 +19,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
+import { formatDateInput, isValidISODate, todayISO, describeDate } from '@/src/utils/dateInput';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface VocationData {
   id: string;
@@ -35,13 +37,7 @@ export default function AdminNewbornVocationScreen() {
   const router = useRouter();
   const { user } = useAuth();
   
-  const getClientDate = (): string => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  const getClientDate = todayISO;
 
   const [date, setDate] = useState(getClientDate());
   const [title, setTitle] = useState('');
@@ -74,27 +70,10 @@ export default function AdminNewbornVocationScreen() {
     }
   };
 
-  const validateDateFormat = (dateStr: string): boolean => {
-    // YYYY-MM-DD format with mandatory leading zeros
-    const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-    return regex.test(dateStr);
-  };
+  const validateDateFormat = isValidISODate;
 
   const handleDateChange = (text: string) => {
-    // Auto-format: allow only digits and hyphens
-    let formatted = text.replace(/[^\d-]/g, '');
-    
-    // Auto-add hyphens
-    if (formatted.length === 4 && !formatted.includes('-')) {
-      formatted = formatted + '-';
-    } else if (formatted.length === 7 && formatted.split('-').length === 2) {
-      formatted = formatted + '-';
-    }
-    
-    // Limit length to YYYY-MM-DD (10 chars)
-    if (formatted.length <= 10) {
-      setDate(formatted);
-    }
+    setDate(formatDateInput(text));
   };
 
   const handleEditVocation = (vocation: VocationData) => {
@@ -130,42 +109,28 @@ export default function AdminNewbornVocationScreen() {
     setChallenges('');
   };
 
-  const handleDeleteVocation = (vocation: VocationData) => {
-    const doDelete = async () => {
-      try {
-        await api.delete(`/admin/newborn-vocation/${vocation.date}`);
-        Alert.alert('Éxito', 'Vocación eliminada');
-        loadAllScheduled();
-      } catch (error: any) {
-        Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
-      }
-    };
-
-    // Alert.alert's multi-button form has no web implementation (RN Web only supports
-    // a single-button alert), so the confirm dialog never appears and Eliminar's
-    // onPress never fires on web — use window.confirm there instead.
-    if (Platform.OS === 'web') {
-      if (window.confirm(`¿Eliminar la vocación del ${vocation.date}?`)) {
-        doDelete();
-      }
-      return;
-    }
-
-    Alert.alert(
+  const handleDeleteVocation = async (vocation: VocationData) => {
+    const confirmed = await confirmAsync(
       'Confirmar eliminación',
-      `¿Eliminar la vocación del ${vocation.date}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: doDelete },
-      ]
+      `¿Eliminar la vocación del ${describeDate(vocation.date)}?`,
+      'Eliminar',
     );
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/newborn-vocation/${vocation.date}`);
+      Alert.alert('Éxito', 'Vocación eliminada');
+      loadAllScheduled();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+    }
   };
 
   const handleSave = async () => {
     if (!validateDateFormat(date)) {
       Alert.alert(
-        'Formato de fecha inválido',
-        'Usa el formato YYYY-MM-DD con ceros delante.\nEjemplo: 2026-08-05'
+        'Fecha inválida',
+        'Escribe una fecha real en formato YYYY-MM-DD.\nEjemplo: 2026-08-29'
       );
       return;
     }
@@ -186,8 +151,38 @@ export default function AdminNewbornVocationScreen() {
         challenges: challenges.split('\n').filter(c => c.trim()),
       };
 
-      await api.post('/admin/newborn-vocation', payload);
-      Alert.alert('Éxito', 'Vocación guardada correctamente');
+      // Tell the server whether this is meant to land on a new date or to
+      // rewrite the one being edited. Saving a *new* entry onto a date that
+      // already has content is answered with a 409 instead of silently
+      // replacing it - a mistyped date used to overwrite another day's work
+      // and report success.
+      const isRewritingSameDate = editingDate === date;
+
+      const save = (intent: 'create' | 'update') =>
+        api.post('/admin/newborn-vocation', payload, { params: { intent } });
+
+      try {
+        await save(isRewritingSameDate ? 'update' : 'create');
+      } catch (error: any) {
+        if (error.response?.status !== 409) throw error;
+
+        const overwrite = await confirmAsync(
+          'Esa fecha ya tiene contenido',
+          `Ya existe una entrada para el ${describeDate(date)}:\n\n` +
+            `«${error.response.data?.detail?.existing_title ?? ''}»\n\n` +
+            'Si continúas, ese contenido se reemplazará por el que acabas de escribir.',
+          'Reemplazar',
+        );
+        if (!overwrite) {
+          setLoading(false);
+          return;
+        }
+        await save('update');
+      }
+
+      // Name the date back to the admin: if it is not the day they meant, they
+      // find out now instead of days later when the entry fails to appear.
+      Alert.alert('Éxito', `Vocación guardada para el ${describeDate(date)}`);
       handleCancelEdit();
       loadAllScheduled();
     } catch (error: any) {
@@ -198,7 +193,12 @@ export default function AdminNewbornVocationScreen() {
         // than assume it saved.
         Alert.alert('Error de conexión', 'No se pudo conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
       } else {
-        Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
+        // Some endpoints answer with a structured detail; never render "[object Object]".
+        const detail = error.response?.data?.detail;
+        Alert.alert(
+          'Error',
+          (typeof detail === 'string' ? detail : detail?.message) || 'Error al guardar',
+        );
       }
     } finally {
       setLoading(false);

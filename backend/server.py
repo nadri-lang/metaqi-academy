@@ -448,18 +448,32 @@ async def get_current_user_info(authorization: str = Header(None)):
 
 # ============= DAILY ENERGY ENDPOINTS =============
 
+def _resolve_today(client_date: Optional[str] = None) -> str:
+    """The client's local date when it sends a valid one, else the server's UTC date."""
+    if client_date:
+        try:
+            datetime.strptime(client_date, "%Y-%m-%d")
+            return client_date
+        except ValueError:
+            pass
+    return datetime.utcnow().strftime("%Y-%m-%d")
+
+
 @api_router.get("/energy/daily", response_model=DailyEnergy)
-async def get_daily_energy(date: Optional[str] = None, lang: str = "es"):
+async def get_daily_energy(
+    date: Optional[str] = None,
+    lang: str = "es",
+    client_date: Optional[str] = None
+):
     """
-    Get daily energy for today only.
-    Auto-cleanup: Old daily energy records are automatically deleted.
-    User can ONLY see current day's content - no history.
+    Get daily energy for a single date (today by default).
+
+    "Today" follows the client's local date when it sends one, so a reader in
+    CEST is not shown yesterday's entry until UTC catches up.
+    Reads NEVER delete content - use /admin/cleanup/old-daily-energy for that.
     """
     if not date:
-        date = datetime.utcnow().strftime("%Y-%m-%d")
-    
-    # Auto-cleanup old records before fetching
-    await auto_cleanup_old_daily_energy()
+        date = _resolve_today(client_date)
     
     energy = await db.daily_energy.find_one({"date": date})
     if not energy:
@@ -706,28 +720,33 @@ async def admin_track_visit(
 
 @api_router.delete("/admin/cleanup/old-daily-energy")
 async def cleanup_old_daily_energy(
+    confirm: bool = False,
+    keep_days: int = 365,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Delete all daily energy records with dates older than today (manual trigger)"""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    """
+    Delete daily energy records older than `keep_days` (manual trigger).
+
+    Irreversible, so it requires an explicit confirm=true and never touches
+    anything inside the retention window.
+    """
+    if not confirm:
+        raise HTTPException(
+            status_code=400,
+            detail="Operacion destructiva: repita la llamada con confirm=true para borrar definitivamente."
+        )
+    if keep_days < 1:
+        raise HTTPException(status_code=400, detail="keep_days debe ser al menos 1")
     
-    result = await db.daily_energy.delete_many({"date": {"$lt": today}})
+    cutoff = (datetime.utcnow() - timedelta(days=keep_days)).strftime("%Y-%m-%d")
+    result = await db.daily_energy.delete_many({"date": {"$lt": cutoff}})
+    logger.info(f"Admin cleanup: deleted {result.deleted_count} daily energy records before {cutoff}")
     
     return {
-        "message": f"Deleted {result.deleted_count} old daily energy records",
-        "deleted_count": result.deleted_count
+        "message": f"Deleted {result.deleted_count} daily energy records older than {cutoff}",
+        "deleted_count": result.deleted_count,
+        "cutoff_date": cutoff
     }
-
-async def auto_cleanup_old_daily_energy():
-    """
-    Automatic cleanup: Delete daily energy records from yesterday and before.
-    Called at midnight (00:00) - user only sees current day's content.
-    No history is kept for Daily Energy.
-    """
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    result = await db.daily_energy.delete_many({"date": {"$lt": today}})
-    if result.deleted_count > 0:
-        logger.info(f"Auto-cleanup: Deleted {result.deleted_count} old daily energy records")
 
 @api_router.delete("/admin/cleanup/old-month-energy")
 async def cleanup_old_month_energy(
@@ -1714,16 +1733,35 @@ async def get_all_newborn_vocations(
 @api_router.post("/admin/newborn-vocation", response_model=NewbornVocation)
 async def create_newborn_vocation(
     vocation_data: NewbornVocationCreate,
+    intent: Optional[str] = None,
     current_user: dict = Depends(get_current_admin_user)
 ):
     """
     Admin can create/update vocations for any date (including future dates for scheduling).
     However, users will only see today + 2 previous days.
+
+    `intent=create` means the caller believes this date is empty. If it is not,
+    the write is refused with 409 rather than replacing whatever is there - a
+    mistyped date must never silently destroy another day's entry. Callers that
+    send no intent (older installed builds) keep the previous upsert behaviour.
     """
     vocation_dict = vocation_data.model_dump()
     
     # Check if already exists for this date
     existing = await db.newborn_vocation.find_one({"date": vocation_data.date})
+
+    if existing and intent == "create":
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": (
+                    f"Ya existe una entrada para el {vocation_data.date}: "
+                    f"«{existing.get('title', '')}». Confirma que quieres reemplazarla."
+                ),
+                "date": vocation_data.date,
+                "existing_title": existing.get("title", ""),
+            },
+        )
     
     if existing:
         # Update existing entry
@@ -2248,56 +2286,28 @@ async def create_user_content(
         if not file_data:
             raise HTTPException(status_code=400, detail="Archivo vacío")
         
-        # Upload to Emergent Object Store
-        object_store_base_url = os.getenv("EMERGENT_OBJECT_STORE_BASE_URL", "").rstrip("/")
-        emergent_jwt = os.getenv("EMERGENT_JWT", "")
-        emergent_project_id = os.getenv("EMERGENT_PROJECT_ID", "")
-        
-        if not all([object_store_base_url, emergent_jwt, emergent_project_id]):
-            raise HTTPException(
-                status_code=500, 
-                detail="Object Store no configurado. Configure EMERGENT_OBJECT_STORE_BASE_URL, EMERGENT_JWT y EMERGENT_PROJECT_ID"
-            )
-        
-        # Generate unique key
+        # Upload to Emergent Object Storage (managed integration, same path as
+        # the daily-energy media upload - no per-app credentials to configure)
         extension = Path(file.filename or "upload").suffix.lower()
-        object_key = f"user-content/{uuid.uuid4().hex}{extension}"
-        
-        object_store_url = f"{object_store_base_url}/assets/files"
-        
-        form_data = {
-            "key": object_key,
-            "name": file.filename or "upload",
-            "description": f"User content: {title}",
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {emergent_jwt}",
-            "X-Project-ID": emergent_project_id,
-        }
+        storage_path = f"metaqi-academy/user-content/{uuid.uuid4().hex}{extension}"
         
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
-                response = await client.post(
-                    object_store_url,
-                    headers=headers,
-                    files={"file": (file.filename, bytes(file_data), content_type)},
-                    data=form_data,
+            import asyncio
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as executor:
+                await loop.run_in_executor(
+                    executor,
+                    put_object,
+                    storage_path,
+                    bytes(file_data),
+                    content_type
                 )
-        except httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"Object Store no disponible: {str(exc)}")
+        except Exception as exc:
+            logger.error(f"Storage upload failed for user content: {exc}")
+            raise HTTPException(status_code=502, detail=f"Error al subir archivo: {str(exc)}")
         
-        if response.status_code not in (200, 201):
-            raise HTTPException(
-                status_code=502, 
-                detail=f"Error al subir archivo al Object Store (código {response.status_code})"
-            )
-        
-        stored = response.json()
-        if not stored.get("url"):
-            raise HTTPException(status_code=502, detail="Object Store no devolvió una URL")
-        
-        final_url = stored["url"]
+        # Served back through our own endpoint
+        final_url = f"/api/storage/objects/{storage_path}"
     
     # If neither file nor URL provided, error
     if not final_url:

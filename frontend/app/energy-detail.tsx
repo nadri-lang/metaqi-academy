@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
+import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 
 interface DailyEnergy {
   id: string;
@@ -186,7 +187,7 @@ export default function EnergyDetailScreen() {
             {data.activations_image_url && (
               <View style={styles.activationsImageContainer}>
                 <Image 
-                  source={{ uri: data.activations_image_url }} 
+                  source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }} 
                   style={styles.activationsImage}
                   resizeMode="cover"
                 />

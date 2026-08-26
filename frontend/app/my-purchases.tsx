@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 
 interface Purchase {
   id: string;
@@ -121,7 +122,8 @@ export default function MyPurchasesScreen() {
   };
 
   const handleOpenLink = (url: string) => {
-    Linking.openURL(url).catch(() => {
+    // Stored files come back as backend-relative paths; Linking needs absolute
+    Linking.openURL(toAbsoluteMediaUrl(url) || url).catch(() => {
       Alert.alert(
         t('common.error'),
         t('purchases.could_not_open_link')

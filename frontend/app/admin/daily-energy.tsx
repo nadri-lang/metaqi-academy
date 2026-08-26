@@ -21,11 +21,15 @@ import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
+import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
+import { formatDateInput, isValidISODate, todayISO, describeDate } from '@/src/utils/dateInput';
 
 export default function AdminDailyEnergyScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  // Local date, not toISOString() - that is UTC, so for an admin at UTC+2 the
+  // form defaulted to yesterday every evening after 22:00.
+  const [date, setDate] = useState(todayISO());
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [animal, setAnimal] = useState('');
@@ -45,7 +49,8 @@ export default function AdminDailyEnergyScreen() {
   const [existing, setExisting] = useState<any>(null);
 
   useEffect(() => {
-    loadExisting();
+    // Skip the half-typed values the field passes through while the admin edits.
+    if (isValidISODate(date)) loadExisting();
   }, [date]);
 
   const loadExisting = async () => {
@@ -159,6 +164,16 @@ export default function AdminDailyEnergyScreen() {
   };
 
   const handleSave = async () => {
+    // The date decides which day this content lands on, and a wrong one is
+    // invisible afterwards - check it before anything is sent.
+    if (!isValidISODate(date)) {
+      Alert.alert(
+        'Fecha inválida',
+        'Escribe una fecha real en formato YYYY-MM-DD.\nEjemplo: 2026-08-29'
+      );
+      return;
+    }
+
     if (!title || !content) {
       Alert.alert('Error', 'Título y contenido son obligatorios');
       return;
@@ -182,7 +197,7 @@ export default function AdminDailyEnergyScreen() {
       };
 
       await api.post('/energy/daily', payload);
-      Alert.alert('Éxito', 'Energía del día guardada correctamente');
+      Alert.alert('Éxito', `Energía del día guardada para el ${describeDate(date)}`);
       loadExisting();
     } catch (error: any) {
       if (!error.response) {
@@ -234,9 +249,17 @@ export default function AdminDailyEnergyScreen() {
               testID="input-date"
               style={styles.input}
               value={date}
-              onChangeText={setDate}
+              onChangeText={(text) => setDate(formatDateInput(text))}
+              placeholder="2026-08-29"
+              keyboardType="numbers-and-punctuation"
+              maxLength={10}
               placeholderTextColor={Colors.textLight}
             />
+            {!isValidISODate(date) && (
+              <Text style={styles.helperTextError}>
+                Escribe una fecha real en formato YYYY-MM-DD
+              </Text>
+            )}
             {existing && (
               <Text style={styles.helperTextGreen}>
                 ✓ Ya existe contenido para esta fecha
@@ -417,7 +440,7 @@ export default function AdminDailyEnergyScreen() {
                 </View>
               ) : activationsImageUrl ? (
                 <View style={styles.imagePreviewContainer}>
-                  <Image source={{ uri: activationsImageUrl }} style={styles.imagePreview} />
+                  <Image source={{ uri: toAbsoluteMediaUrl(activationsImageUrl) }} style={styles.imagePreview} />
                   <Text style={styles.helperTextGreen}>✓ Imagen ya subida</Text>
                 </View>
               ) : null}
@@ -527,6 +550,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansMedium,
     fontSize: Typography.xs,
     color: Colors.jade,
+    marginTop: 4,
+  },
+  helperTextError: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.error,
     marginTop: 4,
   },
   saveButton: {

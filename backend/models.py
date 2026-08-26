@@ -1,8 +1,28 @@
 from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional, List, Dict, Any
-from datetime import datetime
+from datetime import date as date_cls, datetime
 from enum import Enum
 import re
+
+
+def validate_iso_date(value: str) -> str:
+    """
+    Accept only a real YYYY-MM-DD calendar date.
+
+    Content is keyed by this exact string, so anything else silently becomes
+    unreachable: '2026-08-5' never matches a lookup for '2026-08-05', and
+    '2026-02-31' passes a pattern check but is not a day that ever arrives.
+    """
+    if not re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$', value):
+        raise ValueError(
+            'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. '
+            'Ejemplo: 2026-08-05 (no 2026-08-5)'
+        )
+    try:
+        date_cls.fromisoformat(value)
+    except ValueError:
+        raise ValueError(f'La fecha {value} no existe en el calendario.')
+    return value
 
 class UserRole(str, Enum):
     ADMIN = "admin"
@@ -143,6 +163,10 @@ class DailyEnergyCreate(BaseModel):
     activations: Optional[str] = None  # Daily activations text
     activations_image_url: Optional[str] = None  # Image URL for activations
     activations_video_url: Optional[str] = None  # Video URL for activations
+
+    @validator('date')
+    def validate_date_format(cls, v):
+        return validate_iso_date(v)
 
 class MoonEnergy(BaseModel):
     id: str
@@ -513,13 +537,7 @@ class NewbornVocationCreate(BaseModel):
     
     @validator('date')
     def validate_date_format(cls, v):
-        """Validate date format is YYYY-MM-DD with leading zeros"""
-        if not re.match(r'^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$', v):
-            raise ValueError(
-                'Formato de fecha inválido. Usa YYYY-MM-DD con ceros delante. '
-                'Ejemplo: 2026-08-05 (no 2026-08-5)'
-            )
-        return v
+        return validate_iso_date(v)
 
 # Concept Cards (Home intro - What is BaZi, Qi Men, etc)
 class Concept(BaseModel):
