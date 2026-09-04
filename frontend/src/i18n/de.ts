@@ -151,6 +151,7 @@ export default {
     benefit_premium_desc: 'Zugriff auf exklusive Kalender und Kurse',
     faq: 'FAQ',
     contact: 'Kontakt',
+    privacy_policy: 'Datenschutzerklärung',
     premium_member: 'Premium-Mitglied',
     free_member: 'Kostenloses Mitglied',
     my_favorites: 'Meine Favoriten',
@@ -368,5 +369,13 @@ export default {
     subtitle: 'Finden Sie Antworten auf die häufigsten Fragen',
     questions_count_one: '{count} Frage',
     questions_count_other: '{count} Fragen',
+  },
+  ads: {
+    watch_button: 'Anzeige für zusätzlichen Zugriff ansehen',
+    granting: 'Zugriff wird aktiviert...',
+    unlocked_for_hours: 'Zusätzlicher Zugriff für 24 Stunden freigeschaltet',
+    activations_locked: 'Die heutigen Aktivierungen sind Abonnenteninhalte. Abonniere oder sieh dir eine Anzeige an, um sie für 24 Stunden freizuschalten.',
+    agenda_locked: 'Der Inhalt der Hochzeitsagenda dieses Monats ist Abonnenteninhalt. Abonniere oder sieh dir eine Anzeige an, um ihn für 24 Stunden freizuschalten.',
+    newborn_locked: 'Die Berufung des heute geborenen Babys ist Abonnenteninhalt. Abonniere oder sieh dir eine Anzeige an, um sie für 24 Stunden freizuschalten.',
   },
 };

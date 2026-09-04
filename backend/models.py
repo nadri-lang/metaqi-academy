@@ -60,6 +60,7 @@ class User(UserBase):
     id: str
     hashed_password: str
     has_active_subscription: bool = False
+    temp_access_until: Optional[datetime] = None  # rewarded-ad unlock, cleared once expired
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
@@ -69,6 +70,7 @@ class User(UserBase):
 class UserResponse(UserBase):
     id: str
     has_active_subscription: bool
+    temp_access_until: Optional[datetime] = None
     created_at: datetime
     last_login: Optional[datetime]
 
@@ -142,6 +144,7 @@ class DailyEnergy(BaseModel):
     activations_ro: Optional[str] = None
     activations_image_url: Optional[str] = None  # Image URL for activations (JPEG/PNG)
     activations_video_url: Optional[str] = None  # Video URL for activations (YouTube/Vimeo)
+    activations_locked: bool = False  # True when the caller has no premium/temp access - activations fields are blanked
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -524,6 +527,7 @@ class NewbornVocation(BaseModel):
     vocations: List[str] = []  # Spanish (default)
     challenges: List[str] = []  # Spanish (default)
     translations: Optional[Dict[str, Dict[str, Any]]] = {}  # {'en': {'title': '...', 'content': '...', 'talents': [...], ...}}
+    content_locked: bool = False  # True when the caller has no premium/temp access - content/talents/vocations are blanked
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class NewbornVocationCreate(BaseModel):
@@ -574,6 +578,7 @@ class AgendaMonth(BaseModel):
     events: List[Dict[str, Any]] = []  # List of events/dates with details
     order: int = 0
     is_free: bool = True  # True = gratis (HOME), False = pago (SERVICIOS)
+    content_locked: bool = False  # True when the free-tier caller has no subscription/temp access - content is blanked
 
 class AgendaMonthCreate(BaseModel):
     agenda_id: str

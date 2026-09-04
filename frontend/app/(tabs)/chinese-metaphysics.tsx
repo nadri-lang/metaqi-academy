@@ -62,7 +62,7 @@ export default function ChineseMetaphysicsScreen() {
   const loadConcepts = async () => {
     try {
       const response = await api.get('/concepts', { params: { lang: language } });
-      setConcepts(response.data);
+      setConcepts(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error loading concepts:', error);
     } finally {

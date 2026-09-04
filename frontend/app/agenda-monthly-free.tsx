@@ -16,6 +16,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+// TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
+// import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
 interface AgendaMonth {
   id: string;
@@ -24,6 +26,7 @@ interface AgendaMonth {
   year: number;
   title: string;
   content: string;
+  content_locked?: boolean;
 }
 
 export default function AgendaMonthlyFreeScreen() {
@@ -120,7 +123,15 @@ export default function AgendaMonthlyFreeScreen() {
 
             <View style={styles.contentCard}>
               <Text style={styles.contentTitle}>{data.title}</Text>
-              <Text style={styles.contentText}>{data.content}</Text>
+              {data.content_locked ? (
+                <View style={styles.lockedContainer}>
+                  <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
+                  <Text style={styles.lockedText}>{t('ads.agenda_locked')}</Text>
+                  {/* TEMP: <RewardedAccessButton onUnlocked={loadData} /> disabled for Expo Go testing */}
+                </View>
+              ) : (
+                <Text style={styles.contentText}>{data.content}</Text>
+              )}
             </View>
 
             {/* CTA para Agenda Completa 2027 */}
@@ -251,6 +262,18 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  lockedContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  lockedText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
   },
   ctaCard: {
     backgroundColor: Colors.card,

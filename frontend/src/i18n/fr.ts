@@ -151,6 +151,7 @@ export default {
     benefit_premium_desc: 'Accédez aux agendas et cours exclusifs',
     faq: 'FAQ',
     contact: 'Contact',
+    privacy_policy: 'Politique de confidentialité',
     premium_member: 'Membre Premium',
     free_member: 'Membre Gratuit',
     my_favorites: 'Mes Favoris',
@@ -368,5 +369,13 @@ export default {
     subtitle: 'Trouvez des réponses aux questions les plus courantes',
     questions_count_one: '{count} question',
     questions_count_other: '{count} questions',
+  },
+  ads: {
+    watch_button: 'Regarder une pub pour un accès supplémentaire',
+    granting: 'Activation de l\'accès...',
+    unlocked_for_hours: 'Accès supplémentaire débloqué pour 24 heures',
+    activations_locked: 'Les activations du jour sont réservées aux abonnés. Abonnez-vous ou regardez une pub pour les débloquer pendant 24 heures.',
+    agenda_locked: "Le contenu de l'agenda de mariage de ce mois est réservé aux abonnés. Abonnez-vous ou regardez une pub pour le débloquer pendant 24 heures.",
+    newborn_locked: "La vocation du bébé né aujourd'hui est réservée aux abonnés. Abonnez-vous ou regardez une pub pour la débloquer pendant 24 heures.",
   },
 };

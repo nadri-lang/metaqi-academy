@@ -446,6 +446,63 @@ async def get_current_user_info(authorization: str = Header(None)):
         )
 
 
+# ============= REWARDED AD ENDPOINTS =============
+
+def user_has_premium_access(user: dict) -> bool:
+    """True if the user has a paid subscription or a still-valid rewarded-ad unlock."""
+    if user.get("has_active_subscription"):
+        return True
+    temp_access_until = user.get("temp_access_until")
+    if not temp_access_until:
+        return False
+    if isinstance(temp_access_until, str):
+        temp_access_until = datetime.fromisoformat(temp_access_until.replace("Z", "+00:00"))
+    return datetime.utcnow() < temp_access_until
+
+async def resolve_optional_user(authorization: Optional[str]) -> Optional[dict]:
+    """Same lookup as /auth/me (session token, then JWT), but returns None instead of raising."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.replace("Bearer ", "")
+
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if session:
+        expires_at = session["expires_at"]
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        if datetime.utcnow() > expires_at:
+            return None
+        return await db.users.find_one({"id": session["user_id"]}, {"_id": 0})
+
+    try:
+        from auth import decode_token
+        payload = decode_token(token)
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        return await db.users.find_one({"id": user_id}, {"_id": 0})
+    except Exception:
+        return None
+
+@api_router.post("/ads/grant-reward", response_model=UserResponse)
+async def grant_ad_reward(current_user: dict = Depends(get_current_user)):
+    """
+    Grant 24h of temporary premium access after the user finishes a rewarded ad.
+    Called from the client once AdMob reports the reward was earned.
+
+    NOTE: this trusts the client's report of "ad watched". For stronger abuse
+    protection later, verify the reward server-side via AdMob SSV callbacks
+    instead of (or in addition to) this endpoint.
+    """
+    temp_access_until = datetime.utcnow() + timedelta(hours=24)
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"temp_access_until": temp_access_until}}
+    )
+    user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
+    return UserResponse(**user)
+
+
 # ============= DAILY ENERGY ENDPOINTS =============
 
 def _resolve_today(client_date: Optional[str] = None) -> str:
@@ -463,7 +520,8 @@ def _resolve_today(client_date: Optional[str] = None) -> str:
 async def get_daily_energy(
     date: Optional[str] = None,
     lang: str = "es",
-    client_date: Optional[str] = None
+    client_date: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
 ):
     """
     Get daily energy for a single date (today by default).
@@ -471,13 +529,27 @@ async def get_daily_energy(
     "Today" follows the client's local date when it sends one, so a reader in
     CEST is not shown yesterday's entry until UTC catches up.
     Reads NEVER delete content - use /admin/cleanup/old-daily-energy for that.
+
+    The "activations" fields are premium: they're blanked out (with
+    activations_locked=True) unless the caller has an active subscription or
+    a still-valid rewarded-ad unlock. Everything else stays free for everyone.
     """
     if not date:
         date = _resolve_today(client_date)
-    
+
     energy = await db.daily_energy.find_one({"date": date})
     if not energy:
         raise HTTPException(status_code=404, detail="No energy data for this date")
+
+    current_user = await resolve_optional_user(authorization)
+    has_access = user_has_premium_access(current_user) if current_user else False
+    if not has_access:
+        for field in (
+            "activations", "activations_en", "activations_fr", "activations_de", "activations_ro",
+            "activations_image_url", "activations_video_url",
+        ):
+            energy[field] = None
+        energy["activations_locked"] = True
     
     # Translate if not Spanish
     if lang != "es":
@@ -1297,11 +1369,19 @@ async def create_page(
     page_data: InfoPageCreate,
     current_user: dict = Depends(get_current_admin_user)
 ):
+    # Upsert by slug so re-posting an existing page (e.g. "privacy") updates it
+    # in place instead of creating a duplicate that a GET-by-slug lookup would shadow.
+    existing = await db.info_pages.find_one({"slug": page_data.slug})
     page_dict = page_data.model_dump()
-    page_dict["id"] = str(uuid.uuid4())
     page_dict["updated_at"] = datetime.utcnow()
-    
-    await db.info_pages.insert_one(page_dict)
+
+    if existing:
+        page_dict["id"] = existing["id"]
+        await db.info_pages.update_one({"slug": page_data.slug}, {"$set": page_dict})
+    else:
+        page_dict["id"] = str(uuid.uuid4())
+        await db.info_pages.insert_one(page_dict)
+
     return InfoPage(**page_dict)
 
 # ============= SETTINGS ENDPOINTS =============
@@ -1554,14 +1634,33 @@ async def delete_year_energy(
 
 # ============= NEWBORN VOCATION (Daily general) =============
 
+def _apply_newborn_vocation_gate(vocation: dict, has_access: bool) -> dict:
+    """Premium content: blank content/talents/vocations/challenges unless the caller has access."""
+    if not has_access:
+        vocation = dict(vocation)
+        vocation["content"] = ""
+        vocation["talents"] = []
+        vocation["vocations"] = []
+        vocation["challenges"] = []
+        vocation["content_locked"] = True
+    return vocation
+
 @api_router.get("/newborn-vocation/today", response_model=NewbornVocation)
-async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str] = None):
+async def get_today_newborn_vocation(
+    lang: str = "es",
+    client_date: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
     """
     Get newborn vocation for today (based on client's date) with translations.
     User visibility rules:
     - Can see: Client's today + 2 previous days
     - Cannot see: Future dates (hidden even if admin scheduled them)
-    
+
+    Premium content: title/date stay visible, but content/talents/vocations are
+    blanked (content_locked=True) unless the caller has an active subscription
+    or a valid rewarded-ad unlock - see user_has_premium_access.
+
     Args:
         lang: Language code (es, en, fr, de, ro)
         client_date: Optional client-side date (YYYY-MM-DD) to handle timezone differences
@@ -1591,18 +1690,29 @@ async def get_today_newborn_vocation(lang: str = "es", client_date: Optional[str
     
     if not vocation:
         raise HTTPException(status_code=404, detail="No newborn vocation available")
-    
+
+    current_user = await resolve_optional_user(authorization)
+    has_access = user_has_premium_access(current_user) if current_user else False
+
     if lang != "es":
-        vocation = await translate_dict(vocation, lang, ["title", "content"])
-        for field in ("talents", "vocations", "challenges"):
-            if vocation.get(field):
-                vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
-                vocation[field] = [item["text"] for item in vocation[field]]
-    
+        fields = ["title", "content"] if has_access else ["title"]
+        vocation = await translate_dict(vocation, lang, fields)
+        if has_access:
+            for field in ("talents", "vocations", "challenges"):
+                if vocation.get(field):
+                    vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
+                    vocation[field] = [item["text"] for item in vocation[field]]
+
+    vocation = _apply_newborn_vocation_gate(vocation, has_access)
     return NewbornVocation(**vocation)
 
 @api_router.get("/newborn-vocation/by-date", response_model=NewbornVocation)
-async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date: Optional[str] = None):
+async def get_newborn_vocation_by_date(
+    date: str,
+    lang: str = "es",
+    client_date: Optional[str] = None,
+    authorization: Optional[str] = Header(None)
+):
     """
     Get newborn vocation for a specific date with translations.
     Only allows access to dates within the 3-day window (client's today + 2 previous days).
@@ -1633,17 +1743,23 @@ async def get_newborn_vocation_by_date(date: str, lang: str = "es", client_date:
         )
     
     vocation = await db.newborn_vocation.find_one({"date": date})
-    
+
     if not vocation:
         raise HTTPException(status_code=404, detail=f"No newborn vocation for date {date}")
-    
+
+    current_user = await resolve_optional_user(authorization)
+    has_access = user_has_premium_access(current_user) if current_user else False
+
     if lang != "es":
-        vocation = await translate_dict(vocation, lang, ["title", "content"])
-        for field in ("talents", "vocations", "challenges"):
-            if vocation.get(field):
-                vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
-                vocation[field] = [item["text"] for item in vocation[field]]
-    
+        fields = ["title", "content"] if has_access else ["title"]
+        vocation = await translate_dict(vocation, lang, fields)
+        if has_access:
+            for field in ("talents", "vocations", "challenges"):
+                if vocation.get(field):
+                    vocation[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in vocation[field]]
+                    vocation[field] = [item["text"] for item in vocation[field]]
+
+    vocation = _apply_newborn_vocation_gate(vocation, has_access)
     return NewbornVocation(**vocation)
 
 @api_router.get("/newborn-vocation/available-dates")
@@ -1794,26 +1910,42 @@ async def delete_newborn_vocation(
 
 @api_router.get("/agendas/{agenda_id}/months", response_model=List[AgendaMonth])
 async def get_agenda_months(
-    agenda_id: str, 
+    agenda_id: str,
     lang: str = "es",
-    is_free: Optional[bool] = None
+    is_free: Optional[bool] = None,
+    authorization: Optional[str] = Header(None)
 ):
     """
     Get agenda months, optionally filtered by is_free status.
-    - is_free=true: Only free content (for HOME screen)
-    - is_free=false: Only paid content (for SERVICIOS screen)
-    - is_free=None: All content (admin use)
+    - is_free=true: The HOME screen's monthly wedding agenda. Despite the name,
+      this is subscriber content: title stays visible but content is blanked
+      (content_locked=True) unless the caller has an active subscription or a
+      valid rewarded-ad unlock - see user_has_premium_access.
+    - is_free=false: Paid content sold separately via SERVICIOS (WhatsApp
+      purchase flow) - untouched here, that's a different access model.
+    - is_free=None: All content (admin use).
     """
     query = {"agenda_id": agenda_id}
     if is_free is not None:
         query["is_free"] = is_free
-    
+
     months = await db.agenda_months.find(query).sort("order", 1).to_list(100)
-    
+
+    has_access = None
+    if is_free is True:
+        current_user = await resolve_optional_user(authorization)
+        has_access = user_has_premium_access(current_user) if current_user else False
+
     # Translate if not Spanish
     if lang != "es":
-        months = await translate_list_of_dicts(months, lang, ["title", "content"])
-    
+        fields = ["title"] if has_access is False else ["title", "content"]
+        months = await translate_list_of_dicts(months, lang, fields)
+
+    if has_access is False:
+        for m in months:
+            m["content"] = ""
+            m["content_locked"] = True
+
     return [AgendaMonth(**m) for m in months]
 
 @api_router.post("/agenda-months", response_model=AgendaMonth)
@@ -2388,6 +2520,11 @@ async def update_user_admin(
         if subscription not in ["free", "monthly", "yearly"]:
             raise HTTPException(status_code=400, detail="Suscripción inválida")
         update_dict["subscription"] = subscription
+        # Keep the boolean flag actually used for content gating (see
+        # user_has_premium_access) in sync with this admin-facing field -
+        # they used to be two disconnected fields, so setting a "monthly"/
+        # "yearly" subscription here never unlocked anything for the user.
+        update_dict["has_active_subscription"] = subscription in ("monthly", "yearly")
     
     # Update password if provided
     if new_password is not None and new_password.strip():

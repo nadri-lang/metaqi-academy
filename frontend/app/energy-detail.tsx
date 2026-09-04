@@ -21,6 +21,8 @@ import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
+// TEMP: AdMob disabled for Expo Go testing (needs a dev build).
+// import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
 interface DailyEnergy {
   id: string;
@@ -44,6 +46,7 @@ interface DailyEnergy {
   activations_ro?: string;
   activations_image_url?: string;
   activations_video_url?: string;
+  activations_locked?: boolean;
 }
 
 type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | 'activations' | null;
@@ -85,6 +88,7 @@ export default function EnergyDetailScreen() {
       fr: 'fr-FR',
       de: 'de-DE',
       ro: 'ro-RO',
+      pt: 'pt-PT',
     };
     const locale = localeMap[language] || 'es-ES';
     
@@ -174,43 +178,53 @@ export default function EnergyDetailScreen() {
                 {t('common.activations')}
               </Text>
             </View>
-            
-            {getActivationsText() ? (
-              <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
-            ) : (
-              <Text style={styles.modalEmptyText}>
-                {t('common.no_info_available')}
-              </Text>
-            )}
 
-            {/* Activations Image */}
-            {data.activations_image_url && (
-              <View style={styles.activationsImageContainer}>
-                <Image 
-                  source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }} 
-                  style={styles.activationsImage}
-                  resizeMode="cover"
-                />
+            {data.activations_locked ? (
+              <View style={styles.lockedContainer}>
+                <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
+                <Text style={styles.lockedText}>{t('ads.activations_locked')}</Text>
+                {/* TEMP: <RewardedAccessButton onUnlocked={load} /> disabled for Expo Go testing */}
               </View>
-            )}
+            ) : (
+              <>
+                {getActivationsText() ? (
+                  <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
+                ) : (
+                  <Text style={styles.modalEmptyText}>
+                    {t('common.no_info_available')}
+                  </Text>
+                )}
 
-            {/* Activations Video Link */}
-            {data.activations_video_url && (
-              <TouchableOpacity
-                style={styles.videoLinkButton}
-                onPress={() => {
-                  if (data.activations_video_url) {
-                    Linking.openURL(data.activations_video_url).catch(err => 
-                      console.error('Error opening video URL:', err)
-                    );
-                  }
-                }}
-              >
-                <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
-                <Text style={styles.videoLinkText}>
-                  {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : 'Vizionează Video'}
-                </Text>
-              </TouchableOpacity>
+                {/* Activations Image */}
+                {data.activations_image_url && (
+                  <View style={styles.activationsImageContainer}>
+                    <Image
+                      source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }}
+                      style={styles.activationsImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
+
+                {/* Activations Video Link */}
+                {data.activations_video_url && (
+                  <TouchableOpacity
+                    style={styles.videoLinkButton}
+                    onPress={() => {
+                      if (data.activations_video_url) {
+                        Linking.openURL(data.activations_video_url).catch(err =>
+                          console.error('Error opening video URL:', err)
+                        );
+                      }
+                    }}
+                  >
+                    <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
+                    <Text style={styles.videoLinkText}>
+                      {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : language === 'pt' ? 'Ver Vídeo' : 'Vizionează Video'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
           </View>
         );
@@ -426,6 +440,11 @@ export default function EnergyDetailScreen() {
             >
               <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
                 <MaterialCommunityIcons name={btn.icon as any} size={26} color={btn.color} />
+                {btn.id === 'activations' && data?.activations_locked && (
+                  <View style={styles.gridButtonLockBadge}>
+                    <MaterialCommunityIcons name="lock" size={11} color={Colors.white} />
+                  </View>
+                )}
               </View>
               <Text style={styles.gridButtonLabel}>{btn.label}</Text>
             </TouchableOpacity>
@@ -601,6 +620,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xs,
   },
+  gridButtonLockBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.textSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.card,
+  },
+  lockedContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  lockedText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
+  },
   gridButtonLabel: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.xs,
@@ -674,6 +718,12 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: Spacing.lg,
+  },
+  modalParagraphText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    lineHeight: 24,
   },
   closeButton: {
     backgroundColor: Colors.accent,

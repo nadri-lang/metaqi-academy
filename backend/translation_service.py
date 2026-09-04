@@ -3,6 +3,7 @@ Translation service using OpenAI GPT via Emergent LLM Key
 Automatically translates content from Spanish to target language
 """
 import os
+import uuid
 from typing import Optional, Dict
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import asyncio
@@ -55,10 +56,17 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
     target_name = LANGUAGE_NAMES.get(target_lang, target_lang)
     
     try:
-        # Initialize chat
+        # Each call gets its own session - translate_list_of_dicts fires many of
+        # these concurrently via asyncio.gather, and they used to all share the
+        # same "translate_{lang}" session id. LlmChat sessions carry conversation
+        # history, so concurrent calls on one shared session bled prior/sibling
+        # texts into each other's context, producing translations that mixed
+        # sentences from unrelated fields (and sometimes left half the text in
+        # the source language). A fresh session per call is a plain one-shot
+        # translation with no history to bleed.
         chat = LlmChat(
             api_key=api_key,
-            session_id=f"translate_{target_lang}",
+            session_id=f"translate_{target_lang}_{uuid.uuid4().hex}",
             system_message=f"You are a professional translator. Translate the following text from {source_name} to {target_name}. Maintain the tone, style and formatting. Return ONLY the translation, nothing else."
         ).with_model("openai", "gpt-5.4-mini")
         

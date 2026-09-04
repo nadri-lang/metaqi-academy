@@ -53,6 +53,7 @@ export default function HomeScreen() {
     { code: 'fr' as Language, flag: '🇫🇷', label: 'FR' },
     { code: 'de' as Language, flag: '🇩🇪', label: 'DE' },
     { code: 'ro' as Language, flag: '🇷🇴', label: 'RO' },
+    { code: 'pt' as Language, flag: '🇵🇹', label: 'PT' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === language) || languages[0];

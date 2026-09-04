@@ -151,6 +151,7 @@ export default {
     benefit_premium_desc: 'Accede a agendas y cursos exclusivos',
     faq: 'Preguntas Frecuentes',
     contact: 'Contacto',
+    privacy_policy: 'Política de Privacidad',
     premium_member: 'Miembro Premium',
     free_member: 'Miembro Gratuito',
     my_favorites: 'Mis Favoritos',
@@ -368,5 +369,13 @@ export default {
     subtitle: 'Encuentra respuestas a las dudas más comunes',
     questions_count_one: '{count} pregunta',
     questions_count_other: '{count} preguntas',
+  },
+  ads: {
+    watch_button: 'Ver anuncio para acceso extra',
+    granting: 'Activando acceso...',
+    unlocked_for_hours: 'Acceso extra activado durante 24 horas',
+    activations_locked: 'Las activaciones del día son contenido para suscriptores. Suscríbete o ve un anuncio para desbloquearlas 24 horas.',
+    agenda_locked: 'El contenido de la agenda de bodas de este mes es para suscriptores. Suscríbete o ve un anuncio para desbloquearlo 24 horas.',
+    newborn_locked: 'La vocación del bebé nacido hoy es contenido para suscriptores. Suscríbete o ve un anuncio para desbloquearla 24 horas.',
   },
 };

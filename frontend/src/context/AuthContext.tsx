@@ -11,6 +11,7 @@ interface User {
   role: string;
   language: string;
   has_active_subscription: boolean;
+  temp_access_until: string | null;
   created_at: string;
   last_login: string | null;
 }

@@ -41,7 +41,7 @@ export default function AdminUsersScreen() {
   const [searchEmail, setSearchEmail] = useState('');
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedRole, setSelectedRole] = useState('free');
+  const [selectedRole, setSelectedRole] = useState('free_member');
   const [selectedSubscription, setSelectedSubscription] = useState('free');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
@@ -91,7 +91,7 @@ export default function AdminUsersScreen() {
 
   const openEditModal = (user: User) => {
     setSelectedUser(user);
-    setSelectedRole(user.role || 'free');
+    setSelectedRole(user.role || 'free_member');
     setSelectedSubscription(user.subscription || 'free');
     setNewPassword('');
     setEditModalVisible(true);
@@ -332,7 +332,7 @@ export default function AdminUsersScreen() {
     switch (role) {
       case 'admin': return Colors.error;
       case 'editor': return Colors.accent;
-      case 'premium': return Colors.jade;
+      case 'premium_member': return Colors.jade;
       default: return Colors.textLight;
     }
   };
@@ -513,7 +513,7 @@ export default function AdminUsersScreen() {
                   {/* Role Selection */}
                   <Text style={styles.modalLabel}>Rol</Text>
                   <View style={styles.optionsGrid}>
-                    {['free', 'premium', 'editor', 'admin'].map((role) => (
+                    {['free_member', 'premium_member', 'editor', 'admin'].map((role) => (
                       <TouchableOpacity
                         key={role}
                         style={[
@@ -526,7 +526,7 @@ export default function AdminUsersScreen() {
                           styles.optionText,
                           selectedRole === role && styles.optionTextSelected
                         ]}>
-                          {role.toUpperCase()}
+                          {role.replace('_member', '').toUpperCase()}
                         </Text>
                       </TouchableOpacity>
                     ))}

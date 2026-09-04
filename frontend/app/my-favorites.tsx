@@ -110,6 +110,7 @@ export default function MyFavoritesScreen() {
     fr: 'fr-FR',
     de: 'de-DE',
     ro: 'ro-RO',
+    pt: 'pt-PT',
   };
 
   const formatDate = (dateStr: string) => {

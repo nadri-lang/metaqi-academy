@@ -4,10 +4,22 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 # JWT Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "metaqi-secret-key-change-in-production-2024")
+# Set the SECRET_KEY environment variable in production instead of relying on
+# this fallback - anything hardcoded here is visible to anyone with repo access.
+_FALLBACK_SECRET_KEY = "27b89fb02e099abf7108ef2c7877377722e1a99124f72953f017575eb19c78dbecfbb4efa9cef92a20e7ed3ec6f99e52"
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    logger.warning(
+        "SECRET_KEY env var is not set - falling back to a built-in key. "
+        "Set SECRET_KEY in your deployment environment before going to production."
+    )
+    SECRET_KEY = _FALLBACK_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 

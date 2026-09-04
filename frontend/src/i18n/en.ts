@@ -151,6 +151,7 @@ export default {
     benefit_premium_desc: 'Access exclusive agendas and courses',
     faq: 'FAQ',
     contact: 'Contact',
+    privacy_policy: 'Privacy Policy',
     premium_member: 'Premium Member',
     free_member: 'Free Member',
     my_favorites: 'My Favorites',
@@ -368,5 +369,13 @@ export default {
     subtitle: 'Find answers to the most common questions',
     questions_count_one: '{count} question',
     questions_count_other: '{count} questions',
+  },
+  ads: {
+    watch_button: 'Watch ad for extra access',
+    granting: 'Unlocking access...',
+    unlocked_for_hours: 'Extra access unlocked for 24 hours',
+    activations_locked: "Today's activations are subscriber content. Subscribe or watch an ad to unlock them for 24 hours.",
+    agenda_locked: "This month's wedding agenda content is subscriber content. Subscribe or watch an ad to unlock it for 24 hours.",
+    newborn_locked: "Today's newborn vocation is subscriber content. Subscribe or watch an ad to unlock it for 24 hours.",
   },
 };

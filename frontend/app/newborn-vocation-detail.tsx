@@ -17,6 +17,8 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
+// TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
+// import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
 interface NewbornVocation {
   id: string;
@@ -27,6 +29,7 @@ interface NewbornVocation {
   content_en?: string;
   talents: string[];
   vocations: string[];
+  content_locked?: boolean;
 }
 
 interface AvailableDates {
@@ -182,6 +185,7 @@ export default function NewbornVocationDetailScreen() {
       fr: 'fr-FR',
       de: 'de-DE',
       ro: 'ro-RO',
+      pt: 'pt-PT',
     };
     
     return date.toLocaleDateString(localeMap[language] || 'es-ES', options);
@@ -250,7 +254,7 @@ export default function NewbornVocationDetailScreen() {
             {/* SIMPLIFIED HEADER - Title and date on separate full-width row */}
             <View style={styles.simplifiedHeader}>
               <Text style={styles.simplifiedTitle}>
-                {t('newborn_vocation.header_title').replace('{date}', data.date.split('-').reverse().join('/'))}
+                {t('newborn_vocation.header_title').replace('{date}', (data.date || currentDate).split('-').reverse().join('/'))}
               </Text>
               
               {/* Row with badge and favorite button */}
@@ -322,9 +326,17 @@ export default function NewbornVocationDetailScreen() {
       >
         {/* Main Description */}
         <View style={styles.card}>
-          <Text style={styles.description}>
-            {data.content}
-          </Text>
+          {data.content_locked ? (
+            <View style={styles.lockedContainer}>
+              <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
+              <Text style={styles.lockedText}>{t('ads.newborn_locked')}</Text>
+              {/* TEMP: <RewardedAccessButton onUnlocked={() => loadDataForDate(currentDate)} /> disabled for Expo Go testing */}
+            </View>
+          ) : (
+            <Text style={styles.description}>
+              {data.content}
+            </Text>
+          )}
         </View>
 
         {/* Talentos Naturales */}
@@ -563,6 +575,18 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  lockedContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  lockedText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.xs,
   },
   listItem: {
     flexDirection: 'row',

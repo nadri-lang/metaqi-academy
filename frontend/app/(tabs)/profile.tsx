@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/context/LanguageContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { PRIVACY_POLICY_URL } from '@/src/constants/Legal';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -41,6 +42,10 @@ export default function ProfileScreen() {
 
   const handleContact = () => {
     Linking.openURL('mailto:r.scala1108@gmail.com?subject=Contacto desde MetaQi Academy');
+  };
+
+  const handlePrivacyPolicy = () => {
+    Linking.openURL(PRIVACY_POLICY_URL);
   };
 
   // Not logged in view
@@ -117,6 +122,11 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.infoItem} testID="info-contact-btn" onPress={handleContact}>
               <MaterialCommunityIcons name="email" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>{t('profile.contact')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textLight} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.infoItem} testID="info-privacy-btn" onPress={handlePrivacyPolicy}>
+              <MaterialCommunityIcons name="shield-lock-outline" size={20} color={Colors.textSecondary} />
+              <Text style={styles.infoText}>{t('profile.privacy_policy')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textLight} />
             </TouchableOpacity>
           </View>
@@ -205,6 +215,16 @@ export default function ProfileScreen() {
             >
               <MaterialCommunityIcons name="email" size={22} color={Colors.textSecondary} />
               <Text style={styles.menuText}>{t('profile.contact')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              testID="menu-privacy"
+              onPress={handlePrivacyPolicy}
+            >
+              <MaterialCommunityIcons name="shield-lock-outline" size={22} color={Colors.textSecondary} />
+              <Text style={styles.menuText}>{t('profile.privacy_policy')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>
           </View>

@@ -151,6 +151,7 @@ export default {
     benefit_premium_desc: 'Acces la agende și cursuri exclusive',
     faq: 'Întrebări Frecvente',
     contact: 'Contact',
+    privacy_policy: 'Politica de confidențialitate',
     premium_member: 'Membru Premium',
     free_member: 'Membru Gratuit',
     my_favorites: 'Favoritele Mele',
@@ -368,5 +369,13 @@ export default {
     subtitle: 'Găsește răspunsuri la cele mai frecvente întrebări',
     questions_count_one: '{count} întrebare',
     questions_count_other: '{count} întrebări',
+  },
+  ads: {
+    watch_button: 'Vezi reclamă pentru acces extra',
+    granting: 'Se activează accesul...',
+    unlocked_for_hours: 'Acces extra activat pentru 24 de ore',
+    activations_locked: 'Activările zilei sunt conținut pentru abonați. Abonează-te sau vezi o reclamă pentru a le debloca timp de 24 de ore.',
+    agenda_locked: 'Conținutul agendei de nunți din această lună este pentru abonați. Abonează-te sau vezi o reclamă pentru a-l debloca timp de 24 de ore.',
+    newborn_locked: 'Vocația bebelușului născut azi este conținut pentru abonați. Abonează-te sau vezi o reclamă pentru a o debloca timp de 24 de ore.',
   },
 };

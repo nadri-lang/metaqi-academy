@@ -318,8 +318,33 @@ async def seed_database():
                 "title": "Política de Privacidad",
                 "title_en": "Privacy Policy",
                 "title_zh": "隐私政策",
-                "content": "Política de privacidad de MetaQi Academy...",
-                "content_en": "Privacy policy of MetaQi Academy...",
+                "content": (
+                    "En MetaQi Academy recopilamos: datos de cuenta (nombre, email), "
+                    "datos de nacimiento que aportas voluntariamente para tus lecturas de BaZi y Qi Men Dun Jia, "
+                    "tu historial de compras y suscripciones, y, solo si eliges ver un anuncio con recompensa, "
+                    "datos publicitarios procesados por Google AdMob. No vendemos tus datos a terceros ni los "
+                    "usamos con fines publicitarios fuera de esta app.\\n\\n"
+                    "Usamos tus datos para prestar el servicio (calcular tus lecturas, gestionar tu cuenta y tus "
+                    "pagos) y, con tu consentimiento, para ofrecerte anuncios opcionales con recompensa. "
+                    "Puedes solicitar el acceso, la rectificación o la eliminación de tus datos en cualquier "
+                    "momento escribiendo a ndk46.apps@gmail.com, y reclamar ante la Agencia Española de "
+                    "Protección de Datos (aepd.es) si lo consideras necesario.\\n\\n"
+                    "Puedes leer la política de privacidad completa, con el detalle de cada finalidad, base "
+                    "legal y proveedor, aquí: https://claude.ai/code/artifact/1e9f1309-a3b8-4ffd-904c-02acb9f15dc5"
+                ),
+                "content_en": (
+                    "MetaQi Academy collects: account data (name, email), birth data you voluntarily provide "
+                    "for your BaZi and Qi Men Dun Jia readings, your purchase and subscription history, and, "
+                    "only if you choose to watch a rewarded ad, advertising data processed by Google AdMob. "
+                    "We never sell your data to third parties or use it for advertising outside this app.\\n\\n"
+                    "We use your data to provide the service (calculating your readings, managing your account "
+                    "and payments) and, with your consent, to offer optional rewarded ads. You can request "
+                    "access, correction or deletion of your data at any time by writing to "
+                    "ndk46.apps@gmail.com, and file a complaint with Spain's Data Protection Agency (aepd.es) "
+                    "if needed.\\n\\n"
+                    "Read the full privacy policy, with the detail of every purpose, legal basis and provider, "
+                    "here: https://claude.ai/code/artifact/1e9f1309-a3b8-4ffd-904c-02acb9f15dc5"
+                ),
                 "content_zh": "MetaQi Academy隐私政策...",
                 "updated_at": datetime.utcnow()
             },

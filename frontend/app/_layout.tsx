@@ -18,9 +18,14 @@ import { Colors } from '@/src/constants/Colors';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useIconFonts } from '@/src/hooks/use-icon-fonts';
+// TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
+// import mobileAds from 'react-native-google-mobile-ads';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// One-time AdMob SDK init for the rewarded-ad flow (see RewardedAccessButton).
+// mobileAds().initialize().catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

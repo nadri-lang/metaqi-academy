@@ -55,6 +55,7 @@ export default function MyBaziReportScreen() {
       fr: 'fr-FR',
       de: 'de-DE',
       ro: 'ro-RO',
+      pt: 'pt-PT',
     };
     return date.toLocaleDateString(localeMap[language] || 'es-ES', {
       day: 'numeric',

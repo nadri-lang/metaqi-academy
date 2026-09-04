@@ -44,7 +44,7 @@ export default function ServicesScreen() {
       const response = await api.get('/services', {
         params: { lang: language }
       });
-      setServices(response.data);
+      setServices(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error loading services:', error);
     } finally {

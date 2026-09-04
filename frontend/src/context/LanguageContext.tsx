@@ -6,10 +6,11 @@ import en from '@/src/i18n/en';
 import fr from '@/src/i18n/fr';
 import de from '@/src/i18n/de';
 import ro from '@/src/i18n/ro';
+import pt from '@/src/i18n/pt';
 
-export type Language = 'es' | 'en' | 'fr' | 'de' | 'ro';
+export type Language = 'es' | 'en' | 'fr' | 'de' | 'ro' | 'pt';
 
-const translations = { es, en, fr, de, ro };
+const translations = { es, en, fr, de, ro, pt };
 
 type TranslationKey = string;
 
@@ -46,7 +47,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const loadLanguage = async () => {
     try {
       const stored = await storage.getItem('app_language', null);
-      if (stored === 'es' || stored === 'en' || stored === 'fr' || stored === 'de' || stored === 'ro') {
+      if (stored === 'es' || stored === 'en' || stored === 'fr' || stored === 'de' || stored === 'ro' || stored === 'pt') {
         setLanguageState(stored);
       } else {
         // Detect device language
@@ -60,6 +61,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setLanguageState('de');
         } else if (deviceLang === 'ro') {
           setLanguageState('ro');
+        } else if (deviceLang === 'pt') {
+          setLanguageState('pt');
         } else {
           setLanguageState('es');
         }
