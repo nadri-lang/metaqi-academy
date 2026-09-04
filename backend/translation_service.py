@@ -2,15 +2,28 @@
 Translation service using OpenAI GPT via a direct OpenAI API key
 Automatically translates content from Spanish to target language
 """
+import logging
 import os
 from typing import Optional, Dict
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, RateLimitError
 import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 _client: Optional[AsyncOpenAI] = None
+
+# A single page load can trigger dozens of sequential/concurrent translation
+# calls (one per field, per list item). A freshly-created API key usually
+# sits on a low rate-limit tier, so the first call (always a short "title")
+# succeeds while the rest queue up and get 429'd - which the except-and-
+# fall-back-to-original-text logic below then hides as "not translating".
+# Capping concurrency and letting the SDK's own retry/backoff absorb 429s
+# fixes that without needing to know the account's exact tier.
+_CONCURRENCY_LIMIT = 3
+_semaphore = asyncio.Semaphore(_CONCURRENCY_LIMIT)
 
 
 def _get_client() -> Optional[AsyncOpenAI]:
@@ -23,7 +36,7 @@ def _get_client() -> Optional[AsyncOpenAI]:
     if not api_key:
         return None
 
-    _client = AsyncOpenAI(api_key=api_key)
+    _client = AsyncOpenAI(api_key=api_key, max_retries=5)
     return _client
 
 # Language mapping
@@ -63,7 +76,7 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
     # Get API key
     client = _get_client()
     if client is None:
-        print("Warning: OPENAI_API_KEY not found, returning original text")
+        logger.warning("OPENAI_API_KEY not found, returning original text")
         return text
 
     # Get language names
@@ -76,16 +89,17 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
         # chat session shared across calls previously bled prior/sibling texts
         # into each other's context. Plain chat completions carry no history
         # between calls, so concurrent calls can't cross-contaminate.
-        response = await client.chat.completions.create(
-            model="gpt-5.4-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You are a professional translator. Translate the following text from {source_name} to {target_name}. Maintain the tone, style and formatting. Return ONLY the translation, nothing else."
-                },
-                {"role": "user", "content": text},
-            ],
-        )
+        async with _semaphore:
+            response = await client.chat.completions.create(
+                model="gpt-5.4-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": f"You are a professional translator. Translate the following text from {source_name} to {target_name}. Maintain the tone, style and formatting. Return ONLY the translation, nothing else."
+                    },
+                    {"role": "user", "content": text},
+                ],
+            )
         translated = response.choices[0].message.content.strip()
 
         # Cache the result
@@ -93,8 +107,12 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
 
         return translated
 
+    except RateLimitError as e:
+        logger.error(f"Translation rate-limited after {client.max_retries} SDK retries "
+                     f"(field len={len(text)} chars, target={target_lang}): {e}")
+        return text  # Return original on error
     except Exception as e:
-        print(f"Translation error: {e}")
+        logger.error(f"Translation error (target={target_lang}): {e}")
         return text  # Return original on error
 
 
