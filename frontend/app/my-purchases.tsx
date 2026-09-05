@@ -297,13 +297,17 @@ export default function MyPurchasesScreen() {
                             {t('common.watch')}
                           </Text>
                         </TouchableOpacity>
-                      ) : (
+                      ) : purchase.product_type === 'course' ? (
+                        // Only guides (courses) are delivered as a video here - a
+                        // "Pendiente" badge for other product types would never
+                        // clear, since they're delivered elsewhere (e.g. the PDF
+                        // in "Contenido Exclusivo" below) and never get a video_url.
                         <View style={styles.pendingBadge}>
                           <Text style={styles.pendingText}>
                             {t('common.pending')}
                           </Text>
                         </View>
-                      )}
+                      ) : null}
                     </View>
                   </View>
                 ))}

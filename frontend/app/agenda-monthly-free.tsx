@@ -16,6 +16,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
 // TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
 // import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
@@ -90,7 +91,9 @@ export default function AgendaMonthlyFreeScreen() {
                   {t('home.wedding_agenda')}
                 </Text>
                 <Text style={styles.headerSubtitle}>
-                  {t('home.free_content')}
+                  {data?.content_locked
+                    ? t('home.subscriber_content').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)
+                    : t('home.included_in_subscription')}
                 </Text>
               </View>
             </View>
@@ -114,19 +117,23 @@ export default function AgendaMonthlyFreeScreen() {
           </View>
         ) : data ? (
           <>
-            <View style={styles.freeBanner}>
-              <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
-              <Text style={styles.freeBannerText}>
-                {t('home.free_monthly_content')}
-              </Text>
-            </View>
+            {!data.content_locked && (
+              <View style={styles.freeBanner}>
+                <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
+                <Text style={styles.freeBannerText}>
+                  {t('home.included_in_subscription')}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.contentCard}>
               <Text style={styles.contentTitle}>{data.title}</Text>
               {data.content_locked ? (
                 <View style={styles.lockedContainer}>
                   <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
-                  <Text style={styles.lockedText}>{t('ads.agenda_locked')}</Text>
+                  <Text style={styles.lockedText}>
+                    {t('ads.agenda_locked').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)}
+                  </Text>
                   {/* TEMP: <RewardedAccessButton onUnlocked={loadData} /> disabled for Expo Go testing */}
                 </View>
               ) : (

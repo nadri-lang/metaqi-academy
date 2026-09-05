@@ -41,7 +41,7 @@ export default function AdminCoursesScreen() {
           </View>
           <View style={styles.headerContent}>
             <Text style={styles.headerLabel}>Admin</Text>
-            <Text style={styles.headerTitle}>Gestión de Cursos</Text>
+            <Text style={styles.headerTitle}>Gestión de Guías</Text>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -49,12 +49,12 @@ export default function AdminCoursesScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <MaterialCommunityIcons name="school" size={48} color={Colors.accent} />
-          <Text style={styles.title}>Gestión de Cursos</Text>
+          <Text style={styles.title}>Gestión de Guías</Text>
           <Text style={styles.description}>
-            Aquí podrás crear, editar y organizar cursos con sus lecciones y contenido multimedia.
+            Aquí podrás crear, editar y organizar guías con sus lecciones y contenido multimedia.
           </Text>
           <Text style={styles.note}>
-            Próximamente se habilitará la gestión completa de cursos.
+            Próximamente se habilitará la gestión completa de guías.
           </Text>
         </View>
       </ScrollView>

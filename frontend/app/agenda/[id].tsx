@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -85,7 +86,12 @@ export default function AgendaDetailScreen() {
       router.push('/(auth)/login');
       return;
     }
-    router.push(`/checkout/agenda/${id}`);
+    // There's no in-app checkout yet (same as guides/services) - purchases
+    // are arranged over WhatsApp and activated manually once paid.
+    if (!agenda) return;
+    const message = `Hola, me interesa comprar la agenda: ${agenda.title}. ¿Podríais enviarme la información de pago, por favor? Muchas gracias.`;
+    const whatsapp = '34640510085';
+    Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
   };
 
   if (loading) {
@@ -175,9 +181,12 @@ export default function AgendaDetailScreen() {
                   {!isFree && (
                     <MaterialCommunityIcons name="lock" size={20} color={Colors.textLight} />
                   )}
-                  {isMonthFree(month) && (
+                  {isMonthFree(month) && !purchased && (
+                    // This month isn't free - it's just this calendar month's
+                    // preview, shown in full to entice a purchase. Calling it
+                    // "Gratis" falsely implied the whole agenda was free.
                     <View style={styles.freeBadge}>
-                      <Text style={styles.freeBadgeText}>Gratis</Text>
+                      <Text style={styles.freeBadgeText}>Vista Previa</Text>
                     </View>
                   )}
                 </View>
@@ -227,9 +236,9 @@ export default function AgendaDetailScreen() {
             style={styles.purchaseButton}
             onPress={handlePurchase}
           >
-            <MaterialCommunityIcons name="lock-open-variant" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.primary} />
             <Text style={styles.purchaseText}>
-              Comprar por €{agenda.price.toFixed(0)}
+              Comprar por €{agenda.price.toFixed(0)} (WhatsApp)
             </Text>
           </TouchableOpacity>
         </View>

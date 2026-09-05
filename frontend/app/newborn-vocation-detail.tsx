@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
+import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
 // TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
 // import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
@@ -329,7 +330,9 @@ export default function NewbornVocationDetailScreen() {
           {data.content_locked ? (
             <View style={styles.lockedContainer}>
               <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
-              <Text style={styles.lockedText}>{t('ads.newborn_locked')}</Text>
+              <Text style={styles.lockedText}>
+                {t('ads.newborn_locked').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)}
+              </Text>
               {/* TEMP: <RewardedAccessButton onUnlocked={() => loadDataForDate(currentDate)} /> disabled for Expo Go testing */}
             </View>
           ) : (

@@ -14,6 +14,7 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { BaziPillarsIcon, FiveElementsIcon, GuaIcon } from '@/src/components/CourseIcons';
 
 interface Course {
   id: string;
@@ -23,13 +24,31 @@ interface Course {
   icon: string;
 }
 
+// 'sparkles', 'flame' and 'navigate' aren't valid MaterialCommunityIcons glyph
+// names (they're Ionicons names) - MaterialCommunityIcons silently rendered
+// them as "?" placeholders. These three now render a purpose-built SVG icon
+// via CourseIcon below instead of a font glyph.
+const CUSTOM_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+  'bazi-pillars': BaziPillarsIcon,
+  'five-elements': FiveElementsIcon,
+  'gua-badge': GuaIcon,
+};
+
+function CourseIcon({ icon, size, color }: { icon: string; size: number; color: string }) {
+  const CustomIcon = CUSTOM_ICONS[icon];
+  if (CustomIcon) {
+    return <CustomIcon size={size} color={color} />;
+  }
+  return <MaterialCommunityIcons name={icon as any} size={size} color={color} />;
+}
+
 const COURSES: Course[] = [
   {
     id: '1',
     titleKey: 'courses.bazi_basic_title',
     price: '19,90€',
     descriptionKey: 'courses.bazi_basic_desc',
-    icon: 'sparkles',
+    icon: 'bazi-pillars',
   },
   {
     id: '2',
@@ -43,14 +62,14 @@ const COURSES: Course[] = [
     titleKey: 'courses.five_elements_title',
     price: '19,90€',
     descriptionKey: 'courses.five_elements_desc',
-    icon: 'flame',
+    icon: 'five-elements',
   },
   {
     id: '4',
     titleKey: 'courses.gua_number_title',
     price: '9,90€',
     descriptionKey: 'courses.gua_number_desc',
-    icon: 'navigate',
+    icon: 'gua-badge',
   },
   {
     id: '5',
@@ -95,7 +114,7 @@ export default function CoursesScreen() {
           >
             <View style={styles.courseButtonContent}>
               <View style={styles.courseIconContainer}>
-                <MaterialCommunityIcons name={course.icon as any} size={28} color={Colors.accent} />
+                <CourseIcon icon={course.icon} size={28} color={Colors.accent} />
               </View>
               <View style={styles.courseTextContainer}>
                 <Text style={styles.courseTitle} numberOfLines={2}>
@@ -126,7 +145,7 @@ export default function CoursesScreen() {
                   {/* Modal Header */}
                   <View style={styles.modalHeader}>
                     <View style={styles.modalIconContainer}>
-                      <MaterialCommunityIcons name={selectedCourse.icon as any} size={32} color={Colors.accent} />
+                      <CourseIcon icon={selectedCourse.icon} size={32} color={Colors.accent} />
                     </View>
                     <TouchableOpacity
                       style={styles.closeButton}

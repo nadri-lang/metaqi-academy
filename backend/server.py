@@ -2091,42 +2091,17 @@ async def get_my_purchases(
 ):
     """
     Get all purchases for the authenticated user.
-    Currently returns BaZi reports as purchases since there's no actual purchase system yet.
+
+    BaZi reports are NOT included here - they're already surfaced by their own
+    "Tu Reporte BaZi" card (via /my-bazi-report) on the My Purchases screen.
+    Listing them here too used to double them up with a "Pendiente" badge that
+    could never clear, since this record has no video_url and never will.
     """
-    # Get all published BaZi reports for this user
-    bazi_reports_cursor = db.bazi_reports.find({
-        "user_email": current_user["email"],
-        "is_published": True
-    })
-    bazi_reports = await bazi_reports_cursor.to_list(100)
-    
-    purchases = []
-    
-    # Map each BaZi report as a "purchase"
-    for idx, bazi_report in enumerate(bazi_reports, 1):
-        report_title = f"Reporte BaZi #{idx}" if len(bazi_reports) > 1 else "Reporte Personalizado BaZi"
-        purchases.append({
-            "id": bazi_report.get("id", f"bazi_report_{idx}"),
-            "user_id": current_user["id"],
-            "product_id": f"bazi_report_{bazi_report.get('id', idx)}",
-            "product_name": report_title,
-            "product_type": "service",
-            "price": 0,
-            "payment_method": "manual",
-            "status": "activated",
-            "video_url": None,
-            "purchased_at": bazi_report.get("created_at", datetime.utcnow()),
-            "activated_at": bazi_report.get("published_at", datetime.utcnow()),
-        })
-    
-    # In the future, add real purchases from db.purchases collection
-    real_purchases = await db.purchases.find({
+    purchases = await db.purchases.find({
         "user_id": current_user["id"],
         "status": "activated"
     }).sort("purchased_at", -1).to_list(100)
-    
-    purchases.extend(real_purchases)
-    
+
     return purchases
 
 @api_router.get("/admin/purchases", response_model=List[Purchase])
