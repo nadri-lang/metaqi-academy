@@ -1954,7 +1954,12 @@ async def get_agenda_months(
       valid rewarded-ad unlock - see user_has_premium_access.
     - is_free=false: Paid content sold separately via SERVICIOS (WhatsApp
       purchase flow) - untouched here, that's a different access model.
-    - is_free=None: All content (admin use).
+    - is_free=None: The general premium-agendas catalog screen (/agenda/[id]).
+      Same subscription gate as is_free=true, except the current calendar
+      month always stays visible as a free preview. This used to return
+      every month's full content to any caller regardless of subscription -
+      the frontend's numberOfLines clamp on other months was cosmetic only,
+      not an actual access control.
     """
     query = {"agenda_id": agenda_id}
     if is_free is not None:
@@ -1963,19 +1968,28 @@ async def get_agenda_months(
     months = await db.agenda_months.find(query).sort("order", 1).to_list(100)
 
     has_access = None
-    if is_free is True:
+    if is_free is not False:
         current_user = await resolve_optional_user(authorization)
         has_access = user_has_premium_access(current_user) if current_user else False
 
-    # Translate if not Spanish
+    # Translate if not Spanish. Skip translating content when it's about to
+    # be blanked outright (is_free=true, no access) - but is_free=None still
+    # needs it for the always-visible current-month preview.
     if lang != "es":
-        fields = ["title"] if has_access is False else ["title", "content"]
+        skip_content = has_access is False and is_free is True
+        fields = ["title"] if skip_content else ["title", "content"]
         months = await translate_list_of_dicts(months, lang, fields)
 
     if has_access is False:
+        today = datetime.utcnow()
         for m in months:
-            m["content"] = ""
-            m["content_locked"] = True
+            is_current_month_preview = (
+                is_free is None and m.get("month") == today.month and m.get("year") == today.year
+            )
+            if not is_current_month_preview:
+                m["content"] = ""
+                m["events"] = []
+                m["content_locked"] = True
 
     return [AgendaMonth(**m) for m in months]
 

@@ -41,6 +41,7 @@ interface AgendaMonth {
     notes: string;
   }>;
   order: number;
+  content_locked?: boolean;
 }
 
 export default function AgendaDetailScreen() {
@@ -167,7 +168,11 @@ export default function AgendaDetailScreen() {
             <Text style={styles.previewTitle}>{months.length} meses de contenido detallado</Text>
 
             {months.map((month, index) => {
-              const isFree = isMonthFree(month) || purchased;
+              // The backend already decides real access (subscription check,
+              // current-month preview) via content_locked - it also blanks
+              // content/events server-side for locked months, so this is a
+              // real gate now, not just a display clamp.
+              const isFree = !month.content_locked;
               return (
               <View key={month.id} style={styles.monthCard}>
                 <View style={styles.monthHeader}>
@@ -181,10 +186,10 @@ export default function AgendaDetailScreen() {
                   {!isFree && (
                     <MaterialCommunityIcons name="lock" size={20} color={Colors.textLight} />
                   )}
-                  {isMonthFree(month) && !purchased && (
-                    // This month isn't free - it's just this calendar month's
-                    // preview, shown in full to entice a purchase. Calling it
-                    // "Gratis" falsely implied the whole agenda was free.
+                  {isFree && isMonthFree(month) && !user?.has_active_subscription && (
+                    // Only the current calendar month is a preview for a
+                    // non-subscriber - a subscriber sees every month
+                    // unlocked, not just this one, so no badge for them.
                     <View style={styles.freeBadge}>
                       <Text style={styles.freeBadgeText}>Vista Previa</Text>
                     </View>
