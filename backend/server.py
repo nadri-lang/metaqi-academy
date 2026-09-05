@@ -2568,6 +2568,30 @@ async def update_user_admin(
         "subscription": updated.get("subscription", "free")
     }
 
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user_admin(
+    user_id: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a user and all data owned by them (admin only). Used to clear test accounts."""
+    existing = await db.users.find_one({"id": user_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if existing["id"] == current_user["id"]:
+        raise HTTPException(status_code=400, detail="No puedes eliminar tu propia cuenta de admin")
+
+    for collection in [
+        db.favorites, db.course_progress, db.service_requests,
+        db.payments, db.purchases, db.bazi_reports, db.user_content,
+        db.user_sessions,
+    ]:
+        await collection.delete_many({"user_id": user_id})
+
+    await db.users.delete_one({"id": user_id})
+
+    return {"success": True, "message": f"Usuario {existing['email']} eliminado"}
+
 # Include router
 app.include_router(api_router)
 
