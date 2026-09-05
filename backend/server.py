@@ -820,6 +820,37 @@ async def cleanup_old_daily_energy(
         "cutoff_date": cutoff
     }
 
+@api_router.delete("/admin/cleanup/translation-cache")
+async def cleanup_translation_cache(
+    target_lang: Optional[str] = None,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Bust cached AI translations so they get re-requested from OpenAI.
+
+    Use after spotting a bad/mixed-language translation in the app: the
+    in-memory + Mongo translation cache has no automatic quality check, so a
+    flawed completion sticks around (and is served identically to every
+    reader) until evicted. Pass target_lang to only clear one language.
+    """
+    from translation_service import _translation_cache
+
+    query = {"target_lang": target_lang} if target_lang else {}
+    result = await db.translation_cache.delete_many(query)
+
+    if target_lang:
+        stale_keys = [k for k in _translation_cache if k.endswith(f"_{target_lang}")]
+    else:
+        stale_keys = list(_translation_cache.keys())
+    for k in stale_keys:
+        del _translation_cache[k]
+
+    return {
+        "message": f"Cleared {result.deleted_count} cached translations"
+                   + (f" for {target_lang}" if target_lang else ""),
+        "deleted_count": result.deleted_count,
+    }
+
 @api_router.delete("/admin/cleanup/old-month-energy")
 async def cleanup_old_month_energy(
     current_user: dict = Depends(get_current_admin_user)

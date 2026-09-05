@@ -2,12 +2,15 @@
 Translation service using OpenAI GPT via a direct OpenAI API key
 Automatically translates content from Spanish to target language
 """
+import hashlib
 import logging
 import os
 from typing import Optional, Dict
 from openai import AsyncOpenAI, RateLimitError
 import asyncio
 from dotenv import load_dotenv
+
+from database import db
 
 load_dotenv()
 
@@ -48,9 +51,43 @@ LANGUAGE_NAMES = {
     "ro": "Romanian"
 }
 
-# In-memory cache for translations
-# Format: {f"{text[:50]}_{target_lang}": "translated_text"}
+# In-process L1 cache, keyed by a hash of the *full* source text (not a
+# truncated prefix - short prefixes collide across distinct texts that share
+# an opening sentence, e.g. templated daily-energy copy, silently serving one
+# item's translation for another). Backed by the `translation_cache` Mongo
+# collection (see _cache_get/_cache_set) so translations survive a redeploy
+# instead of being re-requested from OpenAI - and potentially re-flawed - by
+# every restart's cold-cache stampede.
 _translation_cache: Dict[str, str] = {}
+
+
+def _cache_key(text: str, target_lang: str) -> str:
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return f"{digest}_{target_lang}"
+
+
+async def _cache_get(key: str) -> Optional[str]:
+    if key in _translation_cache:
+        return _translation_cache[key]
+    doc = await db.translation_cache.find_one({"_id": key})
+    if doc:
+        _translation_cache[key] = doc["translated"]
+        return doc["translated"]
+    return None
+
+
+async def _cache_set(key: str, text: str, target_lang: str, translated: str) -> None:
+    _translation_cache[key] = translated
+    try:
+        await db.translation_cache.update_one(
+            {"_id": key},
+            {"$set": {"text": text, "target_lang": target_lang, "translated": translated}},
+            upsert=True,
+        )
+    except Exception as e:
+        # Persisting is a durability nice-to-have; the L1 dict already has it
+        # for this process, so a Mongo hiccup shouldn't fail the translation.
+        logger.error(f"Failed to persist translation cache entry: {e}")
 
 async def translate_text(text: str, target_lang: str, source_lang: str = "es") -> str:
     """
@@ -69,9 +106,10 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
         return text
     
     # Check cache
-    cache_key = f"{text[:100]}_{target_lang}"
-    if cache_key in _translation_cache:
-        return _translation_cache[cache_key]
+    cache_key = _cache_key(text, target_lang)
+    cached = await _cache_get(cache_key)
+    if cached is not None:
+        return cached
     
     # Get API key
     client = _get_client()
@@ -103,7 +141,7 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "es") -
         translated = response.choices[0].message.content.strip()
 
         # Cache the result
-        _translation_cache[cache_key] = translated
+        await _cache_set(cache_key, text, target_lang, translated)
 
         return translated
 
