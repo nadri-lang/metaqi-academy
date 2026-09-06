@@ -2549,31 +2549,6 @@ async def delete_user_admin(
 
     return {"success": True, "message": f"Usuario {existing['email']} eliminado"}
 
-# ============= TEMPORARY: RAW EXPORT FOR EMERGENT -> ATLAS MIGRATION =============
-# mongodump can't reach this cluster from outside Emergent's private network, so
-# these dump the raw contents of every collection through the API instead. Admin
-# only. Remove this whole section once the Atlas migration is verified complete -
-# it should not ship to Render.
-
-@api_router.get("/admin/export/collections")
-async def export_list_collections(current_user: dict = Depends(get_current_admin_user)):
-    names = await db.list_collection_names()
-    return {"db_name": db.name, "collections": names}
-
-@api_router.get("/admin/export/dump")
-async def export_dump_collection(
-    collection: str,
-    skip: int = 0,
-    limit: int = 500,
-    current_user: dict = Depends(get_current_admin_user)
-):
-    cursor = db[collection].find().skip(skip).limit(limit)
-    docs = await cursor.to_list(limit)
-    for d in docs:
-        d["_id"] = str(d["_id"])
-    total = await db[collection].count_documents({})
-    return {"collection": collection, "total": total, "count": len(docs), "documents": docs}
-
 # Include router
 app.include_router(api_router)
 
