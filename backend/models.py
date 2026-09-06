@@ -84,8 +84,8 @@ class LoginRequest(BaseModel):
     password: str
 
 # Google Auth Models
-class GoogleAuthSession(BaseModel):
-    session_id: str
+class GoogleIdTokenAuth(BaseModel):
+    id_token: str
 
 class GoogleAuthResponse(BaseModel):
     session_token: str

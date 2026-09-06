@@ -38,7 +38,7 @@ from models import (
     BaziServiceConfig, BaziServiceConfigUpdate,
     BaziReport, BaziReportCreate, BaziReportUpdate,
     PasswordResetToken, ForgotPasswordRequest, ResetPasswordRequest,
-    GoogleAuthSession, GoogleAuthResponse, UserSession,
+    GoogleIdTokenAuth, GoogleAuthResponse, UserSession,
     AnalyticsSummary, VisitorLog,
     UserContent, UserContentCreate,
 )
@@ -54,8 +54,9 @@ from email_service import email_service
 from analytics_service import AnalyticsService
 from storage_service import init_storage, put_object
 from concurrent.futures import ThreadPoolExecutor
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_auth_request
 import secrets
-import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -260,125 +261,81 @@ async def reset_password(request: ResetPasswordRequest):
 
 # ============= GOOGLE AUTH ENDPOINTS =============
 
-# Set to track processed session_ids (prevent duplicate processing)
-processed_session_ids = set()
+# Valid audiences for Google id_tokens - one client id per platform (web/Android/iOS),
+# since expo-auth-session issues a token whose "aud" is whichever client id it used.
+GOOGLE_CLIENT_IDS = {
+    cid for cid in [
+        os.environ.get("GOOGLE_WEB_CLIENT_ID"),
+        os.environ.get("GOOGLE_ANDROID_CLIENT_ID"),
+        os.environ.get("GOOGLE_IOS_CLIENT_ID"),
+    ] if cid
+}
 
-@api_router.post("/auth/session", response_model=GoogleAuthResponse)
-async def google_auth_session(session_data: GoogleAuthSession):
+@api_router.post("/auth/google", response_model=GoogleAuthResponse)
+async def google_auth(auth_data: GoogleIdTokenAuth):
     """
-    Exchange Emergent session_id for a session_token and user data.
-    This is called by the frontend after Google OAuth redirect.
+    Verify a Google Sign-In id_token directly with Google and log the user in.
+    Replaces the old Emergent-hosted OAuth proxy (auth.emergentagent.com).
     """
-    session_id = session_data.session_id
-    
-    # Guard against duplicate processing
-    if session_id in processed_session_ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Session ID already processed"
-        )
-    
     try:
-        # Call Emergent API to get user data
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": session_id},
-                timeout=10.0
-            )
-        
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired session ID"
-            )
-        
-        data = response.json()
-        email = data.get("email")
-        name = data.get("name", email.split("@")[0])
-        picture = data.get("picture")
-        emergent_session_token = data.get("session_token")
-        
-        if not email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No email returned from auth provider"
-            )
-        
-        # Mark session_id as processed
-        processed_session_ids.add(session_id)
-        
-        # Find or create user
-        user = await db.users.find_one({"email": email})
-        
-        if user:
-            # Update existing user
-            user_id = user["id"]
-            await db.users.update_one(
-                {"id": user_id},
-                {
-                    "$set": {
-                        "name": name,
-                        "last_login": datetime.utcnow()
-                    }
-                }
-            )
-            # Track existing user visit
-            await analytics.track_visit(user_id=user_id)
-        else:
-            # Create new user
-            user_id = f"user_{uuid.uuid4().hex[:12]}"
-            user_dict = {
-                "id": user_id,
-                "email": email,
-                "name": name,
-                "language": "es",
-                "role": "free_member",
-                "hashed_password": "",  # No password for OAuth users
-                "has_active_subscription": False,
-                "created_at": datetime.utcnow(),
-                "last_login": datetime.utcnow()
-            }
-            await db.users.insert_one(user_dict)
-            user = user_dict
-            
-            # Track new registration
-            await analytics.track_registration(user_id)
-        
-        # Create session with 7-day expiration
-        session_token = secrets.token_urlsafe(32)
-        expires_at = datetime.utcnow() + timedelta(days=7)
-        
-        session_dict = {
-            "id": str(uuid.uuid4()),
-            "session_token": session_token,
-            "user_id": user_id,
+        idinfo = google_id_token.verify_oauth2_token(
+            auth_data.id_token, google_auth_request.Request()
+        )
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
+
+    if not GOOGLE_CLIENT_IDS or idinfo.get("aud") not in GOOGLE_CLIENT_IDS:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token audience")
+
+    email = idinfo.get("email")
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No email returned from Google")
+    name = idinfo.get("name", email.split("@")[0])
+
+    # Find or create user
+    user = await db.users.find_one({"email": email})
+
+    if user:
+        user_id = user["id"]
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"name": name, "last_login": datetime.utcnow()}}
+        )
+        await analytics.track_visit(user_id=user_id)
+    else:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user_dict = {
+            "id": user_id,
+            "email": email,
+            "name": name,
+            "language": "es",
+            "role": "free_member",
+            "hashed_password": "",  # No password for OAuth users
+            "has_active_subscription": False,
             "created_at": datetime.utcnow(),
-            "expires_at": expires_at
+            "last_login": datetime.utcnow()
         }
-        
-        await db.user_sessions.insert_one(session_dict)
-        
-        # Get fresh user data
-        user = await db.users.find_one({"id": user_id}, {"_id": 0})
-        
-        return GoogleAuthResponse(
-            session_token=session_token,
-            user=UserResponse(**user)
-        )
-        
-    except httpx.RequestError as e:
-        logger.error(f"Error connecting to Emergent API: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Authentication service temporarily unavailable"
-        )
-    except Exception as e:
-        logger.error(f"Error in Google auth session: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error during authentication"
-        )
+        await db.users.insert_one(user_dict)
+        await analytics.track_registration(user_id)
+
+    # Create session with 7-day expiration
+    session_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(days=7)
+
+    await db.user_sessions.insert_one({
+        "id": str(uuid.uuid4()),
+        "session_token": session_token,
+        "user_id": user_id,
+        "created_at": datetime.utcnow(),
+        "expires_at": expires_at
+    })
+
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+
+    return GoogleAuthResponse(
+        session_token=session_token,
+        user=UserResponse(**user)
+    )
 
 @api_router.get("/auth/me")
 async def get_current_user_info(authorization: str = Header(None)):
@@ -2591,6 +2548,31 @@ async def delete_user_admin(
     await db.users.delete_one({"id": user_id})
 
     return {"success": True, "message": f"Usuario {existing['email']} eliminado"}
+
+# ============= TEMPORARY: RAW EXPORT FOR EMERGENT -> ATLAS MIGRATION =============
+# mongodump can't reach this cluster from outside Emergent's private network, so
+# these dump the raw contents of every collection through the API instead. Admin
+# only. Remove this whole section once the Atlas migration is verified complete -
+# it should not ship to Render.
+
+@api_router.get("/admin/export/collections")
+async def export_list_collections(current_user: dict = Depends(get_current_admin_user)):
+    names = await db.list_collection_names()
+    return {"db_name": db.name, "collections": names}
+
+@api_router.get("/admin/export/dump")
+async def export_dump_collection(
+    collection: str,
+    skip: int = 0,
+    limit: int = 500,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    cursor = db[collection].find().skip(skip).limit(limit)
+    docs = await cursor.to_list(limit)
+    for d in docs:
+        d["_id"] = str(d["_id"])
+    total = await db[collection].count_documents({})
+    return {"collection": collection, "total": total, "count": len(docs), "documents": docs}
 
 # Include router
 app.include_router(api_router)

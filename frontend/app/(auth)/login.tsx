@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as Google from 'expo-auth-session/providers/google';
 
 // Call this at module scope for mobile auth sessions
 WebBrowser.maybeCompleteAuthSession();
@@ -36,30 +36,32 @@ export default function LoginScreen() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  useEffect(() => {
-    // Listen for deep links (mobile only)
-    if (Platform.OS !== 'web') {
-      const subscription = Linking.addEventListener('url', handleDeepLink);
-      return () => subscription.remove();
-    }
-  }, []);
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  });
 
-  const handleDeepLink = async ({ url }: { url: string }) => {
-    const match = url.match(/[?#&]session_id=([^&#]+)/);
-    if (match) {
-      const sessionId = match[1];
-      try {
-        setGoogleLoading(true);
-        await loginWithGoogle(sessionId);
-        router.replace('/(tabs)/home');
-      } catch (error: any) {
-        Alert.alert(
-          t('common.error'),
-          error.message || t('auth.error_google_signin')
-        );
-      } finally {
-        setGoogleLoading(false);
-      }
+  useEffect(() => {
+    if (response?.type === 'success' && response.params.id_token) {
+      handleGoogleToken(response.params.id_token);
+    } else if (response?.type === 'error') {
+      Alert.alert(t('common.error'), t('auth.error_google_signin'));
+    }
+  }, [response]);
+
+  const handleGoogleToken = async (idToken: string) => {
+    try {
+      setGoogleLoading(true);
+      await loginWithGoogle(idToken);
+      router.replace('/(tabs)/home');
+    } catch (error: any) {
+      Alert.alert(
+        t('common.error'),
+        error.message || t('auth.error_google_signin')
+      );
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -92,41 +94,17 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
-      
-      // Determine redirect URL based on platform
-      let redirectUrl: string;
-      if (Platform.OS === 'web') {
-        redirectUrl = window.location.origin + '/';
-      } else {
-        redirectUrl = Linking.createURL('');
+      const result = await promptAsync();
+      if (result.type !== 'success') {
+        setGoogleLoading(false);
       }
-      
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-      
-      if (Platform.OS === 'web') {
-        // On web, directly navigate
-        window.location.href = authUrl;
-      } else {
-        // On mobile, open auth session
-        const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
-        
-        if (result.type === 'success' && result.url) {
-          await handleDeepLink({ url: result.url });
-        } else if (result.type === 'dismiss' || result.type === 'cancel') {
-          // Check if we received a deep link anyway (Android/Expo Go workaround)
-          const initialUrl = await Linking.getInitialURL();
-          if (initialUrl) {
-            await handleDeepLink({ url: initialUrl });
-          }
-        }
-      }
+      // On success, the useEffect watching `response` calls handleGoogleToken.
     } catch (error: any) {
       console.error('Google login error:', error);
       Alert.alert(
         t('common.error'),
         t('auth.error_google_signin')
       );
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -172,7 +150,7 @@ export default function LoginScreen() {
               testID="google-login-btn"
               style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
               onPress={handleGoogleLogin}
-              disabled={googleLoading || loading}
+              disabled={!request || googleLoading || loading}
             >
               {googleLoading ? (
                 <ActivityIndicator color={Colors.textPrimary} />

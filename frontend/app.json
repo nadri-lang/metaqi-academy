@@ -45,6 +45,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1f533315-f0c4-49e5-8548-3166d338c05c"
+      }
+    },
+    "owner": "nadri"
   }
 }
