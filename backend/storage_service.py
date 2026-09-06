@@ -1,96 +1,68 @@
 """
-Emergent Object Storage Service
-Handles file uploads/downloads using the Emergent Storage API
+Cloudflare R2 Object Storage Service
+Handles file uploads/downloads using R2's S3-compatible API
 """
 import os
-import requests
 import logging
 from typing import Optional, Tuple
 
+import boto3
+from botocore.exceptions import ClientError
+
 logger = logging.getLogger(__name__)
 
-# Configuration
-STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
-STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
-APP_NAME = "metaqi-academy"
+R2_BUCKET = os.environ.get("R2_BUCKET_NAME")
 
-# Module-level storage key (initialized once, reused globally)
-storage_key: Optional[str] = None
+_client = None
 
 
-def init_storage() -> str:
+def init_storage():
     """
-    Initialize storage connection. Call ONCE at startup.
-    Idempotent - returns a reusable storage_key.
+    Initialize the R2 client. Call once at startup; idempotent.
+    Returns the boto3 S3 client (kept for parity with the previous
+    init_storage() -> storage_key interface; callers don't need the value).
     """
-    global storage_key
-    
-    if storage_key:
-        return storage_key
-    
-    if not EMERGENT_KEY:
-        raise ValueError("EMERGENT_LLM_KEY not configured in environment")
-    
-    try:
-        resp = requests.post(
-            f"{STORAGE_URL}/init",
-            json={"emergent_key": EMERGENT_KEY},
-            timeout=30
-        )
-        resp.raise_for_status()
-        storage_key = resp.json()["storage_key"]
-        logger.info("Emergent Object Storage initialized successfully")
-        return storage_key
-    except requests.RequestException as e:
-        logger.error(f"Failed to initialize storage: {e}")
-        raise
+    global _client
+
+    if _client:
+        return _client
+
+    endpoint = os.environ.get("R2_ENDPOINT_URL")
+    access_key = os.environ.get("R2_ACCESS_KEY_ID")
+    secret_key = os.environ.get("R2_SECRET_ACCESS_KEY")
+
+    if not (endpoint and access_key and secret_key and R2_BUCKET):
+        raise ValueError("R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY or R2_BUCKET_NAME not configured in environment")
+
+    _client = boto3.client(
+        "s3",
+        endpoint_url=endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name="auto",
+    )
+    logger.info("Cloudflare R2 storage initialized successfully")
+    return _client
 
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
     """
     Upload file to storage. Overwrites silently if path exists.
-    
+
     Args:
         path: Storage path (e.g., "metaqi-academy/uploads/user123/abc.jpg")
         data: File content as bytes
         content_type: MIME type (e.g., "image/jpeg")
-    
+
     Returns:
         dict: {"path": str, "size": int, "etag": str}
-    
-    Raises:
-        HTTPException: If upload fails
     """
-    key = init_storage()
-    
+    client = init_storage()
+
     try:
-        resp = requests.put(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={
-                "X-Storage-Key": key,
-                "Content-Type": content_type
-            },
-            data=data,
-            timeout=120
-        )
-        
-        # Handle specific error codes
-        if resp.status_code == 402:
-            raise Exception("Out of storage credits. Please add more credits to continue uploading files.")
-        elif resp.status_code == 403:
-            raise Exception("Storage integration is disabled or key is inactive.")
-        elif resp.status_code == 503:
-            # Stale key - reset and retry once
-            global storage_key
-            storage_key = None
-            logger.warning("Storage key stale, resetting...")
-            return put_object(path, data, content_type)
-        
-        resp.raise_for_status()
-        return resp.json()
-    
-    except requests.RequestException as e:
+        resp = client.put_object(Bucket=R2_BUCKET, Key=path, Body=data, ContentType=content_type)
+        return {"path": path, "size": len(data), "etag": resp.get("ETag", "").strip('"')}
+    except ClientError as e:
         logger.error(f"Failed to upload object: {e}")
         raise Exception(f"Storage upload failed: {str(e)}")
 
@@ -98,37 +70,19 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 def get_object(path: str) -> Tuple[bytes, str]:
     """
     Download file from storage.
-    
+
     Args:
         path: Storage path
-    
+
     Returns:
         tuple: (content_bytes, content_type)
-    
-    Raises:
-        HTTPException: If download fails
     """
-    key = init_storage()
-    
+    client = init_storage()
+
     try:
-        resp = requests.get(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key},
-            timeout=60
-        )
-        
-        # Handle specific error codes
-        if resp.status_code == 503:
-            # Stale key - reset and retry once
-            global storage_key
-            storage_key = None
-            logger.warning("Storage key stale, resetting...")
-            return get_object(path)
-        
-        resp.raise_for_status()
-        content_type = resp.headers.get("Content-Type", "application/octet-stream")
-        return resp.content, content_type
-    
-    except requests.RequestException as e:
+        resp = client.get_object(Bucket=R2_BUCKET, Key=path)
+        content_type = resp.get("ContentType", "application/octet-stream")
+        return resp["Body"].read(), content_type
+    except ClientError as e:
         logger.error(f"Failed to download object: {e}")
         raise Exception(f"Storage download failed: {str(e)}")
