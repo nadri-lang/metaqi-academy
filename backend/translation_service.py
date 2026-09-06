@@ -39,7 +39,13 @@ def _get_client() -> Optional[AsyncOpenAI]:
     if not api_key:
         return None
 
-    _client = AsyncOpenAI(api_key=api_key, max_retries=5)
+    # A short timeout + few retries bounds worst-case latency per field. The
+    # SDK retries on any 429 (rate-limit AND permanent quota-exhausted errors
+    # alike) with growing backoff - at max_retries=5 a single exhausted-quota
+    # field could stall for minutes before falling back to the original text,
+    # which made whole pages (e.g. /concepts, ~21 fields) look hung rather
+    # than just untranslated.
+    _client = AsyncOpenAI(api_key=api_key, max_retries=1, timeout=10.0)
     return _client
 
 # Language mapping
