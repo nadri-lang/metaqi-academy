@@ -497,8 +497,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   twinBadgeFree: {
-    color: Colors.freeGreen,
-    backgroundColor: Colors.freeGreen + '18',
+    color: Colors.white,
+    backgroundColor: Colors.freeGreen,
   },
   // Subscription banner
   subscriptionBanner: {
