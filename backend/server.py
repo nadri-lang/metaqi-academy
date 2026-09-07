@@ -1184,8 +1184,10 @@ async def delete_service(
         {"id": service_id},
         {"$set": {"is_active": False}}
     )
-    
-    if result.modified_count == 0:
+
+    # matched_count, not modified_count - a service that's already inactive
+    # still matches (and is correctly "deleted"), it just makes no change.
+    if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Servicio no encontrado")
     
     return {"success": True, "message": "Servicio eliminado"}
