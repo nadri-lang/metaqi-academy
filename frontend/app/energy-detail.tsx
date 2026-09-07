@@ -16,7 +16,7 @@ import { Colors, Gradients } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
@@ -55,6 +55,11 @@ type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshu
 export default function EnergyDetailScreen() {
   const router = useRouter();
   const { t, language } = useLanguage();
+  // Admin preview only: /energy-detail?date=YYYY-MM-DD shows that date's
+  // content instead of today's. Regular in-app navigation never sets this
+  // param, so users only ever land on today - see admin/daily-energy.tsx's
+  // "Vista previa" button.
+  const { date: previewDate } = useLocalSearchParams<{ date?: string }>();
   const [data, setData] = useState<DailyEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,11 +67,13 @@ export default function EnergyDetailScreen() {
 
   useEffect(() => {
     load();
-  }, [language]);
+  }, [language, previewDate]);
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/daily', { params: { lang: language } });
+      const params: Record<string, string> = { lang: language };
+      if (previewDate) params.date = previewDate;
+      const response = await api.get('/energy/daily', { params });
       setData(response.data);
     } catch (error) {
       console.error('Error loading daily energy:', error);
@@ -400,7 +407,9 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
             </TouchableOpacity>
             <View style={styles.headerCenter}>
-              <Text style={styles.headerDate}>{formatDate(data.date)}</Text>
+              <Text style={styles.headerDate}>
+                {formatDate(data.date)}{previewDate ? ` · ${t('daily.preview_badge')}` : ''}
+              </Text>
               <Text style={styles.headerTitleCompact} numberOfLines={1}>{data.title}</Text>
             </View>
             <FavoriteButton 

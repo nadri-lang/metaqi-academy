@@ -65,6 +65,7 @@ export default {
   },
   daily: {
     title: 'Energia Zilei',
+    preview_badge: 'Previzualizare',
     animal: 'Animalul Zilei',
     feng_shui: 'Feng Shui',
     bazi: 'BaZi',

@@ -65,6 +65,7 @@ export default {
   },
   daily: {
     title: 'Tagesenergie',
+    preview_badge: 'Vorschau',
     animal: 'Tier des Tages',
     feng_shui: 'Feng Shui',
     bazi: 'BaZi',

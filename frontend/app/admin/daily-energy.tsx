@@ -265,6 +265,16 @@ export default function AdminDailyEnergyScreen() {
                 ✓ Ya existe contenido para esta fecha
               </Text>
             )}
+            {isValidISODate(date) && existing && (
+              <TouchableOpacity
+                testID="preview-btn"
+                style={styles.previewButton}
+                onPress={() => router.push(`/energy-detail?date=${date}`)}
+              >
+                <MaterialCommunityIcons name="eye-outline" size={18} color={Colors.accent} />
+                <Text style={styles.previewButtonText}>Vista previa de la pantalla real</Text>
+              </TouchableOpacity>
+            )}
 
             <Text style={styles.label}>Título *</Text>
             <TextInput
@@ -557,6 +567,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.error,
     marginTop: 4,
+  },
+  previewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.accent + '15',
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  previewButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
   },
   saveButton: {
     flexDirection: 'row',
