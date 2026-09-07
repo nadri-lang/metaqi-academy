@@ -38,7 +38,7 @@ interface FAQCategory {
 
 export default function FAQScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [categories, setCategories] = useState<FAQCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -46,11 +46,11 @@ export default function FAQScreen() {
 
   useEffect(() => {
     loadFAQ();
-  }, []);
+  }, [language]);
 
   const loadFAQ = async () => {
     try {
-      const response = await api.get('/faq');
+      const response = await api.get('/faq', { params: { lang: language } });
       setCategories(response.data);
       if (response.data.length > 0) {
         setExpandedCategory(response.data[0].id);
