@@ -32,20 +32,20 @@ interface AgendaMonth {
 
 export default function AgendaMonthlyFreeScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<AgendaMonth | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [language]);
 
   const loadData = async () => {
     try {
       // Obtener solo contenido GRATUITO (is_free=true)
       const response = await api.get('/agendas/wedding-agenda/months', {
-        params: { is_free: true }
+        params: { is_free: true, lang: language }
       });
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
         // Tomar el primer mes disponible como contenido gratuito

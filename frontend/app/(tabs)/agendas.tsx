@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useRouter } from 'expo-router';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 interface PremiumAgenda {
   id: string;
@@ -26,16 +27,17 @@ interface PremiumAgenda {
 
 export default function AgendasScreen() {
   const router = useRouter();
+  const { language } = useLanguage();
   const [agendas, setAgendas] = useState<PremiumAgenda[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [language]);
 
   const loadData = async () => {
     try {
-      const response = await api.get('/agendas');
+      const response = await api.get('/agendas', { params: { lang: language } });
       setAgendas(response.data);
     } catch (error) {
       console.error('Error loading agendas:', error);

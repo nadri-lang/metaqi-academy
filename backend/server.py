@@ -1234,8 +1234,10 @@ async def update_service_request(
 # ============= PREMIUM AGENDAS ENDPOINTS =============
 
 @api_router.get("/agendas", response_model=List[PremiumAgenda])
-async def get_agendas():
+async def get_agendas(lang: str = "es"):
     agendas = await db.premium_agendas.find({"is_active": True}).to_list(100)
+    if lang != "es":
+        agendas = await translate_list_of_dicts(agendas, lang, ["title", "description"])
     return [PremiumAgenda(**a) for a in agendas]
 
 @api_router.post("/agendas", response_model=PremiumAgenda)

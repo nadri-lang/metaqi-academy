@@ -13,6 +13,7 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 interface DailyEnergy {
   id: string;
@@ -29,17 +30,18 @@ interface DailyEnergy {
 }
 
 export default function DailyEnergyDetailScreen() {
+  const { language } = useLanguage();
   const [data, setData] = useState<DailyEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [language]);
 
   const load = async () => {
     try {
-      const response = await api.get('/energy/daily');
+      const response = await api.get('/energy/daily', { params: { lang: language } });
       setData(response.data);
     } catch (error) {
       console.error('Error loading daily energy:', error);

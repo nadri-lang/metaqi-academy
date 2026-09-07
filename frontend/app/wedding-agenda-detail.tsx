@@ -30,20 +30,20 @@ interface AgendaMonth {
 
 export default function WeddingAgendaDetailScreen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [months, setMonths] = useState<AgendaMonth[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadAgenda();
-  }, []);
+  }, [language]);
 
   const loadAgenda = async () => {
     try {
       // Obtener solo contenido DE PAGO (is_free=false)
       const response = await api.get('/agendas/wedding-agenda/months', {
-        params: { is_free: false }
+        params: { is_free: false, lang: language }
       });
       if (response.data && Array.isArray(response.data)) {
         setMonths(response.data);

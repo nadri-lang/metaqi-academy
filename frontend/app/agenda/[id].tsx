@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
+import { useLanguage } from '@/src/context/LanguageContext';
 import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface PremiumAgenda {
@@ -48,6 +49,7 @@ export default function AgendaDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { language } = useLanguage();
   const [agenda, setAgenda] = useState<PremiumAgenda | null>(null);
   const [months, setMonths] = useState<AgendaMonth[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,13 +64,13 @@ export default function AgendaDetailScreen() {
 
   useEffect(() => {
     loadData();
-  }, [id]);
+  }, [id, language]);
 
   const loadData = async () => {
     try {
       const [agendasRes, monthsRes] = await Promise.allSettled([
-        api.get('/agendas'),
-        api.get(`/agendas/${id}/months`),
+        api.get('/agendas', { params: { lang: language } }),
+        api.get(`/agendas/${id}/months`, { params: { lang: language } }),
       ]);
       if (agendasRes.status === 'fulfilled') {
         const found = agendasRes.value.data.find((a: PremiumAgenda) => a.id === id);

@@ -14,6 +14,7 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
+import { useLanguage } from '@/src/context/LanguageContext';
 
 interface Concept {
   id: string;
@@ -27,16 +28,17 @@ interface Concept {
 
 export default function ConceptsScreen() {
   const router = useRouter();
+  const { language } = useLanguage();
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadConcepts();
-  }, []);
+  }, [language]);
 
   const loadConcepts = async () => {
     try {
-      const response = await api.get('/concepts');
+      const response = await api.get('/concepts', { params: { lang: language } });
       setConcepts(response.data);
     } catch (error) {
       console.error('Error loading concepts:', error);
