@@ -36,6 +36,8 @@ export default {
     academy: 'ACADEMY',
     daily_energy: 'Energia Zilei',
     daily_energy_subtitle: 'Descoperă energia de astăzi',
+    subscription_title: 'Abonament 1,99€/lună',
+    daily_activations: 'Activările Zilei',
     month_energy: 'Energia Lunii',
     year_energy: 'Energia Anului',
     wedding_agenda: 'Agenda Nunților din Lună',

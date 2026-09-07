@@ -190,6 +190,10 @@ export default function EnergyDetailScreen() {
               </View>
             ) : (
               <>
+                <View style={styles.freeBanner}>
+                  <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
+                  <Text style={styles.freeBannerText}>{t('home.included_in_subscription')}</Text>
+                </View>
                 {getActivationsText() ? (
                   <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
                 ) : (
@@ -635,6 +639,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: Colors.card,
+  },
+  freeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent + '20',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  freeBannerText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.accent,
+    flex: 1,
   },
   lockedContainer: {
     alignItems: 'center',

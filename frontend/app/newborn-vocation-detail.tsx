@@ -336,9 +336,15 @@ export default function NewbornVocationDetailScreen() {
               {/* TEMP: <RewardedAccessButton onUnlocked={() => loadDataForDate(currentDate)} /> disabled for Expo Go testing */}
             </View>
           ) : (
-            <Text style={styles.description}>
-              {data.content}
-            </Text>
+            <>
+              <View style={styles.freeBanner}>
+                <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
+                <Text style={styles.freeBannerText}>{t('home.included_in_subscription')}</Text>
+              </View>
+              <Text style={styles.description}>
+                {data.content}
+              </Text>
+            </>
           )}
         </View>
 
@@ -578,6 +584,21 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  freeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent + '20',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  freeBannerText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.accent,
+    flex: 1,
   },
   lockedContainer: {
     alignItems: 'center',

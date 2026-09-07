@@ -1,5 +1,5 @@
 /**
- * Media stored in the Emergent Object Store is persisted as a backend-relative
+ * Media stored in R2 object storage is persisted as a backend-relative
  * path ("/api/storage/objects/..."). React Native's <Image> and Linking need an
  * absolute URL - a relative one silently renders blank - so resolve it against
  * the backend origin before handing it to them.

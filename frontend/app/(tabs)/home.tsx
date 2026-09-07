@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Modal,
   Share,
   Platform,
 } from 'react-native';
@@ -45,7 +44,6 @@ export default function HomeScreen() {
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   const languages = [
     { code: 'es' as Language, flag: '🇪🇸', label: 'ES' },
@@ -55,8 +53,6 @@ export default function HomeScreen() {
     { code: 'ro' as Language, flag: '🇷🇴', label: 'RO' },
     { code: 'pt' as Language, flag: '🇵🇹', label: 'PT' },
   ];
-
-  const currentLanguage = languages.find(lang => lang.code === language) || languages[0];
 
   useEffect(() => {
     loadData();
@@ -86,7 +82,6 @@ export default function HomeScreen() {
 
   const handleLanguageSelect = async (langCode: Language) => {
     await setLanguage(langCode);
-    setLanguageModalVisible(false);
   };
 
   const handleShare = async () => {
@@ -127,220 +122,160 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with Logo and Language Selector */}
+        {/* Header - brand mark, language pills, share/login */}
         <LinearGradient colors={Gradients.navy} style={styles.header}>
-          <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.logo}>MetaQi</Text>
-              <Text style={styles.subtitle}>{t('home.academy')}</Text>
-            </View>
-            {!user && (
-              <TouchableOpacity
-                testID="header-login-btn"
-                style={styles.loginButton}
-                onPress={() => router.push('/(auth)/login')}
-              >
-                <Text style={styles.loginButtonText}>{t('common.enter')}</Text>
-              </TouchableOpacity>
+          <View style={styles.headerTopRow}>
+            {user ? (
+              <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.name}</Text>
+            ) : (
+              <View />
             )}
-          </View>
-          {user && (
-            <Text style={styles.greeting}>{t('home.welcome')}, {user.name}</Text>
-          )}
-          
-          {/* Language Selector & Share Button */}
-          <View style={styles.languageSelectorContainer}>
-            <TouchableOpacity
-              testID="language-selector"
-              style={styles.languageSelector}
-              onPress={() => setLanguageModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.languageFlag}>{currentLanguage.flag}</Text>
-              <Text style={styles.languageText}>{currentLanguage.label}</Text>
-              <MaterialCommunityIcons name="chevron-down" size={16} color={Colors.white} />
-            </TouchableOpacity>
-            
-            {/* Share Button */}
-            <TouchableOpacity
-              testID="share-button"
-              style={styles.shareButton}
-              onPress={handleShare}
-              activeOpacity={0.8}
-            >
-              <MaterialCommunityIcons name="share-variant-outline" size={22} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-
-        {/* Language Selection Modal */}
-        <Modal
-          visible={languageModalVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setLanguageModalVisible(false)}
-        >
-          <TouchableOpacity 
-            style={styles.modalOverlay} 
-            activeOpacity={1}
-            onPress={() => setLanguageModalVisible(false)}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('profile.select_language')}</Text>
-                <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-                  <MaterialCommunityIcons name="close" size={24} color={Colors.textPrimary} />
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                testID="share-button"
+                style={styles.iconButton}
+                onPress={handleShare}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons name="share-variant-outline" size={18} color={Colors.white} />
+              </TouchableOpacity>
+              {!user && (
+                <TouchableOpacity
+                  testID="header-login-btn"
+                  style={styles.loginButton}
+                  onPress={() => router.push('/(auth)/login')}
+                >
+                  <Text style={styles.loginButtonText}>{t('common.enter')}</Text>
                 </TouchableOpacity>
-              </View>
-              {languages.map((lang) => (
+              )}
+            </View>
+          </View>
+
+          <View style={styles.brandBlock}>
+            <Text style={styles.logo}>MetaQi</Text>
+            <Text style={styles.subtitle}>{t('home.academy')}</Text>
+            <View style={styles.brandDivider} />
+          </View>
+
+          <View style={styles.languageRow} testID="language-selector">
+            {languages.map((lang) => {
+              const active = lang.code === language;
+              return (
                 <TouchableOpacity
                   key={lang.code}
                   testID={`language-option-${lang.code}`}
-                  style={[
-                    styles.languageOption,
-                    language === lang.code && styles.languageOptionActive
-                  ]}
+                  style={[styles.languagePill, active && styles.languagePillActive]}
                   onPress={() => handleLanguageSelect(lang.code)}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.languageOptionFlag}>{lang.flag}</Text>
-                  <Text style={[
-                    styles.languageOptionText,
-                    language === lang.code && styles.languageOptionTextActive
-                  ]}>
+                  <Text style={styles.languagePillFlag}>{lang.flag}</Text>
+                  <Text style={[styles.languagePillText, active && styles.languagePillTextActive]}>
                     {lang.label}
                   </Text>
-                  {language === lang.code && (
-                    <MaterialCommunityIcons name="check" size={20} color={Colors.accent} />
-                  )}
                 </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
-        </Modal>
+              );
+            })}
+          </View>
+        </LinearGradient>
 
-        {/* 1. Botón Dorado - Energía del Día */}
+        {/* Hero - Energía del Día */}
         <View style={styles.section}>
           <TouchableOpacity
             testID="daily-energy-button"
-            style={styles.goldenButton}
+            style={styles.heroCard}
             onPress={() => router.push('/energy-detail')}
-            activeOpacity={0.85}
+            activeOpacity={0.9}
           >
-            <LinearGradient colors={Gradients.gold} style={styles.goldenGradient}>
-              <View style={styles.goldenIconContainer}>
-                <MaterialCommunityIcons name="white-balance-sunny" size={32} color={Colors.primary} />
-              </View>
-              <View style={styles.goldenContent}>
-                <Text style={styles.goldenLabel}>{t('home.daily_energy')}</Text>
-                {dailyEnergy ? (
-                  <Text style={styles.goldenTitle} numberOfLines={2}>
-                    {dailyEnergy.title}
-                  </Text>
-                ) : (
-                  <Text style={styles.goldenTitle} numberOfLines={2}>
-                    {t('home.daily_energy_subtitle')}
-                  </Text>
-                )}
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.primary} />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-
-        {/* 2. Botón - Energía del Mes */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="month-energy-button"
-            style={styles.styledEnergyButton}
-            onPress={() => router.push('/month-energy-detail')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.styledEnergyContainer}>
-              <View style={styles.energyIconContainer}>
-                <MaterialCommunityIcons name="calendar-outline" size={28} color={Colors.accent} />
-              </View>
-              <View style={styles.energyContent}>
-                <Text style={styles.energyLabel}>{t('home.month_energy')}</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* 3. Sección - Agenda de Bodas del Mes (Gratis) */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="wedding-agenda-button"
-            style={styles.styledEnergyButton}
-            onPress={() => router.push('/agenda-monthly-free')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.styledEnergyContainer}>
-              <View style={styles.energyIconContainer}>
-                <MaterialCommunityIcons name="calendar-outline" size={28} color={Colors.accent} />
-              </View>
-              <View style={styles.energyContent}>
-                <Text style={styles.energyLabel}>
-                  {t('home.wedding_agenda')}
-                </Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* 4. Tarjeta - Talento del Bebé (estilo similar a Energía del Día) */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="baby-talent-button"
-            style={styles.babyTalentButton}
-            onPress={() => router.push('/newborn-vocation-detail')}
-            activeOpacity={0.85}
-          >
-            <LinearGradient colors={Gradients.navy} style={styles.babyTalentGradient}>
-              <View style={styles.babyTalentIconContainer}>
-                <MaterialCommunityIcons name="star" size={32} color={Colors.accent} />
-              </View>
-              <View style={styles.babyTalentContent}>
-                <Text style={styles.babyTalentLabel}>{t('home.baby_talent')}</Text>
-                <Text style={styles.babyTalentSubtitle}>{t('home.baby_talent_subtitle')}</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.accent} />
-            </LinearGradient>
-          </TouchableOpacity>
-          
-          {/* Botón CTA - Lectura Personalizada */}
-          <TouchableOpacity
-            testID="baby-talent-cta"
-            style={styles.babyTalentCtaButton}
-            onPress={() => router.push('/(tabs)/services')}
-          >
-            <Text style={styles.babyTalentCtaText}>{t('home.personalized_reading')}</Text>
-            <MaterialCommunityIcons name="arrow-right" size={16} color={Colors.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 5. Botón - Energía del Año (AL FINAL) */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            testID="year-energy-button"
-            style={styles.styledEnergyButton}
-            onPress={() => router.push('/year-energy-detail')}
-            activeOpacity={0.85}
-          >
-            <View style={styles.styledEnergyContainer}>
-              <View style={styles.energyIconContainer}>
-                <MaterialCommunityIcons name="shimmer" size={28} color={Colors.accent} />
-              </View>
-              <View style={styles.energyContent}>
-                <View style={styles.yearEnergyRow}>
-                  <Text style={styles.energyLabel}>{t('home.year_energy')}</Text>
-                  <Text style={styles.yearBadge}>2026</Text>
+            <LinearGradient colors={Gradients.navy} style={styles.heroGradient}>
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroIconRing}>
+                  <MaterialCommunityIcons name="white-balance-sunny" size={26} color={Colors.accent} />
                 </View>
+                <Text style={styles.heroEyebrow}>{t('home.daily_energy')}</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
-            </View>
+              {dailyEnergy ? (
+                <Text style={styles.heroTitle} numberOfLines={2}>{dailyEnergy.title}</Text>
+              ) : (
+                <Text style={styles.heroTitle} numberOfLines={2}>{t('home.daily_energy_subtitle')}</Text>
+              )}
+              <View style={styles.heroButton}>
+                <Text style={styles.heroButtonText}>{t('home.view_details')}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.primary} />
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
+        </View>
+
+        {/* Energía del Mes / Energía del Año - fila de 2 */}
+        <View style={styles.section}>
+          <View style={styles.twinRow}>
+            <TouchableOpacity
+              testID="month-energy-button"
+              style={styles.twinCard}
+              onPress={() => router.push('/month-energy-detail')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.twinIconContainer}>
+                <MaterialCommunityIcons name="calendar-outline" size={24} color={Colors.accent} />
+              </View>
+              <Text style={styles.twinLabel}>{t('home.month_energy')}</Text>
+              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              testID="year-energy-button"
+              style={styles.twinCard}
+              onPress={() => router.push('/year-energy-detail')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.twinIconContainer}>
+                <MaterialCommunityIcons name="shimmer" size={24} color={Colors.accent} />
+              </View>
+              <Text style={styles.twinLabel}>{t('home.year_energy')}</Text>
+              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Banner de suscripción - accesos premium agrupados */}
+        <View style={styles.section}>
+          <View style={styles.subscriptionBanner}>
+            <View style={styles.subscriptionHeader}>
+              <MaterialCommunityIcons name="crown-outline" size={16} color={Colors.accent} />
+              <Text style={styles.subscriptionTitle}>{t('home.subscription_title')}</Text>
+            </View>
+            <View style={styles.subscriptionRow}>
+              <TouchableOpacity
+                testID="subscription-activations"
+                style={styles.subscriptionItem}
+                onPress={() => router.push('/energy-detail')}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons name="white-balance-sunny" size={22} color={Colors.accent} />
+                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.daily_activations')}</Text>
+              </TouchableOpacity>
+              <View style={styles.subscriptionDivider} />
+              <TouchableOpacity
+                testID="baby-talent-button"
+                style={styles.subscriptionItem}
+                onPress={() => router.push('/newborn-vocation-detail')}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons name="star-outline" size={22} color={Colors.accent} />
+                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.baby_talent')}</Text>
+              </TouchableOpacity>
+              <View style={styles.subscriptionDivider} />
+              <TouchableOpacity
+                testID="wedding-agenda-button"
+                style={styles.subscriptionItem}
+                onPress={() => router.push('/agenda-monthly-free')}
+                activeOpacity={0.8}
+              >
+                <MaterialCommunityIcons name="ring" size={22} color={Colors.accent} />
+                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.wedding_agenda')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View style={{ height: Spacing.xl }} />
@@ -360,13 +295,49 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
   },
-  headerContent: {
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: 32,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  iconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  greeting: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.white,
+    opacity: 0.8,
+  },
+  loginButton: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+  },
+  loginButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.primary,
+  },
+  brandBlock: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
   },
   logo: {
     fontFamily: Typography.serifBold,
@@ -375,330 +346,202 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: Typography.sans,
-    fontSize: Typography.sm,
+    fontSize: Typography.xs,
     color: Colors.white,
     letterSpacing: 3,
     textTransform: 'uppercase',
-    marginTop: Spacing.xs,
+    marginTop: 2,
   },
-  greeting: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.base,
-    color: Colors.white,
-    opacity: 0.8,
+  brandDivider: {
+    width: 40,
+    height: 1,
+    backgroundColor: Colors.accent + '60',
     marginTop: Spacing.md,
   },
-  loginButton: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  loginButtonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
-    color: Colors.primary,
-  },
-  // Language Selector & Share Button
-  languageSelectorContainer: {
+  // Language pills
+  languageRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
     marginTop: Spacing.lg,
+  },
+  languagePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.md,
-  },
-  languageSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary + '30',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
     borderRadius: BorderRadius.full,
-    gap: Spacing.sm,
+    gap: 4,
     borderWidth: 1,
-    borderColor: Colors.accent + '40',
+    borderColor: 'transparent',
   },
-  shareButton: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.primary + '30',
-    borderWidth: 1,
-    borderColor: Colors.accent + '40',
-    justifyContent: 'center',
-    alignItems: 'center',
+  languagePillActive: {
+    backgroundColor: Colors.accent + '20',
+    borderColor: Colors.accent,
   },
-  languageFlag: {
-    fontSize: 24,
+  languagePillFlag: {
+    fontSize: 14,
   },
-  languageText: {
+  languagePillText: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
+    fontSize: 11,
     color: Colors.white,
+    opacity: 0.7,
+  },
+  languagePillTextActive: {
+    color: Colors.accent,
+    opacity: 1,
   },
   section: {
     paddingHorizontal: Spacing.lg,
     marginTop: Spacing.lg,
   },
-  // Golden Button - Energía del Día
-  goldenButton: {
+  // Hero - Energía del Día
+  heroCard: {
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  goldenGradient: {
+  heroGradient: {
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+    borderRadius: BorderRadius.xl,
+  },
+  heroTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.lg,
-    gap: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  goldenIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: Colors.primary + '20',
+  heroIconRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.accent + '18',
+    borderWidth: 1,
+    borderColor: Colors.accent + '50',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  goldenContent: {
-    flex: 1,
-  },
-  goldenLabel: {
+  heroEyebrow: {
     fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.primary,
-    opacity: 0.8,
+    fontSize: Typography.xs,
+    color: Colors.accent,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    marginBottom: 4,
   },
-  goldenTitle: {
+  heroTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
-    color: Colors.primary,
-    lineHeight: 24,
+    fontSize: Typography['2xl'],
+    color: Colors.white,
+    lineHeight: 30,
+    marginBottom: Spacing.lg,
   },
-  // Energy Buttons (Month, Year, Wedding Agenda) - WITH BLUE BORDER & GOLDEN SHADOW
-  styledEnergyButton: {
-    borderRadius: BorderRadius.xl,
-    shadowColor: Colors.accent, // Golden shadow
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  styledEnergyContainer: {
+  heroButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 2, // Thicker border
-    borderColor: Colors.primary, // Dark blue outline (azul oscuro de la app)
-    padding: Spacing.lg,
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.accent,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    gap: 2,
+  },
+  heroButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.primary,
+  },
+  // Energía del Mes / Año - fila de 2
+  twinRow: {
+    flexDirection: 'row',
     gap: Spacing.md,
   },
-  // Energy Buttons (Month, Year)
-  energyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  twinCard: {
+    flex: 1,
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    padding: Spacing.lg,
-    gap: Spacing.md,
+    padding: Spacing.md,
+    alignItems: 'flex-start',
+    gap: Spacing.xs,
   },
-  energyIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+  twinIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: Colors.accent + '15',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  energyContent: {
-    flex: 1,
-  },
-  energyLabel: {
+  twinLabel: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
-    color: Colors.textPrimary,
-  },
-  // Card
-  card: {
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    padding: Spacing.lg,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  cardTitle: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
-    color: Colors.textPrimary,
-    flex: 1,
-  },
-  cardSubtitle: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.textLight,
-    marginBottom: Spacing.md,
-  },
-  cardContent: {
-    fontFamily: Typography.sans,
     fontSize: Typography.base,
-    color: Colors.textSecondary,
-    lineHeight: 24,
-    marginBottom: Spacing.md,
-  },
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.accent,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  ctaButtonText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
-    color: Colors.primary,
-  },
-  // Baby Talent Card (estilo similar a Energía del Día)
-  babyTalentButton: {
-    borderRadius: BorderRadius.xl,
-    overflow: 'hidden',
-    shadowColor: Colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  babyTalentGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.accent + '40',
-    borderRadius: BorderRadius.xl,
-  },
-  babyTalentIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: Colors.accent + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  babyTalentContent: {
-    flex: 1,
-  },
-  babyTalentLabel: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
-    color: Colors.accent,
-    lineHeight: 24,
-    marginBottom: 4,
-  },
-  babyTalentSubtitle: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.sm,
-    color: Colors.white,
-    opacity: 0.8,
+    color: Colors.textPrimary,
     lineHeight: 20,
   },
-  babyTalentCtaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.accent,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
-  babyTalentCtaText: {
+  twinBadge: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
-    color: Colors.primary,
-  },
-  // Year Energy Badge
-  yearEnergyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  yearBadge: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.sm,
-    color: Colors.accent,
-    backgroundColor: Colors.accent + '20',
+    fontSize: 11,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
+    overflow: 'hidden',
   },
-  // Language Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.lg,
+  twinBadgeFree: {
+    color: Colors.freeGreen,
+    backgroundColor: Colors.freeGreen + '18',
   },
-  modalContent: {
-    backgroundColor: Colors.card,
+  // Subscription banner
+  subscriptionBanner: {
     borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    width: '100%',
-    maxWidth: 320,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: Colors.accent + '50',
+    backgroundColor: Colors.primary,
+    padding: Spacing.lg,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  modalTitle: {
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.xl,
-    color: Colors.textPrimary,
-  },
-  languageOption: {
+  subscriptionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.xs,
-    gap: Spacing.md,
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
   },
-  languageOptionActive: {
-    backgroundColor: Colors.accent + '15',
-  },
-  languageOptionFlag: {
-    fontSize: 28,
-  },
-  languageOptionText: {
-    flex: 1,
+  subscriptionTitle: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.textPrimary,
-  },
-  languageOptionTextActive: {
+    fontSize: Typography.sm,
     color: Colors.accent,
+    letterSpacing: 0.5,
   },
+  subscriptionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  subscriptionItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: 4,
+  },
+  subscriptionItemText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: 11,
+    color: Colors.white,
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  subscriptionDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: Colors.accent + '25',
+    marginTop: 6,
+  },
+  // Card
 });

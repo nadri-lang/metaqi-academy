@@ -91,12 +91,12 @@ async def create_indexes():
         
         logger.info("MongoDB indexes created successfully")
         
-        # Initialize Emergent Object Storage
+        # Initialize R2 object storage
         try:
             init_storage()
-            logger.info("Emergent Object Storage initialized successfully")
+            logger.info("R2 object storage initialized successfully")
         except Exception as storage_error:
-            logger.error(f"Failed to initialize Emergent Object Storage: {storage_error}")
+            logger.error(f"Failed to initialize R2 object storage: {storage_error}")
             logger.warning("Image uploads will not work until storage is properly configured")
         
     except Exception as e:
@@ -607,7 +607,7 @@ async def update_daily_energy_activations_media(
     """
     Update daily energy activations with image and/or video URL.
     Only updates the activations_image_url and activations_video_url fields.
-    Uses Emergent Object Storage for image uploads.
+    Uses R2 object storage for image uploads.
     """
     # Check if daily energy exists for this date
     existing = await db.daily_energy.find_one({"date": date})
@@ -655,7 +655,7 @@ async def update_daily_energy_activations_media(
         storage_path = f"metaqi-academy/activations/{date}/{uuid.uuid4().hex}{extension}"
         
         try:
-            # Upload to Emergent Object Storage (sync call, run in thread pool)
+            # Upload to R2 object storage (sync call, run in thread pool)
             import asyncio
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as executor:
@@ -697,7 +697,7 @@ async def update_daily_energy_activations_media(
 @api_router.get("/storage/objects/{path:path}")
 async def get_storage_object(path: str):
     """
-    Serve files from Emergent Object Storage.
+    Serve files from R2 object storage.
     This endpoint acts as a proxy to retrieve stored files.
     """
     from storage_service import get_object
@@ -2395,7 +2395,7 @@ async def create_user_content(
         if not file_data:
             raise HTTPException(status_code=400, detail="Archivo vacío")
         
-        # Upload to Emergent Object Storage (managed integration, same path as
+        # Upload to R2 object storage (same path as
         # the daily-energy media upload - no per-app credentials to configure)
         extension = Path(file.filename or "upload").suffix.lower()
         storage_path = f"metaqi-academy/user-content/{uuid.uuid4().hex}{extension}"

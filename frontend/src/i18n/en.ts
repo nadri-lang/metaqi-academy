@@ -36,6 +36,8 @@ export default {
     academy: 'ACADEMY',
     daily_energy: 'Daily Energy',
     daily_energy_subtitle: 'Discover today\'s energy',
+    subscription_title: 'Subscription €1.99/month',
+    daily_activations: 'Daily Activations',
     month_energy: 'Month Energy',
     year_energy: 'Year Energy',
     wedding_agenda: 'Wedding Agenda of the Month',

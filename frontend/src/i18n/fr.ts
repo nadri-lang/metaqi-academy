@@ -36,6 +36,8 @@ export default {
     academy: 'ACADEMY',
     daily_energy: 'Énergie du Jour',
     daily_energy_subtitle: 'Découvrez l\'énergie d\'aujourd\'hui',
+    subscription_title: 'Abonnement 1,99€/mois',
+    daily_activations: 'Activations du Jour',
     month_energy: 'Énergie du Mois',
     year_energy: 'Énergie de l\'Année',
     wedding_agenda: 'Agenda de Mariage du Mois',
