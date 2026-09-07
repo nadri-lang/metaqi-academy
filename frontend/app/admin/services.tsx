@@ -30,6 +30,7 @@ interface CustomService {
   original_price?: number;
   is_offer?: boolean;
   is_active: boolean;
+  form_fields?: any[];
 }
 
 export default function AdminServicesScreen() {
@@ -47,6 +48,7 @@ export default function AdminServicesScreen() {
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
   const [isOffer, setIsOffer] = useState(false);
+  const [isActive, setIsActive] = useState(true);
   const [includes, setIncludes] = useState('');
 
   useEffect(() => {
@@ -74,13 +76,24 @@ export default function AdminServicesScreen() {
     setPrice(String(service.price));
     setOriginalPrice(service.original_price ? String(service.original_price) : '');
     setIsOffer(service.is_offer || false);
+    setIsActive(service.is_active);
     setIncludes((service.includes || []).join('\n'));
     setEditModalVisible(true);
   };
 
-  const handleSave = async () => {
-    if (!selectedService) return;
+  const openCreateModal = () => {
+    setSelectedService(null);
+    setTitle('');
+    setDescription('');
+    setPrice('');
+    setOriginalPrice('');
+    setIsOffer(false);
+    setIsActive(true);
+    setIncludes('');
+    setEditModalVisible(true);
+  };
 
+  const handleSave = async () => {
     if (!title.trim() || !description.trim() || !price.trim()) {
       Alert.alert('Error', 'Título, descripción y precio son obligatorios');
       return;
@@ -88,24 +101,34 @@ export default function AdminServicesScreen() {
 
     setSaving(true);
     try {
-      const updateData = {
+      const commonData = {
         title: title.trim(),
         description: description.trim(),
         price: parseFloat(price),
         original_price: originalPrice.trim() ? parseFloat(originalPrice) : undefined,
         is_offer: isOffer,
+        is_active: isActive,
         includes: includes.split('\n').filter(i => i.trim()).map(i => i.trim()),
-        form_fields: selectedService.form_fields || [],
-        is_active: selectedService.is_active,
       };
 
-      await api.put(`/services/${selectedService.id}`, updateData);
-      Alert.alert('Éxito', 'Servicio actualizado correctamente');
+      if (selectedService) {
+        await api.put(`/services/${selectedService.id}`, {
+          ...commonData,
+          form_fields: selectedService.form_fields || [],
+        });
+        Alert.alert('Éxito', 'Servicio actualizado correctamente');
+      } else {
+        await api.post('/services', {
+          ...commonData,
+          form_fields: [],
+        });
+        Alert.alert('Éxito', 'Servicio creado correctamente');
+      }
       setEditModalVisible(false);
       loadServices();
     } catch (error) {
-      console.error('Error updating service:', error);
-      Alert.alert('Error', 'No se pudo actualizar el servicio');
+      console.error('Error saving service:', error);
+      Alert.alert('Error', selectedService ? 'No se pudo actualizar el servicio' : 'No se pudo crear el servicio');
     } finally {
       setSaving(false);
     }
@@ -160,7 +183,9 @@ export default function AdminServicesScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Gestión de Servicios</Text>
-            <View style={{ width: 40 }} />
+            <TouchableOpacity testID="add-service-btn" style={styles.addButton} onPress={openCreateModal}>
+              <MaterialCommunityIcons name="plus" size={24} color={Colors.primary} />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -232,7 +257,7 @@ export default function AdminServicesScreen() {
                 <TouchableOpacity style={styles.backButton} onPress={() => setEditModalVisible(false)}>
                   <MaterialCommunityIcons name="close" size={24} color={Colors.primary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Editar Servicio</Text>
+                <Text style={styles.headerTitle}>{selectedService ? 'Editar Servicio' : 'Nuevo Servicio'}</Text>
                 <View style={{ width: 40 }} />
               </View>
             </SafeAreaView>
@@ -284,6 +309,21 @@ export default function AdminServicesScreen() {
                     color={isOffer ? Colors.accent : Colors.textLight}
                   />
                   <Text style={styles.checkboxLabel}>Es una oferta</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.checkboxRow}>
+                <TouchableOpacity
+                  testID="toggle-active"
+                  style={styles.checkbox}
+                  onPress={() => setIsActive(!isActive)}
+                >
+                  <MaterialCommunityIcons
+                    name={isActive ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                    size={24}
+                    color={isActive ? Colors.accent : Colors.textLight}
+                  />
+                  <Text style={styles.checkboxLabel}>Visible en la app (activo)</Text>
                 </TouchableOpacity>
               </View>
 
@@ -364,6 +404,14 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primary + '20',
     justifyContent: 'center',
     alignItems: 'center',
   },

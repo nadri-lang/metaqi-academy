@@ -1097,12 +1097,15 @@ async def update_progress(
 # ============= CUSTOM SERVICES ENDPOINTS =============
 
 @api_router.get("/services", response_model=List[CustomService])
-async def get_services(lang: str = 'es'):
+async def get_services(lang: str = 'es', authorization: Optional[str] = Header(None)):
     """
     Get all active services with translations applied based on lang parameter.
     Supported: es, en, fr, de, ro
+    Admins also see inactive services, so the admin panel can manage/reactivate them.
     """
-    services = await db.custom_services.find({"is_active": True}).to_list(100)
+    current_user = await resolve_optional_user(authorization)
+    query = {} if current_user and current_user.get("role") == "admin" else {"is_active": True}
+    services = await db.custom_services.find(query).to_list(100)
     
     if lang != 'es':
         services = await translate_list_of_dicts(services, lang, ["title", "description"])
