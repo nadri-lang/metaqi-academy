@@ -45,7 +45,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.metaphysics'),
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="book-open-variant" size={size} color={color} />
+            <MaterialCommunityIcons name="yin-yang" size={size} color={color} />
           ),
         }}
       />
@@ -63,7 +63,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.services'),
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="star-four-points-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="briefcase-outline" size={size} color={color} />
           ),
         }}
       />
