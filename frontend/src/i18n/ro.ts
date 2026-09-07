@@ -60,7 +60,7 @@ export default {
     personalized_analysis: 'Analiză personalizată a bebelușului tău',
     natural_talents: 'Talente naturale',
     favorable_vocations: 'Vocații favorabile',
-    subscriber_content: 'De la {price}/lună',
+    subscriber_content: 'Abonament {price}/lună',
     included_in_subscription: 'Inclus în Abonamentul Tău',
   },
   daily: {

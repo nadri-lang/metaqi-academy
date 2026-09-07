@@ -60,7 +60,7 @@ export default {
     personalized_analysis: 'Análise personalizada do teu bebé',
     natural_talents: 'Talentos naturais',
     favorable_vocations: 'Vocações favoráveis',
-    subscriber_content: 'A partir de {price}/mês',
+    subscriber_content: 'Subscrição {price}/mês',
     included_in_subscription: 'Incluído na tua Subscrição',
   },
   daily: {

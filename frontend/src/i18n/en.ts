@@ -60,7 +60,7 @@ export default {
     personalized_analysis: 'Personalized analysis for your baby',
     natural_talents: 'Natural talents',
     favorable_vocations: 'Favorable vocations',
-    subscriber_content: 'From {price}/month',
+    subscriber_content: 'Subscription {price}/month',
     included_in_subscription: 'Included in Your Subscription',
   },
   daily: {
