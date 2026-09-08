@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface MonthEntry {
   id: string;
@@ -53,6 +54,7 @@ export default function MonthEnergyAdminScreen() {
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey());
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -87,16 +89,27 @@ export default function MonthEnergyAdminScreen() {
   };
 
   const chips = React.useMemo(() => {
-    const known = new Set(entries.map((e) => e.month));
-    const all = [...entries.map((e) => e.month)];
+    // Past months clutter the picker by default - only the current month and
+    // anything staged for the future show up here. A past month is still
+    // reachable (it just won't have a chip) and can be deleted with the
+    // button below once selected via its saved link/URL if ever needed.
+    const currentKey = currentMonthKey();
+    const relevant = showPast ? entries : entries.filter((e) => e.month >= currentKey);
+    const known = new Set(relevant.map((e) => e.month));
+    const all = [...known];
     for (const slot of extraSlots) {
       if (!known.has(slot)) all.push(slot);
     }
-    if (!known.has(currentMonthKey()) && !all.includes(currentMonthKey())) {
-      all.push(currentMonthKey());
+    if (!all.includes(currentKey)) {
+      all.push(currentKey);
     }
     return all.sort();
-  }, [entries, extraSlots]);
+  }, [entries, extraSlots, showPast]);
+
+  const hasPastEntries = React.useMemo(() => {
+    const currentKey = currentMonthKey();
+    return entries.some((e) => e.month < currentKey);
+  }, [entries]);
 
   const addUpcomingSlots = () => {
     const last = chips.length > 0 ? chips[chips.length - 1] : currentMonthKey();
@@ -134,36 +147,30 @@ export default function MonthEnergyAdminScreen() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const exists = entries.some((e) => e.month === selectedMonth);
     if (!exists) {
       Alert.alert('Info', 'Este mes todavía no tiene contenido guardado.');
       return;
     }
 
-    Alert.alert(
-      '⚠️ Confirmar eliminación',
+    const confirmed = await confirmAsync(
+      'Confirmar eliminación',
       `¿Eliminar la Energía del Mes (${formatMonthLabel(selectedMonth)})? Esta acción no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await api.delete(`/admin/month-energy/${selectedMonth}`);
-              Alert.alert('Éxito', 'Contenido eliminado correctamente');
-              loadEntries();
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+      'Eliminar',
     );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/month-energy/${selectedMonth}`);
+      Alert.alert('Éxito', 'Contenido eliminado correctamente');
+      loadEntries();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const hasContent = entries.some((e) => e.month === selectedMonth);
@@ -224,6 +231,18 @@ export default function MonthEnergyAdminScreen() {
           <Text style={styles.pickerHint}>
             {hasContent ? '✓ Este mes ya tiene contenido guardado.' : 'Este mes todavía no tiene contenido (●).'}
           </Text>
+          {hasPastEntries && (
+            <TouchableOpacity testID="toggle-past-months" onPress={() => setShowPast((v) => !v)} style={styles.showPastToggle}>
+              <MaterialCommunityIcons
+                name={showPast ? 'eye-off-outline' : 'history'}
+                size={16}
+                color={Colors.accent}
+              />
+              <Text style={styles.showPastToggleText}>
+                {showPast ? 'Ocultar meses pasados' : 'Ver meses pasados (para borrarlos)'}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.form}>
             <View style={styles.field}>
@@ -399,6 +418,18 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.textLight,
     marginBottom: Spacing.lg,
+  },
+  showPastToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: -Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  showPastToggleText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
   },
   form: {
     gap: Spacing.lg,

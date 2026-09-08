@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -113,38 +114,32 @@ export default function AdminUsersScreen() {
     }
   };
 
-  const handleToggleBlock = () => {
+  const handleToggleBlock = async () => {
     if (!selectedUser) return;
     const willBlock = !selectedUser.is_blocked;
-    Alert.alert(
+    const confirmed = await confirmAsync(
       willBlock ? 'Bloquear usuario' : 'Desbloquear usuario',
       willBlock
         ? `¿Bloquear a ${selectedUser.email}? No podrá iniciar sesión hasta que lo desbloquees.`
         : `¿Desbloquear a ${selectedUser.email}? Podrá volver a iniciar sesión.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: willBlock ? 'Bloquear' : 'Desbloquear',
-          style: willBlock ? 'destructive' : 'default',
-          onPress: async () => {
-            setTogglingBlock(true);
-            try {
-              const response = await api.put(`/admin/users/${selectedUser.id}`, null, {
-                params: { is_blocked: willBlock },
-              });
-              setSelectedUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
-              setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, is_blocked: response.data.is_blocked } : u)));
-              Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
-            } catch (error: any) {
-              console.error('Error toggling block:', error);
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
-            } finally {
-              setTogglingBlock(false);
-            }
-          },
-        },
-      ]
+      willBlock ? 'Bloquear' : 'Desbloquear',
     );
+    if (!confirmed) return;
+
+    setTogglingBlock(true);
+    try {
+      const response = await api.put(`/admin/users/${selectedUser.id}`, null, {
+        params: { is_blocked: willBlock },
+      });
+      setSelectedUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
+      setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, is_blocked: response.data.is_blocked } : u)));
+      Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
+    } catch (error: any) {
+      console.error('Error toggling block:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
+    } finally {
+      setTogglingBlock(false);
+    }
   };
 
   const handleSave = async () => {
@@ -338,30 +333,20 @@ export default function AdminUsersScreen() {
     }
   };
 
-  const handleDeleteContent = (contentId: string, title: string) => {
-    Alert.alert(
-      'Confirmar eliminación',
-      `¿Eliminar "${title}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/admin/user-content/${contentId}`);
-              Alert.alert('Éxito', 'Contenido eliminado');
-              if (selectedUser) {
-                loadUserContent(selectedUser.email);
-              }
-            } catch (error: any) {
-              console.error('Error deleting content:', error);
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar');
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteContent = async (contentId: string, title: string) => {
+    const confirmed = await confirmAsync('Confirmar eliminación', `¿Eliminar "${title}"?`, 'Eliminar');
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/user-content/${contentId}`);
+      Alert.alert('Éxito', 'Contenido eliminado');
+      if (selectedUser) {
+        loadUserContent(selectedUser.email);
+      }
+    } catch (error: any) {
+      console.error('Error deleting content:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar');
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {

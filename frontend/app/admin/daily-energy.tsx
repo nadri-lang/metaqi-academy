@@ -25,6 +25,7 @@ import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import { formatDateInput, isValidISODate, todayISO, describeDate, shiftDate } from '@/src/utils/dateInput';
 import { ZODIAC_ANIMALS, ELEMENTS, composeAnimalLabel, ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
 import ZodiacEmblem from '@/src/components/ZodiacEmblem';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 export default function AdminDailyEnergyScreen() {
   const router = useRouter();
@@ -50,8 +51,17 @@ export default function AdminDailyEnergyScreen() {
   const [activationsImageUrl, setActivationsImageUrl] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [existing, setExisting] = useState<any>(null);
   const [existingDates, setExistingDates] = useState<{ date: string; title: string }[]>([]);
+
+  // Only yesterday, today and every future entry clutter the picker by
+  // default - older days are still reachable (type the date, or the
+  // prev/next arrows) so they can still be opened and deleted on purpose.
+  const visibleDates = React.useMemo(() => {
+    const cutoff = shiftDate(todayISO(), -1);
+    return existingDates.filter((e) => e.date >= cutoff);
+  }, [existingDates]);
 
   useEffect(() => {
     loadExistingDates();
@@ -109,6 +119,28 @@ export default function AdminDailyEnergyScreen() {
       setActivationsVideoUrl('');
       setActivationsImageUri('');
       setActivationsImageUrl('');
+    }
+  };
+
+  const handleDeleteDay = async () => {
+    if (!existing) return;
+    const confirmed = await confirmAsync(
+      'Confirmar eliminación',
+      `¿Eliminar la energía del día del ${describeDate(date)}? Esta acción no se puede deshacer.`,
+      'Eliminar',
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/daily-energy/${date}`);
+      Alert.alert('Éxito', 'Energía del día eliminada correctamente');
+      loadExisting();
+      loadExistingDates();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -322,11 +354,13 @@ export default function AdminDailyEnergyScreen() {
               </Text>
             )}
 
-            {existingDates.length > 0 && (
+            {visibleDates.length > 0 && (
               <>
-                <Text style={styles.chipsLabel}>Días con contenido ya guardado:</Text>
+                <Text style={styles.chipsLabel}>
+                  Ayer, hoy y días futuros con contenido guardado:
+                </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
-                  {existingDates.map((entry) => (
+                  {visibleDates.map((entry) => (
                     <TouchableOpacity
                       key={entry.date}
                       style={[styles.dateChip, entry.date === date && styles.dateChipSelected]}
@@ -609,6 +643,24 @@ export default function AdminDailyEnergyScreen() {
                 </>
               )}
             </TouchableOpacity>
+
+            <TouchableOpacity
+              testID="delete-btn"
+              style={[styles.deleteDayButton, (deleting || !existing) && styles.saveButtonDisabled]}
+              onPress={handleDeleteDay}
+              disabled={deleting || !existing}
+            >
+              {deleting ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons name="trash-can" size={20} color={Colors.white} />
+                  <Text style={styles.deleteDayButtonText}>
+                    Eliminar Este Día{existing ? '' : ' (sin contenido)'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           <View style={{ height: Spacing['2xl'] }} />
@@ -781,6 +833,21 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  deleteDayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DC2626',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  deleteDayButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
   errorText: {
     fontFamily: Typography.sans,

@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface YearEntry {
   id: string;
@@ -115,36 +116,30 @@ export default function YearEnergyAdminScreen() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const exists = entries.some((e) => e.year === selectedYear);
     if (!exists) {
       Alert.alert('Info', 'Este año todavía no tiene contenido guardado.');
       return;
     }
 
-    Alert.alert(
-      '⚠️ Confirmar eliminación',
+    const confirmed = await confirmAsync(
+      'Confirmar eliminación',
       `¿Eliminar la Energía del Año ${selectedYear}? Esta acción no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await api.delete(`/admin/year-energy/${selectedYear}`);
-              Alert.alert('Éxito', 'Contenido eliminado correctamente');
-              loadEntries();
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+      'Eliminar',
     );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/year-energy/${selectedYear}`);
+      Alert.alert('Éxito', 'Contenido eliminado correctamente');
+      loadEntries();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const hasContent = entries.some((e) => e.year === selectedYear);

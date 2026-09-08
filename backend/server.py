@@ -546,6 +546,17 @@ async def get_all_daily_energy(current_user: dict = Depends(get_current_admin_us
     entries = await db.daily_energy.find({}, {"_id": 0, "date": 1, "title": 1}).sort("date", -1).to_list(90)
     return entries
 
+@api_router.delete("/admin/daily-energy/{date}")
+async def delete_daily_energy(
+    date: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """Delete a single day's energy entry. Admin only."""
+    result = await db.daily_energy.delete_one({"date": date})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No hay energía del día guardada para esa fecha")
+    return {"message": f"Energía del día {date} eliminada correctamente"}
+
 @api_router.post("/energy/daily", response_model=DailyEnergy)
 async def create_daily_energy(
     energy_data: DailyEnergyCreate,
@@ -1520,6 +1531,17 @@ def normalize_month_key(raw: str) -> str:
     return raw.strip()
 
 
+def require_valid_month_key(raw: str) -> str:
+    """Like normalize_month_key, but rejects anything that isn't really a
+    YYYY-MM month (e.g. a full YYYY-MM-DD date slipping through) instead of
+    silently storing it as-is - that previously created untouchable ghost
+    entries like "2026-08-07" alongside the real "2026-08" one."""
+    normalized = normalize_month_key(raw)
+    if not re.match(r'^\d{4}-(0[1-9]|1[0-2])$', normalized):
+        raise HTTPException(status_code=400, detail=f"Mes inválido: '{raw}'. Usa el formato YYYY-MM (ej: 2026-08).")
+    return normalized
+
+
 @api_router.get("/energy/month", response_model=MonthEnergy)
 async def get_month_energy(lang: str = "es"):
     now = datetime.utcnow()
@@ -1540,7 +1562,7 @@ async def create_month_energy(
     current_user: dict = Depends(get_current_admin_user)
 ):
     energy_dict = energy_data.model_dump()
-    normalized_month = normalize_month_key(energy_data.month)
+    normalized_month = require_valid_month_key(energy_data.month)
     energy_dict["month"] = normalized_month
     
     # Check if already exists for this month (normalized key)

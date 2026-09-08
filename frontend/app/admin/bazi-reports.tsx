@@ -19,6 +19,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -178,37 +179,31 @@ export default function AdminBaziReportsScreen() {
     }
   };
 
-  const handleToggleBlock = () => {
+  const handleToggleBlock = async () => {
     if (!user) return;
     const willBlock = !user.is_blocked;
-    Alert.alert(
+    const confirmed = await confirmAsync(
       willBlock ? 'Bloquear usuario' : 'Desbloquear usuario',
       willBlock
         ? `¿Bloquear a ${user.email}? No podrá iniciar sesión hasta que lo desbloquees.`
         : `¿Desbloquear a ${user.email}? Podrá volver a iniciar sesión.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: willBlock ? 'Bloquear' : 'Desbloquear',
-          style: willBlock ? 'destructive' : 'default',
-          onPress: async () => {
-            setTogglingBlock(true);
-            try {
-              const response = await api.put(`/admin/users/${user.id}`, null, {
-                params: { is_blocked: willBlock },
-              });
-              setUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
-              Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
-            } catch (error: any) {
-              console.error('Error toggling block:', error);
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
-            } finally {
-              setTogglingBlock(false);
-            }
-          },
-        },
-      ]
+      willBlock ? 'Bloquear' : 'Desbloquear',
     );
+    if (!confirmed) return;
+
+    setTogglingBlock(true);
+    try {
+      const response = await api.put(`/admin/users/${user.id}`, null, {
+        params: { is_blocked: willBlock },
+      });
+      setUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
+      Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
+    } catch (error: any) {
+      console.error('Error toggling block:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
+    } finally {
+      setTogglingBlock(false);
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -397,30 +392,20 @@ export default function AdminBaziReportsScreen() {
     }
   };
 
-  const handleDeleteContent = (contentId: string, title: string) => {
-    Alert.alert(
-      'Confirmar eliminación',
-      `¿Eliminar "${title}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/admin/user-content/${contentId}`);
-              Alert.alert('Éxito', 'Contenido eliminado');
-              if (user) {
-                loadUserContent(user.email);
-              }
-            } catch (error: any) {
-              console.error('Error deleting content:', error);
-              Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar');
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteContent = async (contentId: string, title: string) => {
+    const confirmed = await confirmAsync('Confirmar eliminación', `¿Eliminar "${title}"?`, 'Eliminar');
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/user-content/${contentId}`);
+      Alert.alert('Éxito', 'Contenido eliminado');
+      if (user) {
+        loadUserContent(user.email);
+      }
+    } catch (error: any) {
+      console.error('Error deleting content:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar');
+    }
   };
 
   const getContentIcon = (type: string) => {

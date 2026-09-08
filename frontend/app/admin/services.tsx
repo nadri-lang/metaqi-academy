@@ -20,6 +20,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface CustomService {
   id: string;
@@ -135,27 +136,21 @@ export default function AdminServicesScreen() {
   };
 
   const handleDelete = async (service: CustomService) => {
-    Alert.alert(
+    const confirmed = await confirmAsync(
       'Confirmar eliminación',
       `¿Estás seguro de que deseas eliminar "${service.title}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/services/${service.id}`);
-              Alert.alert('Éxito', 'Servicio eliminado');
-              loadServices();
-            } catch (error) {
-              console.error('Error deleting service:', error);
-              Alert.alert('Error', 'No se pudo eliminar el servicio');
-            }
-          },
-        },
-      ]
+      'Eliminar',
     );
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/services/${service.id}`);
+      Alert.alert('Éxito', 'Servicio eliminado');
+      loadServices();
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      Alert.alert('Error', 'No se pudo eliminar el servicio');
+    }
   };
 
   if (!user || user.role !== 'admin') {

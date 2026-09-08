@@ -17,27 +17,17 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PRIVACY_POLICY_URL } from '@/src/constants/Legal';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const handleLogout = () => {
-    Alert.alert(
-      t('common.logout'),
-      t('profile.logout_confirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.logout'),
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    const confirmed = await confirmAsync(t('common.logout'), t('profile.logout_confirm'), t('common.logout'));
+    if (!confirmed) return;
+    await logout();
   };
 
   const handleContact = () => {

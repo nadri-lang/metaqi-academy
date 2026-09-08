@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 export default function WeddingAgendaAdminScreen() {
   const router = useRouter();
@@ -68,42 +69,36 @@ export default function WeddingAgendaAdminScreen() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!month) {
       Alert.alert('Error', 'Selecciona un mes primero');
       return;
     }
 
-    Alert.alert(
-      '⚠️ Confirmar Eliminación',
+    const confirmed = await confirmAsync(
+      'Confirmar Eliminación',
       `¿Estás seguro de que quieres eliminar la Agenda de Bodas (Mes ${month})? Esta acción no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await api.delete(`/admin/wedding-agenda/wedding-agenda/${month}`);
-              Alert.alert('Éxito', 'Contenido eliminado correctamente');
-              // Clear form
-              setMonth('');
-              setYear('');
-              setTitleEs('');
-              setTitleEn('');
-              setContentEs('');
-              setContentEn('');
-              setFavorableDays('');
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+      'Eliminar',
     );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await api.delete(`/admin/wedding-agenda/wedding-agenda/${month}`);
+      Alert.alert('Éxito', 'Contenido eliminado correctamente');
+      // Clear form
+      setMonth('');
+      setYear('');
+      setTitleEs('');
+      setTitleEn('');
+      setContentEs('');
+      setContentEn('');
+      setFavorableDays('');
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
