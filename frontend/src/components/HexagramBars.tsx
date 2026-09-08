@@ -18,7 +18,7 @@ export default function HexagramBars({ lines, movingLines = [], size = 'small' }
       {[5, 4, 3, 2, 1, 0].map((i) => {
         const isYang = lines[i] === 1;
         const isMoving = movingLines.includes(i + 1);
-        const color = isMoving ? Colors.accent : Colors.textSecondary;
+        const color = isMoving ? Colors.error : Colors.textSecondary;
 
         return isYang ? (
           <View key={i} style={{ height: barHeight, backgroundColor: color, borderRadius: 2 }} />

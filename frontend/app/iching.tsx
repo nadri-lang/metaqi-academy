@@ -32,6 +32,7 @@ interface HexagramReading {
     name_zh: string;
     pinyin: string;
     name_es: string;
+    lines: number[];
   } | null;
 }
 
@@ -158,9 +159,19 @@ export default function IChingScreen() {
               {reading.result && (
                 <>
                   <View style={styles.resultDivider} />
-                  <Text style={styles.transformText}>
-                    →{reading.result.number} · {reading.result.pinyin} ({reading.result.name_zh}) —{' '}
-                    {reading.result.name_es}
+                  <Text style={styles.resultLabel}>HEXAGRAMA RESULTANTE</Text>
+                  <View style={styles.resultTopRow}>
+                    <HexagramBars lines={reading.result.lines} size="small" />
+                    <View style={styles.resultTextCol}>
+                      <Text style={styles.transformText}>
+                        →{reading.result.number} · {reading.result.pinyin} ({reading.result.name_zh})
+                      </Text>
+                      <Text style={styles.resultSubtitle}>{reading.result.name_es}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.resultExplanation}>
+                    Cuando las líneas móviles del hexagrama principal se transforman, la situación
+                    tiende hacia la energía de este segundo hexagrama.
                   </Text>
                 </>
               )}
@@ -306,8 +317,23 @@ const styles = StyleSheet.create({
   movingLinesText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.xs,
-    color: '#C97B6B',
+    color: Colors.error,
     marginTop: Spacing.xs,
+  },
+  resultLabel: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+  },
+  resultExplanation: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    marginTop: Spacing.sm,
   },
   resultDivider: {
     height: 1,

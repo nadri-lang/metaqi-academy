@@ -112,7 +112,7 @@ export default function IChingDetailScreen() {
 
               {movingLines.length > 0 && (
                 <View style={styles.movingLinesBox}>
-                  <MaterialCommunityIcons name="sync" size={18} color="#C97B6B" />
+                  <MaterialCommunityIcons name="sync" size={18} color={Colors.error} />
                   <Text style={styles.movingLinesText}>
                     Líneas móviles: {movingLines.join(', ')} — estas líneas están en transformación
                     y señalan hacia dónde evoluciona la situación.
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   movingLinesBox: {
     flexDirection: 'row',
     gap: Spacing.sm,
-    backgroundColor: '#C97B6B' + '15',
+    backgroundColor: Colors.error + '15',
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginTop: Spacing.lg,
