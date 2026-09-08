@@ -32,6 +32,8 @@ from models import (
     NewbornVocation, NewbornVocationCreate,
     Concept, ConceptCreate,
     AgendaMonth, AgendaMonthCreate,
+    WeddingAgendaQuarter, WeddingAgendaQuarterCreate,
+    WeddingAgendaIntro, WeddingAgendaIntroCreate,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
     Purchase, PurchaseCreate, PurchaseUpdate,
