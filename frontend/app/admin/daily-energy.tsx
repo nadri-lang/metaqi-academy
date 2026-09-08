@@ -22,7 +22,7 @@ import api from '@/src/services/api';
 import { useAuth } from '@/src/context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
-import { formatDateInput, isValidISODate, todayISO, describeDate } from '@/src/utils/dateInput';
+import { formatDateInput, isValidISODate, todayISO, describeDate, shiftDate } from '@/src/utils/dateInput';
 
 export default function AdminDailyEnergyScreen() {
   const router = useRouter();
@@ -47,11 +47,25 @@ export default function AdminDailyEnergyScreen() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [loading, setLoading] = useState(false);
   const [existing, setExisting] = useState<any>(null);
+  const [existingDates, setExistingDates] = useState<{ date: string; title: string }[]>([]);
+
+  useEffect(() => {
+    loadExistingDates();
+  }, []);
 
   useEffect(() => {
     // Skip the half-typed values the field passes through while the admin edits.
     if (isValidISODate(date)) loadExisting();
   }, [date]);
+
+  const loadExistingDates = async () => {
+    try {
+      const response = await api.get('/admin/daily-energy/all');
+      setExistingDates(response.data || []);
+    } catch (error) {
+      console.error('Error loading existing daily energy dates:', error);
+    }
+  };
 
   const loadExisting = async () => {
     try {
@@ -199,6 +213,7 @@ export default function AdminDailyEnergyScreen() {
       await api.post('/energy/daily', payload);
       Alert.alert('Éxito', `Energía del día guardada para el ${describeDate(date)}`);
       loadExisting();
+      loadExistingDates();
     } catch (error: any) {
       if (!error.response) {
         Alert.alert('Error de conexión', 'No se pudo contactar al servidor. Verifica tu conexión e intenta de nuevo.');
@@ -245,16 +260,35 @@ export default function AdminDailyEnergyScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <Text style={styles.label}>Fecha (YYYY-MM-DD)</Text>
-            <TextInput
-              testID="input-date"
-              style={styles.input}
-              value={date}
-              onChangeText={(text) => setDate(formatDateInput(text))}
-              placeholder="2026-08-29"
-              keyboardType="numbers-and-punctuation"
-              maxLength={10}
-              placeholderTextColor={Colors.textLight}
-            />
+            <View style={styles.dateNavRow}>
+              <TouchableOpacity
+                style={styles.dateNavButton}
+                onPress={() => setDate((d) => (isValidISODate(d) ? shiftDate(d, -1) : d))}
+              >
+                <MaterialCommunityIcons name="chevron-left" size={22} color={Colors.accent} />
+              </TouchableOpacity>
+              <TextInput
+                testID="input-date"
+                style={[styles.input, styles.dateInput]}
+                value={date}
+                onChangeText={(text) => setDate(formatDateInput(text))}
+                placeholder="2026-08-29"
+                keyboardType="numbers-and-punctuation"
+                maxLength={10}
+                placeholderTextColor={Colors.textLight}
+              />
+              <TouchableOpacity
+                style={styles.dateNavButton}
+                onPress={() => setDate((d) => (isValidISODate(d) ? shiftDate(d, 1) : d))}
+              >
+                <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.accent} />
+              </TouchableOpacity>
+            </View>
+            {date !== todayISO() && (
+              <TouchableOpacity style={styles.todayButton} onPress={() => setDate(todayISO())}>
+                <Text style={styles.todayButtonText}>Ir a hoy</Text>
+              </TouchableOpacity>
+            )}
             {!isValidISODate(date) && (
               <Text style={styles.helperTextError}>
                 Escribe una fecha real en formato YYYY-MM-DD
@@ -264,6 +298,25 @@ export default function AdminDailyEnergyScreen() {
               <Text style={styles.helperTextGreen}>
                 ✓ Ya existe contenido para esta fecha
               </Text>
+            )}
+
+            {existingDates.length > 0 && (
+              <>
+                <Text style={styles.chipsLabel}>Días con contenido ya guardado:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
+                  {existingDates.map((entry) => (
+                    <TouchableOpacity
+                      key={entry.date}
+                      style={[styles.dateChip, entry.date === date && styles.dateChipSelected]}
+                      onPress={() => setDate(entry.date)}
+                    >
+                      <Text style={[styles.dateChipText, entry.date === date && styles.dateChipTextSelected]}>
+                        {entry.date}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
             )}
             {isValidISODate(date) && existing && (
               <TouchableOpacity
@@ -555,6 +608,64 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 90,
+  },
+  dateNavRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  dateNavButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateInput: {
+    flex: 1,
+  },
+  todayButton: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.xs,
+  },
+  todayButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+  },
+  chipsLabel: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  chipsRow: {
+    flexDirection: 'row',
+  },
+  dateChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.background,
+    marginRight: Spacing.sm,
+  },
+  dateChipSelected: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  dateChipText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+  },
+  dateChipTextSelected: {
+    color: Colors.primary,
   },
   helperTextGreen: {
     fontFamily: Typography.sansMedium,

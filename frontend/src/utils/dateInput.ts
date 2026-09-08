@@ -60,6 +60,17 @@ export function todayISO(): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Adds (or subtracts) whole days to a YYYY-MM-DD string, for prev/next-day navigation. */
+export function shiftDate(value: string, deltaDays: number): string {
+  if (!isValidISODate(value)) return value;
+  const [year, month, day] = value.split('-').map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + deltaDays));
+  const y = shifted.getUTCFullYear();
+  const m = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(shifted.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 /** "29 AGO 2026" style label for confirmation prompts. Falls back to the raw string. */
 export function describeDate(value: string, locale = 'es-ES'): string {
   if (!isValidISODate(value)) return value;

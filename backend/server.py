@@ -540,6 +540,12 @@ async def get_daily_energy(
     
     return DailyEnergy(**energy)
 
+@api_router.get("/admin/daily-energy/all")
+async def get_all_daily_energy(current_user: dict = Depends(get_current_admin_user)):
+    """List the most recent daily energy entries (dates only), for the admin picker."""
+    entries = await db.daily_energy.find({}, {"_id": 0, "date": 1, "title": 1}).sort("date", -1).to_list(90)
+    return entries
+
 @api_router.post("/energy/daily", response_model=DailyEnergy)
 async def create_daily_energy(
     energy_data: DailyEnergyCreate,
