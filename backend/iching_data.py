@@ -10,7 +10,9 @@
 # edition) - confirmed against the two examples in the rork/iching.jpg
 # mockup ("29 Kan -> Lo abismal (repetido)", "40 Xie -> La liberacion").
 
-from typing import List, Dict, Tuple
+import json
+from pathlib import Path
+from typing import List, Dict, Tuple, Optional
 
 # Each trigram's 3 lines, bottom to top. 1 = yang (solid), 0 = yin (broken).
 TRIGRAM_LINES: Dict[str, Tuple[int, int, int]] = {
@@ -162,3 +164,83 @@ def cast_iching(values: List[int]) -> dict:
         "moving_lines": moving_lines,
         "result": result,
     }
+
+
+# ---------------------------------------------------------------------------
+# Classical texts (Dictamen, Imagen, per-line commentary) for the "Ver
+# interpretación completa" AI synthesis. Source: ICHING HEXA/hexagramas.json,
+# the user's own classical-text corpus - the synthesis must draw ONLY from
+# this, never from the model's general I Ching knowledge.
+# ---------------------------------------------------------------------------
+
+_TEXTS_PATH = Path(__file__).parent / "data" / "hexagramas.json"
+_TEXTS_BY_NUMBER: Optional[Dict[int, dict]] = None
+
+
+def _load_texts() -> Dict[int, dict]:
+    global _TEXTS_BY_NUMBER
+    if _TEXTS_BY_NUMBER is None:
+        with open(_TEXTS_PATH, encoding="utf-8") as f:
+            raw = json.load(f)
+        _TEXTS_BY_NUMBER = {entry["numero"]: entry for entry in raw}
+    return _TEXTS_BY_NUMBER
+
+
+def format_interpretation_context(
+    number: int, moving_lines: List[int], result_number: Optional[int] = None
+) -> str:
+    """
+    Build the plain-text block of classical source material for the AI
+    synthesis: the primary hexagram's Dictamen + Imagen, the moving lines'
+    (or, if all 6 move, the "todas moviles") text + analysis, and - only the
+    Dictamen + Imagen, never the lines - of the resulting hexagram if given.
+    """
+    texts = _load_texts()
+    primary = texts.get(number)
+    if not primary:
+        raise ValueError(f"No hay textos clásicos para el hexagrama {number}")
+
+    parts = [
+        f"HEXAGRAMA PRINCIPAL: {primary['numero']} - {primary['nombre']} "
+        f"({primary['pinyin']}, {primary['hanzi']})",
+        f"Trigrama superior: {primary['trigrama_superior']} / "
+        f"Trigrama inferior: {primary['trigrama_inferior']}",
+        "",
+        "DICTAMEN:",
+        primary["dictamen"]["texto"],
+        primary["dictamen"]["analisis"],
+        "",
+        "IMAGEN:",
+        primary["imagen"]["texto"],
+        primary["imagen"]["analisis"],
+    ]
+
+    if not moving_lines:
+        parts.append("\n(Esta es una lectura estática: ninguna línea es móvil.)")
+    elif len(moving_lines) == 6:
+        parts.append("\nTODAS LAS LÍNEAS SON MÓVILES:")
+        parts.append(primary["todas_moviles"]["texto"])
+        parts.append(primary["todas_moviles"]["analisis"])
+    else:
+        parts.append("\nLÍNEAS MÓVILES:")
+        for pos in moving_lines:
+            line = next((l for l in primary["lineas"] if l["posicion"] == pos), None)
+            if line:
+                parts.append(f"Línea {pos}: {line['texto']}")
+                parts.append(line["analisis"])
+
+    if result_number:
+        result = texts.get(result_number)
+        if result:
+            parts.append(
+                f"\nHEXAGRAMA DERIVADO (resultado de la transformación): "
+                f"{result['numero']} - {result['nombre']} ({result['pinyin']}, {result['hanzi']})"
+            )
+            parts.append("Dictamen:")
+            parts.append(result["dictamen"]["texto"])
+            parts.append(result["dictamen"]["analisis"])
+            parts.append("Imagen:")
+            parts.append(result["imagen"]["texto"])
+            parts.append(result["imagen"]["analisis"])
+
+    return "\n".join(parts)

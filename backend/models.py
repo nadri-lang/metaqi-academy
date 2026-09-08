@@ -629,6 +629,12 @@ class WeddingAgendaIntroCreate(BaseModel):
 class IChingCastRequest(BaseModel):
     lines: List[int]  # 6 values, bottom to top, each 6/7/8/9
 
+class IChingInterpretRequest(BaseModel):
+    number: int
+    moving_lines: List[int] = []
+    result_number: Optional[int] = None
+    question: Optional[str] = None
+
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):
     id: str

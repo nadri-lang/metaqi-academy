@@ -44,6 +44,9 @@ export default function IChingScreen() {
   const [reading, setReading] = useState<HexagramReading | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [interpretation, setInterpretation] = useState('');
+  const [interpreting, setInterpreting] = useState(false);
+  const [interpretError, setInterpretError] = useState('');
 
   const handleCast = async () => {
     const parts = digitsInput.trim().split(/\s+/).filter(Boolean);
@@ -55,6 +58,8 @@ export default function IChingScreen() {
     }
 
     setError('');
+    setInterpretation('');
+    setInterpretError('');
     setLoading(true);
     try {
       const response = await api.post('/iching/cast', { lines: values }, { params: { lang: language } });
@@ -66,17 +71,27 @@ export default function IChingScreen() {
     }
   };
 
-  const openFullInterpretation = () => {
+  const handleFullInterpretation = async () => {
     if (!reading) return;
-    router.push({
-      pathname: '/iching-detail',
-      params: {
-        number: String(reading.number),
-        lines: reading.lines.join(','),
-        movingLines: reading.moving_lines.join(','),
-        resultNumber: reading.result ? String(reading.result.number) : '',
-      },
-    });
+    setInterpretError('');
+    setInterpreting(true);
+    try {
+      const response = await api.post('/iching/interpret', {
+        number: reading.number,
+        moving_lines: reading.moving_lines,
+        result_number: reading.result?.number ?? null,
+        question: question.trim() || null,
+      });
+      setInterpretation(response.data.interpretation);
+    } catch (e: any) {
+      if (!e.response) {
+        setInterpretError('No se pudo conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
+      } else {
+        setInterpretError(e.response?.data?.detail || 'No se pudo generar la interpretación. Inténtalo de nuevo.');
+      }
+    } finally {
+      setInterpreting(false);
+    }
   };
 
   return (
@@ -176,9 +191,29 @@ export default function IChingScreen() {
                 </>
               )}
 
-              <TouchableOpacity style={styles.fullInterpretationButton} onPress={openFullInterpretation}>
-                <Text style={styles.fullInterpretationButtonText}>Ver interpretación completa</Text>
+              <TouchableOpacity
+                style={[styles.fullInterpretationButton, interpreting && styles.fullInterpretationButtonDisabled]}
+                onPress={handleFullInterpretation}
+                disabled={interpreting}
+              >
+                {interpreting ? (
+                  <ActivityIndicator color={Colors.accent} size="small" />
+                ) : (
+                  <Text style={styles.fullInterpretationButtonText}>Ver interpretación completa</Text>
+                )}
               </TouchableOpacity>
+
+              {interpretError ? <Text style={styles.errorText}>{interpretError}</Text> : null}
+
+              {interpretation ? (
+                <View style={styles.interpretationBox}>
+                  <View style={styles.interpretationHeader}>
+                    <MaterialCommunityIcons name="text-box-outline" size={16} color={Colors.accent} />
+                    <Text style={styles.interpretationHeaderText}>Interpretación</Text>
+                  </View>
+                  <Text style={styles.interpretationText}>{interpretation}</Text>
+                </View>
+              ) : null}
             </View>
           )}
 
@@ -357,5 +392,35 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.accent,
+  },
+  fullInterpretationButtonDisabled: {
+    opacity: 0.6,
+  },
+  interpretationBox: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  interpretationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  interpretationHeaderText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  interpretationText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
+    lineHeight: 22,
   },
 });

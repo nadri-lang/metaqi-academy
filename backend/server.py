@@ -34,7 +34,7 @@ from models import (
     AgendaMonth, AgendaMonthCreate,
     WeddingAgendaQuarter, WeddingAgendaQuarterCreate,
     WeddingAgendaIntro, WeddingAgendaIntroCreate,
-    IChingCastRequest,
+    IChingCastRequest, IChingInterpretRequest,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
     Purchase, PurchaseCreate, PurchaseUpdate,
@@ -56,7 +56,8 @@ from translation_service import translate_dict, translate_list_of_dicts
 from email_service import email_service
 from analytics_service import AnalyticsService
 from storage_service import init_storage, put_object
-from iching_data import cast_iching, hexagram_lookup
+from iching_data import cast_iching, hexagram_lookup, format_interpretation_context
+from anthropic_service import interpret_iching, InterpretationError
 from concurrent.futures import ThreadPoolExecutor
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_request
@@ -2145,6 +2146,26 @@ async def get_iching_hexagram(number: int, lang: str = "es"):
         hexagram = await translate_dict(hexagram, lang, ["name_es", "lower_trigram_es", "upper_trigram_es"])
 
     return hexagram
+
+@api_router.post("/iching/interpret")
+async def post_iching_interpret(request: IChingInterpretRequest):
+    """
+    Public: AI-synthesized interpretation of an already-cast reading, grounded
+    strictly in the classical texts (never the model's own I Ching knowledge).
+    """
+    try:
+        context = format_interpretation_context(
+            request.number, request.moving_lines, request.result_number
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    try:
+        interpretation = await interpret_iching(request.question, context)
+    except InterpretationError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+    return {"interpretation": interpretation}
 
 @api_router.post("/iching/cast")
 async def post_iching_cast(request: IChingCastRequest, lang: str = "es"):
