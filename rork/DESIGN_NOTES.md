@@ -13,6 +13,8 @@ something changed, and I'll fold it into the relevant section once done.
 - `energia zilei.jpeg` — Energía del Día detail screen.
 - `servicios.jpeg` — Servicios list.
 - `admin.jpeg` — Panel de Administración.
+- `iching.jpg` — I Ching oracle screen. Built 2026-09-08 (`app/iching.tsx` +
+  `app/iching-detail.tsx`), home hero row now has 3 cards (IChing added).
 - `promo app.png` — marketing/promo asset, not a screen.
 
 ## Palette
@@ -45,14 +47,10 @@ hex values in screens, pull from `Colors`/`Gradients`.
 
 ## Screen-by-screen notes
 
-### Home (`app/(tabs)/home.tsx`) — matches mockup structurally, one gap open
-Current implementation already has: brand header, language pills, hero card
-for Energía del Día, twin-card row (Energía del Mes / Año), subscription
-banner. **Not yet built**: the mockup's hero card also shows the date
-("Viernes, 16/08/2026"), a small "Animal del día: Caballo" line with a tiny
-horse glyph, and — the headline piece — the big circular gold zodiac emblem
-on the right with an element badge in the corner. This is the open item
-discussed 2026-09-08; see `finding`/plan below.
+### Home (`app/(tabs)/home.tsx`) — matches mockup, done 2026-09-08
+Brand header, language pills, hero card for Energía del Día (with date line,
+"Animal del día" line, and the zodiac emblem via `ZodiacEmblem`/`ZodiacGlyph`),
+3-card row (IChing / Energía del Mes / Año), subscription banner.
 
 ### Energía del Día detail — not yet redesigned to match `energia zilei.jpeg`
 Mockup: same date/animal header repeated, then a 2x4 grid of icon buttons
@@ -74,14 +72,19 @@ a 2-column icon grid of admin sections, then a "Solicitudes pendientes"
 list with a red count badge. Queued next, after Energía del Día detail.
 
 ## Open asks (dated, most recent first)
-- **2026-09-08** — Animal-of-the-day auto icon: when the admin enters/picks
-  the day's animal, the home hero (and Energía del Día detail) should show
-  the matching zodiac symbol instantly, in the gold circular-emblem style
-  from the mockup (see the horse example). Needs the "Animal del Día" admin
-  field split into two structured pickers (Animal ×12, Elemento ×5) instead
-  of free text, so the app can reliably match icon+color instead of parsing
-  a string like "Caballo de Fuego". Blocked on a fidelity decision: custom
-  hand-drawn line-art icons per animal (closest to the mockup, more build
-  time) vs. MaterialCommunityIcons glyphs inside the gold ring (faster,
-  imperfect match for ~4 animals MCI has no clean icon for: rat, ox, dragon,
-  snake).
+(none currently — the zodiac-emblem and IChing asks below were both closed
+2026-09-08)
+
+## Resolved
+- **2026-09-08** — Animal-of-the-day auto icon: done. Admin picks Animal
+  (×12) + Elemento (×5) from chip rows in `admin/daily-energy.tsx`
+  (auto-composes the display text); `ZodiacGlyph` has a hand-drawn silhouette
+  per animal (chosen over MaterialCommunityIcons for full fidelity), wrapped
+  in `ZodiacEmblem` (gold ring + element corner badge). Renders on the home
+  hero. First-pass art — ask if any of the 12 need retouching once seen live.
+- **2026-09-08** — I Ching oracle (`iching.jpg`): done. `app/iching.tsx` +
+  `app/iching-detail.tsx`, real King Wen hexagram computation
+  (`backend/iching_data.py`), home card added. "Ver interpretación completa"
+  shows structure (trigrams, moving lines, transformation) - not full
+  classical Judgment/Image text per hexagram (64 × ~8 pieces of text, a
+  separate undertaking if wanted later).
