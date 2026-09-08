@@ -36,6 +36,7 @@ export default {
     academy: 'ACADEMY',
     daily_energy: 'Energía del Día',
     daily_energy_subtitle: 'Descubre la energía de hoy',
+    animal_of_day: 'Animal del día',
     subscription_title: 'Suscripción 1,99€/mes',
     daily_activations: 'Activaciones del Día',
     month_energy: 'Energía del Mes',

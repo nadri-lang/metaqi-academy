@@ -130,7 +130,9 @@ class DailyEnergy(BaseModel):
     content: str
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
-    animal: Optional[str] = None  # e.g. "Tigre de Madera"
+    animal: Optional[str] = None  # e.g. "Tigre de Madera" - free-text display line
+    animal_type: Optional[str] = None  # structured key: rat/ox/tiger/.../pig - drives the zodiac emblem icon
+    element: Optional[str] = None  # structured key: wood/fire/earth/metal/water - drives the emblem's corner badge
     bazi_relationships: Optional[str] = None  # BaZi element relationships text
     recommendations: List[str] = []  # Sustained activities
     avoid: List[str] = []
@@ -157,6 +159,8 @@ class DailyEnergyCreate(BaseModel):
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
     animal: Optional[str] = None
+    animal_type: Optional[str] = None
+    element: Optional[str] = None
     bazi_relationships: Optional[str] = None
     recommendations: List[str] = []
     avoid: List[str] = []

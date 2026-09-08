@@ -19,12 +19,19 @@ import { useLanguage, Language } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import ZodiacEmblem from '@/src/components/ZodiacEmblem';
+import ZodiacGlyph from '@/src/components/ZodiacGlyph';
+import { ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
+import { formatWeekdayDate } from '@/src/utils/dateInput';
 
 interface DailyEnergy {
   id: string;
   date: string;
   title: string;
   title_en?: string;
+  animal?: string;
+  animal_type?: ZodiacAnimalKey;
+  element?: ElementKey;
 }
 
 interface NewbornVocation {
@@ -187,17 +194,44 @@ export default function HomeScreen() {
             activeOpacity={0.9}
           >
             <LinearGradient colors={Gradients.navy} style={styles.heroGradient}>
-              <View style={styles.heroTopRow}>
-                <View style={styles.heroIconRing}>
-                  <MaterialCommunityIcons name="white-balance-sunny" size={26} color={Colors.accent} />
+              <View style={styles.heroMainRow}>
+                <View style={styles.heroTextCol}>
+                  <View style={styles.heroTopRow}>
+                    <MaterialCommunityIcons name="calendar-blank-outline" size={16} color={Colors.textSecondary} />
+                    <Text style={styles.heroDate}>
+                      {dailyEnergy ? formatWeekdayDate(dailyEnergy.date) : ''}
+                    </Text>
+                  </View>
+                  {dailyEnergy ? (
+                    <Text style={styles.heroTitle} numberOfLines={3}>{dailyEnergy.title}</Text>
+                  ) : (
+                    <Text style={styles.heroTitle} numberOfLines={3}>{t('home.daily_energy_subtitle')}</Text>
+                  )}
+                  {dailyEnergy?.animal ? (
+                    <View style={styles.heroAnimalRow}>
+                      {dailyEnergy.animal_type ? (
+                        <ZodiacGlyph animal={dailyEnergy.animal_type} size={16} color={Colors.accent} />
+                      ) : null}
+                      <Text style={styles.heroAnimalText}>
+                        {t('home.animal_of_day')}: <Text style={styles.heroAnimalName}>{dailyEnergy.animal}</Text>
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
-                <Text style={styles.heroEyebrow}>{t('home.daily_energy')}</Text>
+                {dailyEnergy?.animal_type ? (
+                  <ZodiacEmblem
+                    animal={dailyEnergy.animal_type}
+                    element={dailyEnergy.element}
+                    size={84}
+                    ringColor={Colors.accent}
+                    backgroundColor={Colors.primary}
+                  />
+                ) : (
+                  <View style={styles.heroIconRing}>
+                    <MaterialCommunityIcons name="white-balance-sunny" size={26} color={Colors.accent} />
+                  </View>
+                )}
               </View>
-              {dailyEnergy ? (
-                <Text style={styles.heroTitle} numberOfLines={2}>{dailyEnergy.title}</Text>
-              ) : (
-                <Text style={styles.heroTitle} numberOfLines={2}>{t('home.daily_energy_subtitle')}</Text>
-              )}
               <View style={styles.heroButton}>
                 <Text style={styles.heroButtonText}>{t('home.view_details')}</Text>
                 <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.primary} />
@@ -414,11 +448,25 @@ const styles = StyleSheet.create({
     borderColor: Colors.accent + '30',
     borderRadius: BorderRadius.xl,
   },
+  heroMainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  heroTextCol: {
+    flex: 1,
+  },
   heroTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: 6,
+    marginBottom: Spacing.sm,
+  },
+  heroDate: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
   },
   heroIconRing: {
     width: 40,
@@ -430,19 +478,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  heroEyebrow: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
-    color: Colors.accent,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
   heroTitle: {
     fontFamily: Typography.serifBold,
     fontSize: Typography['2xl'],
     color: Colors.white,
     lineHeight: 30,
-    marginBottom: Spacing.lg,
+  },
+  heroAnimalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Spacing.sm,
+  },
+  heroAnimalText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  heroAnimalName: {
+    fontFamily: Typography.sansSemiBold,
+    color: Colors.accent,
   },
   heroButton: {
     flexDirection: 'row',

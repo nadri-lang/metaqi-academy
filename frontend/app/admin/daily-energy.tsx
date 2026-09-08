@@ -23,6 +23,8 @@ import { useAuth } from '@/src/context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import { formatDateInput, isValidISODate, todayISO, describeDate, shiftDate } from '@/src/utils/dateInput';
+import { ZODIAC_ANIMALS, ELEMENTS, composeAnimalLabel, ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
+import ZodiacEmblem from '@/src/components/ZodiacEmblem';
 
 export default function AdminDailyEnergyScreen() {
   const router = useRouter();
@@ -33,6 +35,8 @@ export default function AdminDailyEnergyScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [animal, setAnimal] = useState('');
+  const [animalType, setAnimalType] = useState<ZodiacAnimalKey | ''>('');
+  const [element, setElement] = useState<ElementKey | ''>('');
   const [baziRelationships, setBaziRelationships] = useState('');
   const [recommendations, setRecommendations] = useState('');
   const [avoid, setAvoid] = useState('');
@@ -75,6 +79,8 @@ export default function AdminDailyEnergyScreen() {
       setTitle(data.title || '');
       setContent(data.content || '');
       setAnimal(data.animal || '');
+      setAnimalType(data.animal_type || '');
+      setElement(data.element || '');
       setBaziRelationships(data.bazi_relationships || '');
       setRecommendations((data.recommendations || []).join('\n'));
       setAvoid((data.avoid || []).join('\n'));
@@ -90,6 +96,8 @@ export default function AdminDailyEnergyScreen() {
       setTitle('');
       setContent('');
       setAnimal('');
+      setAnimalType('');
+      setElement('');
       setBaziRelationships('');
       setRecommendations('');
       setAvoid('');
@@ -102,6 +110,18 @@ export default function AdminDailyEnergyScreen() {
       setActivationsImageUri('');
       setActivationsImageUrl('');
     }
+  };
+
+  const selectAnimalType = (key: ZodiacAnimalKey) => {
+    const next = animalType === key ? '' : key;
+    setAnimalType(next);
+    setAnimal(composeAnimalLabel(next || null, element || null));
+  };
+
+  const selectElement = (key: ElementKey) => {
+    const next = element === key ? '' : key;
+    setElement(next);
+    setAnimal(composeAnimalLabel(animalType || null, next || null));
   };
 
   const pickImage = async () => {
@@ -200,6 +220,8 @@ export default function AdminDailyEnergyScreen() {
         title,
         content,
         animal: animal || null,
+        animal_type: animalType || null,
+        element: element || null,
         bazi_relationships: baziRelationships || null,
         recommendations: recommendations.split('\n').filter(r => r.trim()),
         avoid: avoid.split('\n').filter(r => r.trim()),
@@ -352,6 +374,49 @@ export default function AdminDailyEnergyScreen() {
             />
 
             <Text style={styles.label}>Animal del Día</Text>
+            <View style={styles.zodiacRow}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+                <View style={styles.chipsRow}>
+                  {ZODIAC_ANIMALS.map((a) => (
+                    <TouchableOpacity
+                      key={a.key}
+                      style={[styles.dateChip, animalType === a.key && styles.dateChipSelected]}
+                      onPress={() => selectAnimalType(a.key)}
+                    >
+                      <Text style={[styles.dateChipText, animalType === a.key && styles.dateChipTextSelected]}>
+                        {a.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+              {animalType ? (
+                <ZodiacEmblem
+                  animal={animalType as ZodiacAnimalKey}
+                  element={element || null}
+                  size={56}
+                  ringColor={Colors.accent}
+                  backgroundColor={Colors.card}
+                />
+              ) : null}
+            </View>
+
+            <Text style={[styles.label, { marginTop: Spacing.sm }]}>Elemento</Text>
+            <View style={styles.chipsRow}>
+              {ELEMENTS.map((e) => (
+                <TouchableOpacity
+                  key={e.key}
+                  style={[styles.dateChip, element === e.key && styles.dateChipSelected]}
+                  onPress={() => selectElement(e.key)}
+                >
+                  <Text style={[styles.dateChipText, element === e.key && styles.dateChipTextSelected]}>
+                    {e.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { marginTop: Spacing.sm }]}>Texto a mostrar (auto-generado, editable)</Text>
             <TextInput
               testID="input-animal"
               style={styles.input}
@@ -645,6 +710,11 @@ const styles = StyleSheet.create({
   },
   chipsRow: {
     flexDirection: 'row',
+  },
+  zodiacRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
   },
   dateChip: {
     paddingHorizontal: Spacing.md,

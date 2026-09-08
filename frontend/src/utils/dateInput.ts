@@ -71,6 +71,18 @@ export function shiftDate(value: string, deltaDays: number): string {
   return `${y}-${m}-${d}`;
 }
 
+/** "Viernes, 16/08/2026" style label for the home hero / energy detail headers. */
+export function formatWeekdayDate(value: string, locale = 'es-ES'): string {
+  if (!isValidISODate(value)) return value;
+  const d = new Date(`${value}T00:00:00`);
+  const weekday = d.toLocaleDateString(locale, { weekday: 'long' });
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const capWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  return `${capWeekday}, ${dd}/${mm}/${yyyy}`;
+}
+
 /** "29 AGO 2026" style label for confirmation prompts. Falls back to the raw string. */
 export function describeDate(value: string, locale = 'es-ES'): string {
   if (!isValidISODate(value)) return value;

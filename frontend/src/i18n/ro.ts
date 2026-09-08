@@ -36,6 +36,7 @@ export default {
     academy: 'ACADEMY',
     daily_energy: 'Energia Zilei',
     daily_energy_subtitle: 'Descoperă energia de astăzi',
+    animal_of_day: 'Animalul zilei',
     subscription_title: 'Abonament 1,99€/lună',
     daily_activations: 'Activările Zilei',
     month_energy: 'Energia Lunii',
