@@ -84,9 +84,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-        
+        if user.get("is_blocked"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta bloqueada. Contacta con soporte.")
+
         return {"id": user["id"], "email": user["email"], "role": user["role"]}
-    
+
     # Fall back to JWT token (password login)
     try:
         payload = decode_token(token)
@@ -97,7 +99,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
                 detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if user and user.get("is_blocked"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta bloqueada. Contacta con soporte.")
         return {"id": user_id, "email": payload.get("email"), "role": payload.get("role")}
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

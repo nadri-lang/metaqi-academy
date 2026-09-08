@@ -129,7 +129,10 @@ async def login(login_data: LoginRequest):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-    
+
+    if user.get("is_blocked"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta bloqueada. Contacta con soporte.")
+
     # Update last login
     await db.users.update_one(
         {"id": user["id"]},
@@ -294,6 +297,9 @@ async def google_auth(auth_data: GoogleIdTokenAuth):
 
     # Find or create user
     user = await db.users.find_one({"email": email})
+
+    if user and user.get("is_blocked"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cuenta bloqueada. Contacta con soporte.")
 
     if user:
         user_id = user["id"]
@@ -2247,7 +2253,10 @@ async def search_user_for_report(
         "user": {
             "id": user["id"],
             "email": user["email"],
-            "name": user.get("name", "")
+            "name": user.get("name", ""),
+            "role": user.get("role", "free_member"),
+            "subscription": user.get("subscription", "free"),
+            "is_blocked": user.get("is_blocked", False)
         },
         "reports": reports_clean
     }
@@ -2488,6 +2497,7 @@ async def get_all_users(
         "name": u.get("name", ""),
         "role": u.get("role", "free_member"),
         "subscription": u.get("subscription", "free"),
+        "is_blocked": u.get("is_blocked", False),
         "created_at": u.get("created_at"),
         "phone": u.get("phone", ""),
         "nickname": u.get("nickname", "")
@@ -2499,14 +2509,21 @@ async def update_user_admin(
     role: str = None,
     subscription: str = None,
     new_password: str = None,
+    is_blocked: bool = None,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Update user role, subscription and/or password (admin only)"""
+    """Update user role, subscription, block status and/or password (admin only)"""
     existing = await db.users.find_one({"id": user_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
+
+    if is_blocked is True and existing["id"] == current_user["id"]:
+        raise HTTPException(status_code=400, detail="No puedes bloquear tu propia cuenta de admin")
+
     update_dict = {}
+    if is_blocked is not None:
+        update_dict["is_blocked"] = is_blocked
+
     if role is not None:
         if role not in ["free_member", "premium_member", "editor", "admin"]:
             raise HTTPException(status_code=400, detail="Rol inválido")
@@ -2541,7 +2558,8 @@ async def update_user_admin(
         "email": updated["email"],
         "name": updated.get("name", ""),
         "role": updated.get("role", "free_member"),
-        "subscription": updated.get("subscription", "free")
+        "subscription": updated.get("subscription", "free"),
+        "is_blocked": updated.get("is_blocked", False)
     }
 
 @api_router.delete("/admin/users/{user_id}")

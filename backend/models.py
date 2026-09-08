@@ -52,6 +52,7 @@ class UserBase(BaseModel):
     email: EmailStr
     language: str = "es"
     role: UserRole = UserRole.FREE_MEMBER
+    is_blocked: bool = False
 
 class UserCreate(UserBase):
     password: str

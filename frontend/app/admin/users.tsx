@@ -27,6 +27,7 @@ interface User {
   name: string;
   role: string;
   subscription: string;
+  is_blocked?: boolean;
   created_at?: string;
   phone?: string;
   nickname?: string;
@@ -45,6 +46,7 @@ export default function AdminUsersScreen() {
   const [selectedSubscription, setSelectedSubscription] = useState('free');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const [togglingBlock, setTogglingBlock] = useState(false);
 
   // Content delivery states
   const [videoUrl, setVideoUrl] = useState('');
@@ -109,6 +111,40 @@ export default function AdminUsersScreen() {
     } finally {
       setLoadingContent(false);
     }
+  };
+
+  const handleToggleBlock = () => {
+    if (!selectedUser) return;
+    const willBlock = !selectedUser.is_blocked;
+    Alert.alert(
+      willBlock ? 'Bloquear usuario' : 'Desbloquear usuario',
+      willBlock
+        ? `¿Bloquear a ${selectedUser.email}? No podrá iniciar sesión hasta que lo desbloquees.`
+        : `¿Desbloquear a ${selectedUser.email}? Podrá volver a iniciar sesión.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: willBlock ? 'Bloquear' : 'Desbloquear',
+          style: willBlock ? 'destructive' : 'default',
+          onPress: async () => {
+            setTogglingBlock(true);
+            try {
+              const response = await api.put(`/admin/users/${selectedUser.id}`, null, {
+                params: { is_blocked: willBlock },
+              });
+              setSelectedUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
+              setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, is_blocked: response.data.is_blocked } : u)));
+              Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
+            } catch (error: any) {
+              console.error('Error toggling block:', error);
+              Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
+            } finally {
+              setTogglingBlock(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSave = async () => {
@@ -473,6 +509,11 @@ export default function AdminUsersScreen() {
                 <View style={[styles.badge, { backgroundColor: getSubscriptionBadgeColor(user.subscription) }]}>
                   <Text style={styles.badgeText}>{user.subscription.toUpperCase()}</Text>
                 </View>
+                {user.is_blocked && (
+                  <View style={[styles.badge, { backgroundColor: Colors.error }]}>
+                    <Text style={styles.badgeText}>BLOQUEADO</Text>
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
@@ -714,6 +755,31 @@ export default function AdminUsersScreen() {
                       <>
                         <MaterialCommunityIcons name="content-save" size={20} color={Colors.primary} />
                         <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.blockToggleButton,
+                      selectedUser.is_blocked ? styles.unblockButton : styles.blockButton,
+                      togglingBlock && styles.saveButtonDisabled,
+                    ]}
+                    onPress={handleToggleBlock}
+                    disabled={togglingBlock}
+                  >
+                    {togglingBlock ? (
+                      <ActivityIndicator color={selectedUser.is_blocked ? Colors.jade : Colors.error} size="small" />
+                    ) : (
+                      <>
+                        <MaterialCommunityIcons
+                          name={selectedUser.is_blocked ? 'lock-open-variant' : 'lock'}
+                          size={18}
+                          color={selectedUser.is_blocked ? Colors.jade : Colors.error}
+                        />
+                        <Text style={[styles.blockToggleButtonText, { color: selectedUser.is_blocked ? Colors.jade : Colors.error }]}>
+                          {selectedUser.is_blocked ? 'Desbloquear usuario' : 'Bloquear usuario'}
+                        </Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -983,6 +1049,28 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.primary,
+  },
+  blockToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+  },
+  blockButton: {
+    backgroundColor: Colors.error + '10',
+    borderColor: Colors.error,
+  },
+  unblockButton: {
+    backgroundColor: Colors.jade + '10',
+    borderColor: Colors.jade,
+  },
+  blockToggleButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
   },
   passwordInput: {
     backgroundColor: Colors.background,

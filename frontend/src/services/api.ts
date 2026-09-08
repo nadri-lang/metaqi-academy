@@ -87,6 +87,11 @@ api.interceptors.response.use(
       // Token expired or invalid
       await storage.secureRemove('auth_token');
       await storage.secureRemove('user_data');
+    } else if (error.response?.status === 403 && error.response?.data?.detail === 'Cuenta bloqueada. Contacta con soporte.') {
+      // Admin blocked this account - force logout so the user sees a clean
+      // logged-out state instead of confusing partial failures everywhere.
+      await storage.secureRemove('auth_token');
+      await storage.secureRemove('user_data');
     }
     return Promise.reject(error);
   }

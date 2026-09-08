@@ -26,6 +26,9 @@ interface UserData {
   id: string;
   email: string;
   name: string;
+  role: string;
+  subscription: string;
+  is_blocked: boolean;
 }
 
 interface ReportData {
@@ -59,6 +62,12 @@ export default function AdminBaziReportsScreen() {
   const [userContentList, setUserContentList] = useState<any[]>([]);
   const [loadingContent, setLoadingContent] = useState(false);
 
+  // Account management states (plan/role + block)
+  const [selectedRole, setSelectedRole] = useState('free_member');
+  const [selectedSubscription, setSelectedSubscription] = useState('free');
+  const [savingAccount, setSavingAccount] = useState(false);
+  const [togglingBlock, setTogglingBlock] = useState(false);
+
   const handleSearch = async () => {
     if (!searchEmail.trim()) {
       Alert.alert('Error', 'Introduce un email');
@@ -76,6 +85,8 @@ export default function AdminBaziReportsScreen() {
     try {
       const response = await api.get(`/admin/bazi-reports/search?email=${encodeURIComponent(searchEmail.trim())}`);
       setUser(response.data.user);
+      setSelectedRole(response.data.user?.role || 'free_member');
+      setSelectedSubscription(response.data.user?.subscription || 'free');
       if (response.data.reports && response.data.reports.length > 0) {
         setReports(response.data.reports);
       }
@@ -148,6 +159,56 @@ export default function AdminBaziReportsScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveAccount = async () => {
+    if (!user) return;
+    setSavingAccount(true);
+    try {
+      const response = await api.put(`/admin/users/${user.id}`, null, {
+        params: { role: selectedRole, subscription: selectedSubscription },
+      });
+      setUser((prev) => (prev ? { ...prev, role: response.data.role, subscription: response.data.subscription } : prev));
+      Alert.alert('Éxito', 'Cuenta actualizada correctamente');
+    } catch (error: any) {
+      console.error('Error updating account:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar la cuenta');
+    } finally {
+      setSavingAccount(false);
+    }
+  };
+
+  const handleToggleBlock = () => {
+    if (!user) return;
+    const willBlock = !user.is_blocked;
+    Alert.alert(
+      willBlock ? 'Bloquear usuario' : 'Desbloquear usuario',
+      willBlock
+        ? `¿Bloquear a ${user.email}? No podrá iniciar sesión hasta que lo desbloquees.`
+        : `¿Desbloquear a ${user.email}? Podrá volver a iniciar sesión.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: willBlock ? 'Bloquear' : 'Desbloquear',
+          style: willBlock ? 'destructive' : 'default',
+          onPress: async () => {
+            setTogglingBlock(true);
+            try {
+              const response = await api.put(`/admin/users/${user.id}`, null, {
+                params: { is_blocked: willBlock },
+              });
+              setUser((prev) => (prev ? { ...prev, is_blocked: response.data.is_blocked } : prev));
+              Alert.alert('Éxito', willBlock ? 'Usuario bloqueado' : 'Usuario desbloqueado');
+            } catch (error: any) {
+              console.error('Error toggling block:', error);
+              Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
+            } finally {
+              setTogglingBlock(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const formatDate = (dateString?: string) => {
@@ -478,6 +539,87 @@ export default function AdminBaziReportsScreen() {
                       <Text style={styles.userName}>{user.name || 'Sin nombre'}</Text>
                       <Text style={styles.userEmail}>{user.email}</Text>
                     </View>
+                    {user.is_blocked && (
+                      <View style={styles.blockedBadge}>
+                        <MaterialCommunityIcons name="cancel" size={14} color="#FFFFFF" />
+                        <Text style={styles.blockedBadgeText}>Bloqueado</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Account: plan/role + block */}
+                  <View style={styles.card}>
+                    <Text style={styles.sectionTitle}>Cuenta del Usuario</Text>
+
+                    <Text style={styles.label}>Rol</Text>
+                    <View style={styles.optionsGrid}>
+                      {['free_member', 'premium_member', 'editor', 'admin'].map((role) => (
+                        <TouchableOpacity
+                          key={role}
+                          style={[styles.optionButton, selectedRole === role && styles.optionButtonSelected]}
+                          onPress={() => setSelectedRole(role)}
+                        >
+                          <Text style={[styles.optionText, selectedRole === role && styles.optionTextSelected]}>
+                            {role.replace('_member', '').toUpperCase()}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <Text style={[styles.label, { marginTop: Spacing.md }]}>Suscripción</Text>
+                    <View style={styles.optionsGrid}>
+                      {['free', 'monthly', 'yearly'].map((sub) => (
+                        <TouchableOpacity
+                          key={sub}
+                          style={[styles.optionButton, selectedSubscription === sub && styles.optionButtonSelected]}
+                          onPress={() => setSelectedSubscription(sub)}
+                        >
+                          <Text style={[styles.optionText, selectedSubscription === sub && styles.optionTextSelected]}>
+                            {sub.toUpperCase()}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.accountSaveButton, savingAccount && styles.saveButtonDisabled]}
+                      onPress={handleSaveAccount}
+                      disabled={savingAccount}
+                    >
+                      {savingAccount ? (
+                        <ActivityIndicator color={Colors.primary} size="small" />
+                      ) : (
+                        <>
+                          <MaterialCommunityIcons name="content-save" size={18} color={Colors.primary} />
+                          <Text style={styles.accountSaveButtonText}>Guardar cambios de cuenta</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.blockToggleButton,
+                        user.is_blocked ? styles.unblockButton : styles.blockButton,
+                        togglingBlock && styles.saveButtonDisabled,
+                      ]}
+                      onPress={handleToggleBlock}
+                      disabled={togglingBlock}
+                    >
+                      {togglingBlock ? (
+                        <ActivityIndicator color={user.is_blocked ? Colors.jade : Colors.error} size="small" />
+                      ) : (
+                        <>
+                          <MaterialCommunityIcons
+                            name={user.is_blocked ? 'lock-open-variant' : 'lock'}
+                            size={18}
+                            color={user.is_blocked ? Colors.jade : Colors.error}
+                          />
+                          <Text style={[styles.blockToggleButtonText, { color: user.is_blocked ? Colors.jade : Colors.error }]}>
+                            {user.is_blocked ? 'Desbloquear usuario' : 'Bloquear usuario'}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
                   </View>
 
                   {/* Reports List */}
@@ -855,6 +997,85 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
     color: Colors.textSecondary,
+  },
+  blockedBadge: {
+    backgroundColor: Colors.error,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+    gap: 4,
+  },
+  blockedBadgeText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: '#FFFFFF',
+  },
+  optionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  optionButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  optionButtonSelected: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  optionText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  optionTextSelected: {
+    color: Colors.primary,
+  },
+  accountSaveButton: {
+    backgroundColor: Colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  accountSaveButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.primary,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  blockToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+  },
+  blockButton: {
+    backgroundColor: Colors.error + '10',
+    borderColor: Colors.error,
+  },
+  unblockButton: {
+    backgroundColor: Colors.jade + '10',
+    borderColor: Colors.jade,
+  },
+  blockToggleButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
   },
   // Report list items
   reportItem: {
