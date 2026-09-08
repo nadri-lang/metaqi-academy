@@ -1563,6 +1563,12 @@ async def delete_month_energy(
         raise HTTPException(status_code=404, detail="Month energy not found")
     return {"message": f"Month energy for {month} deleted successfully"}
 
+@api_router.get("/admin/month-energy/all", response_model=List[MonthEnergy])
+async def get_all_month_energy(current_user: dict = Depends(get_current_admin_user)):
+    """List every month energy entry (not just the current month), for the admin picker."""
+    entries = await db.month_energy.find().sort("month", -1).to_list(200)
+    return [MonthEnergy(**e) for e in entries]
+
 # ============= YEAR ENERGY =============
 
 @api_router.get("/energy/year/current", response_model=YearEnergy)
@@ -1626,6 +1632,12 @@ async def delete_year_energy(
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Year energy not found")
     return {"message": f"Year energy for {year} deleted successfully"}
+
+@api_router.get("/admin/year-energy/all", response_model=List[YearEnergy])
+async def get_all_year_energy(current_user: dict = Depends(get_current_admin_user)):
+    """List every year energy entry, for the admin picker."""
+    entries = await db.year_energy.find().sort("year", -1).to_list(200)
+    return [YearEnergy(**e) for e in entries]
 
 # ============= NEWBORN VOCATION (Daily general) =============
 
