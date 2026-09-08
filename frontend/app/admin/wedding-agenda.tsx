@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,24 +20,74 @@ import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { confirmAsync } from '@/src/utils/confirmDialog';
 
+interface AgendaEntry {
+  id: string;
+  month: number;
+  year: number;
+  title: string;
+  content: string;
+  is_free: boolean;
+}
+
+const MONTH_NAMES = [
+  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+];
+
 export default function WeddingAgendaAdminScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+  const [entries, setEntries] = useState<AgendaEntry[]>([]);
+  const [loadingList, setLoadingList] = useState(true);
+
   // Form state
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
   const [titleEs, setTitleEs] = useState('');
-  const [titleEn, setTitleEn] = useState('');
   const [contentEs, setContentEs] = useState('');
-  const [contentEn, setContentEn] = useState('');
-  const [favorableDays, setFavorableDays] = useState('');
   const [isFree, setIsFree] = useState(true);  // TRUE = Gratis (HOME), FALSE = Pago (SERVICIOS)
+
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    setLoadingList(true);
+    try {
+      const response = await api.get('/admin/wedding-agenda/wedding-agenda/all');
+      setEntries(response.data || []);
+    } catch (error) {
+      console.error('Error loading wedding agenda list:', error);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const existingEntry = entries.find(
+    (e) => e.month === parseInt(month, 10) && e.year === parseInt(year, 10)
+  );
+
+  useEffect(() => {
+    if (existingEntry) {
+      setTitleEs(existingEntry.title);
+      setContentEs(existingEntry.content);
+      setIsFree(existingEntry.is_free);
+    } else if (month && year) {
+      setTitleEs('');
+      setContentEs('');
+      setIsFree(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year, entries]);
+
+  const selectEntry = (entry: AgendaEntry) => {
+    setMonth(String(entry.month).padStart(2, '0'));
+    setYear(String(entry.year));
+  };
 
   const handleSubmit = async () => {
     if (!month || !year || !titleEs || !contentEs) {
-      Alert.alert('Error', 'Completa: mes, año, título ES, contenido ES');
+      Alert.alert('Error', 'Completa: mes, año, título, contenido');
       return;
     }
 
@@ -45,23 +95,17 @@ export default function WeddingAgendaAdminScreen() {
     try {
       const data = {
         agenda_id: 'wedding-agenda',
-        month,
-        year: parseInt(year),
+        month: parseInt(month, 10),
+        year: parseInt(year, 10),
         title: titleEs,
-        title_en: titleEn || titleEs,
         content: contentEs,
-        content_en: contentEn || contentEs,
-        favorable_days: favorableDays.split(',').map(d => d.trim()).filter(d => d),
-        is_free: isFree,  // Añadir el campo is_free
+        is_free: isFree,
       };
 
       await api.post('/admin/wedding-agenda', data);
-      
-      Alert.alert(
-        'Éxito',
-        'Agenda de bodas guardada',
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+
+      Alert.alert('Éxito', 'Agenda de bodas guardada');
+      loadEntries();
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Error al guardar');
     } finally {
@@ -70,30 +114,30 @@ export default function WeddingAgendaAdminScreen() {
   };
 
   const handleDelete = async () => {
-    if (!month) {
-      Alert.alert('Error', 'Selecciona un mes primero');
+    if (!existingEntry) {
+      Alert.alert('Error', 'Selecciona un mes con contenido guardado primero');
       return;
     }
 
     const confirmed = await confirmAsync(
       'Confirmar Eliminación',
-      `¿Estás seguro de que quieres eliminar la Agenda de Bodas (Mes ${month})? Esta acción no se puede deshacer.`,
+      `¿Estás seguro de que quieres eliminar la Agenda de Bodas (${MONTH_NAMES[existingEntry.month - 1]} ${existingEntry.year})? Esta acción no se puede deshacer.`,
       'Eliminar',
     );
     if (!confirmed) return;
 
     setDeleting(true);
     try {
-      await api.delete(`/admin/wedding-agenda/wedding-agenda/${month}`);
+      await api.delete(`/admin/wedding-agenda/wedding-agenda/${month}`, {
+        params: { year: parseInt(year, 10) },
+      });
       Alert.alert('Éxito', 'Contenido eliminado correctamente');
       // Clear form
       setMonth('');
       setYear('');
       setTitleEs('');
-      setTitleEn('');
       setContentEs('');
-      setContentEn('');
-      setFavorableDays('');
+      loadEntries();
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
     } finally {
@@ -130,6 +174,32 @@ export default function WeddingAgendaAdminScreen() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.form}>
+          {loadingList ? (
+            <ActivityIndicator color={Colors.accent} style={{ marginVertical: Spacing.md }} />
+          ) : entries.length > 0 ? (
+            <View style={styles.field}>
+              <Text style={styles.label}>Meses ya guardados</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+                  {entries.map((e) => {
+                    const active = e.month === parseInt(month, 10) && e.year === parseInt(year, 10);
+                    return (
+                      <TouchableOpacity
+                        key={e.id}
+                        style={[styles.monthChip, active && styles.monthChipActive]}
+                        onPress={() => selectEntry(e)}
+                      >
+                        <Text style={[styles.monthChipText, active && styles.monthChipTextActive]}>
+                          {MONTH_NAMES[e.month - 1]} {e.year}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          ) : null}
+
           <View style={styles.row}>
             <View style={[styles.field, { flex: 1 }]}>
               <Text style={styles.label}>Mes *</Text>
@@ -154,25 +224,17 @@ export default function WeddingAgendaAdminScreen() {
               />
             </View>
           </View>
+          {existingEntry && (
+            <Text style={styles.helperTextGreen}>✓ Ya existe contenido para este mes.</Text>
+          )}
 
           <View style={styles.field}>
-            <Text style={styles.label}>Título ES *</Text>
+            <Text style={styles.label}>Título *</Text>
             <TextInput
               style={styles.input}
               value={titleEs}
               onChangeText={setTitleEs}
               placeholder="Bodas en Enero 2027"
-              placeholderTextColor={Colors.textLight}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Título EN</Text>
-            <TextInput
-              style={styles.input}
-              value={titleEn}
-              onChangeText={setTitleEn}
-              placeholder="Weddings in January 2027"
               placeholderTextColor={Colors.textLight}
             />
           </View>
@@ -206,7 +268,7 @@ export default function WeddingAgendaAdminScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Contenido ES *</Text>
+            <Text style={styles.label}>Contenido *</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={contentEs}
@@ -218,29 +280,9 @@ export default function WeddingAgendaAdminScreen() {
             />
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Contenido EN</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={contentEn}
-              onChangeText={setContentEn}
-              placeholder="Describe the most auspicious days..."
-              placeholderTextColor={Colors.textLight}
-              multiline
-              numberOfLines={6}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Días Favorables (separados por comas)</Text>
-            <TextInput
-              style={styles.input}
-              value={favorableDays}
-              onChangeText={setFavorableDays}
-              placeholder="5, 12, 19, 26"
-              placeholderTextColor={Colors.textLight}
-            />
-          </View>
+          <Text style={styles.translateNote}>
+            Solo se escribe en español - los demás idiomas (EN/FR/DE/RO/PT) se traducen automáticamente.
+          </Text>
 
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
@@ -261,7 +303,7 @@ export default function WeddingAgendaAdminScreen() {
           <TouchableOpacity
             style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
             onPress={handleDelete}
-            disabled={deleting || !month}
+            disabled={deleting || !existingEntry}
           >
             {deleting ? (
               <ActivityIndicator color={Colors.white} />
@@ -339,6 +381,37 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  monthChip: {
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  monthChipActive: {
+    borderColor: Colors.accent,
+    backgroundColor: Colors.accent + '20',
+  },
+  monthChipText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  monthChipTextActive: {
+    color: Colors.accent,
+  },
+  helperTextGreen: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.jade,
+  },
+  translateNote: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    fontStyle: 'italic',
   },
   radioGroup: {
     gap: Spacing.md,

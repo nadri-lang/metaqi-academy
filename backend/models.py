@@ -595,6 +595,36 @@ class AgendaMonthCreate(BaseModel):
     order: int = 0
     is_free: bool = True  # True = gratis, False = pago
 
+# Wedding Agenda 2027 - the quarterly paid product sold via SERVICIOS
+# (distinct from AgendaMonth above, which is the monthly subscription
+# wedding content). Previously fully hardcoded in the i18n files with no
+# admin control at all - see agenda-2027-info.tsx.
+class WeddingAgendaQuarter(BaseModel):
+    id: str
+    year: int
+    quarter: int  # 1-4
+    title: str
+    months_label: str
+    dates_text: str
+    price: float = 9.90
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WeddingAgendaQuarterCreate(BaseModel):
+    year: int
+    quarter: int
+    title: str
+    months_label: str
+    dates_text: str
+    price: float = 9.90
+
+class WeddingAgendaIntro(BaseModel):
+    id: str = "main"
+    main_description: str
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class WeddingAgendaIntroCreate(BaseModel):
+    main_description: str
+
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):
     id: str

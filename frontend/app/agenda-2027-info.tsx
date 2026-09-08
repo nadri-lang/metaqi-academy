@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -15,53 +16,42 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
+import api from '@/src/services/api';
 
 interface Quarter {
-  id: number;
-  titleKey: string;
-  monthsKey: string;
-  datesKey: string;
-  price: string;
+  quarter: number;
+  title: string;
+  months_label: string;
+  dates_text: string;
+  price: number;
 }
-
-const QUARTERS: Quarter[] = [
-  {
-    id: 1,
-    titleKey: 'wedding_agenda_2027.quarter_1_title',
-    monthsKey: 'wedding_agenda_2027.quarter_1_months',
-    datesKey: 'wedding_agenda_2027.quarter_1_dates',
-    price: '9,90€',
-  },
-  {
-    id: 2,
-    titleKey: 'wedding_agenda_2027.quarter_2_title',
-    monthsKey: 'wedding_agenda_2027.quarter_2_months',
-    datesKey: 'wedding_agenda_2027.quarter_2_dates',
-    price: '9,90€',
-  },
-  {
-    id: 3,
-    titleKey: 'wedding_agenda_2027.quarter_3_title',
-    monthsKey: 'wedding_agenda_2027.quarter_3_months',
-    datesKey: 'wedding_agenda_2027.quarter_3_dates',
-    price: '9,90€',
-  },
-  {
-    id: 4,
-    titleKey: 'wedding_agenda_2027.quarter_4_title',
-    monthsKey: 'wedding_agenda_2027.quarter_4_months',
-    datesKey: 'wedding_agenda_2027.quarter_4_dates',
-    price: '9,90€',
-  },
-];
 
 export default function WeddingAgenda2027Screen() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedQuarter, setSelectedQuarter] = useState<Quarter | null>(null);
+  const [mainDescription, setMainDescription] = useState('');
+  const [quarters, setQuarters] = useState<Quarter[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleWhatsAppPurchase = (quarterId: number) => {
-    const message = t('wedding_agenda_2027.whatsapp_message').replace('{quarter}', String(quarterId));
+  useEffect(() => {
+    loadData();
+  }, [language]);
+
+  const loadData = async () => {
+    try {
+      const response = await api.get('/wedding-agenda-2027', { params: { lang: language } });
+      setMainDescription(response.data.main_description || '');
+      setQuarters(response.data.quarters || []);
+    } catch (error) {
+      console.error('Error loading wedding agenda 2027:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWhatsAppPurchase = (quarterNumber: number) => {
+    const message = t('wedding_agenda_2027.whatsapp_message').replace('{quarter}', String(quarterNumber));
     const whatsapp = '34640510085';
     Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
   };
@@ -98,6 +88,11 @@ export default function WeddingAgenda2027Screen() {
         </SafeAreaView>
       </LinearGradient>
 
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.accent} />
+        </View>
+      ) : (
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -108,7 +103,7 @@ export default function WeddingAgenda2027Screen() {
             {t('wedding_agenda_2027.what_includes')}
           </Text>
           <Text style={styles.description}>
-            {t('wedding_agenda_2027.main_description')}
+            {mainDescription}
           </Text>
         </View>
 
@@ -117,9 +112,9 @@ export default function WeddingAgenda2027Screen() {
           {t('wedding_agenda_2027.select_quarter')}
         </Text>
 
-        {QUARTERS.map((quarter) => (
+        {quarters.map((quarter) => (
           <TouchableOpacity
-            key={quarter.id}
+            key={quarter.quarter}
             style={styles.quarterButton}
             onPress={() => setSelectedQuarter(quarter)}
             activeOpacity={0.85}
@@ -130,9 +125,9 @@ export default function WeddingAgenda2027Screen() {
               </View>
               <View style={styles.quarterTextContainer}>
                 <Text style={styles.quarterTitle}>
-                  {t(quarter.titleKey)}
+                  {quarter.title}
                 </Text>
-                <Text style={styles.quarterPrice}>{quarter.price}</Text>
+                <Text style={styles.quarterPrice}>{quarter.price.toFixed(2)}€</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.textLight} />
             </View>
@@ -141,6 +136,7 @@ export default function WeddingAgenda2027Screen() {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+      )}
 
       {/* Quarter Detail Modal */}
       <Modal
@@ -172,9 +168,9 @@ export default function WeddingAgenda2027Screen() {
                     contentContainerStyle={styles.modalContent}
                   >
                     <Text style={styles.modalTitle}>
-                      {t(selectedQuarter.titleKey)}
+                      {selectedQuarter.title}
                     </Text>
-                    <Text style={styles.modalPrice}>{selectedQuarter.price}</Text>
+                    <Text style={styles.modalPrice}>{selectedQuarter.price.toFixed(2)}€</Text>
                     
                     <View style={styles.divider} />
                     
@@ -184,6 +180,10 @@ export default function WeddingAgenda2027Screen() {
 
                     {/* Features */}
                     <View style={styles.featuresCard}>
+                      <View style={styles.featureItem}>
+                        <MaterialCommunityIcons name="calendar-range" size={24} color={Colors.jade} />
+                        <Text style={styles.featureText}>{selectedQuarter.dates_text}</Text>
+                      </View>
                       <View style={styles.featureItem}>
                         <MaterialCommunityIcons name="check-circle" size={24} color={Colors.jade} />
                         <Text style={styles.featureText}>
@@ -208,7 +208,7 @@ export default function WeddingAgenda2027Screen() {
                     <TouchableOpacity
                       style={styles.whatsappButton}
                       onPress={() => {
-                        handleWhatsAppPurchase(selectedQuarter.id);
+                        handleWhatsAppPurchase(selectedQuarter.quarter);
                         setSelectedQuarter(null);
                       }}
                       activeOpacity={0.85}
@@ -243,6 +243,12 @@ export default function WeddingAgenda2027Screen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
   header: { paddingBottom: Spacing.xl },
   headerContent: {
     paddingHorizontal: Spacing.lg,

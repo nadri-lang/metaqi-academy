@@ -2019,41 +2019,113 @@ async def create_wedding_agenda(
     current_user: dict = Depends(get_current_admin_user)
 ):
     month_dict = month_data.model_dump()
-    
-    # Check if already exists for this agenda_id and month
-    existing = await db.agenda_months.find_one({
+
+    # Match on agenda_id + month + YEAR - matching on month alone meant
+    # January 2026 and January 2027 collided and silently overwrote each
+    # other, since agenda_months holds every year in one collection.
+    match = {
         "agenda_id": month_data.agenda_id,
-        "month": month_data.month
-    })
-    
+        "month": month_data.month,
+        "year": month_data.year,
+    }
+    existing = await db.agenda_months.find_one(match)
+
     if existing:
         # Update existing entry
         month_dict["id"] = existing["id"]
-        await db.agenda_months.update_one(
-            {"agenda_id": month_data.agenda_id, "month": month_data.month},
-            {"$set": month_dict}
-        )
+        await db.agenda_months.update_one(match, {"$set": month_dict})
     else:
         # Create new entry
         month_dict["id"] = str(uuid.uuid4())
         await db.agenda_months.insert_one(month_dict)
-    
+
     return AgendaMonth(**month_dict)
+
+@api_router.get("/admin/wedding-agenda/{agenda_id}/all")
+async def get_all_wedding_agenda(
+    agenda_id: str,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """List every saved month (any year) for this agenda, for the admin picker."""
+    entries = await db.agenda_months.find(
+        {"agenda_id": agenda_id}, {"_id": 0}
+    ).sort([("year", -1), ("month", -1)]).to_list(200)
+    return entries
 
 @api_router.delete("/admin/wedding-agenda/{agenda_id}/{month}")
 async def delete_wedding_agenda(
     agenda_id: str,
     month: int,
+    year: int,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Delete a specific wedding agenda entry. Admin only."""
+    """Delete a specific wedding agenda entry (month + year). Admin only."""
     result = await db.agenda_months.delete_one({
         "agenda_id": agenda_id,
-        "month": month
+        "month": month,
+        "year": year,
     })
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Wedding agenda entry not found")
-    return {"message": f"Wedding agenda for {month} deleted successfully"}
+    return {"message": f"Wedding agenda for {month}/{year} deleted successfully"}
+
+# ============= WEDDING AGENDA 2027 (quarterly paid product) =============
+
+@api_router.get("/wedding-agenda-2027")
+async def get_wedding_agenda_2027(lang: str = "es", year: int = 2027):
+    """Public: the quarterly paid Wedding Agenda product shown in SERVICIOS."""
+    intro = await db.wedding_agenda_intro.find_one({"id": "main"}, {"_id": 0}) or {"main_description": ""}
+    quarters = await db.wedding_agenda_quarters.find(
+        {"year": year}, {"_id": 0}
+    ).sort("quarter", 1).to_list(4)
+
+    if lang != "es":
+        intro = await translate_dict(intro, lang, ["main_description"])
+        quarters = await translate_list_of_dicts(quarters, lang, ["title", "months_label", "dates_text"])
+
+    return {"main_description": intro.get("main_description", ""), "quarters": quarters}
+
+@api_router.get("/admin/wedding-agenda-2027/all")
+async def get_all_wedding_agenda_2027(current_user: dict = Depends(get_current_admin_user)):
+    """Admin: every quarter (any year) plus the shared intro text, unfiltered/untranslated."""
+    intro = await db.wedding_agenda_intro.find_one({"id": "main"}, {"_id": 0}) or {"main_description": ""}
+    quarters = await db.wedding_agenda_quarters.find(
+        {}, {"_id": 0}
+    ).sort([("year", -1), ("quarter", 1)]).to_list(100)
+    return {"main_description": intro.get("main_description", ""), "quarters": quarters}
+
+@api_router.post("/admin/wedding-agenda-2027/intro", response_model=WeddingAgendaIntro)
+async def set_wedding_agenda_2027_intro(
+    data: WeddingAgendaIntroCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    doc = data.model_dump()
+    doc["id"] = "main"
+    doc["updated_at"] = datetime.utcnow()
+    await db.wedding_agenda_intro.update_one({"id": "main"}, {"$set": doc}, upsert=True)
+    return WeddingAgendaIntro(**doc)
+
+@api_router.post("/admin/wedding-agenda-2027/quarter", response_model=WeddingAgendaQuarter)
+async def upsert_wedding_agenda_2027_quarter(
+    data: WeddingAgendaQuarterCreate,
+    current_user: dict = Depends(get_current_admin_user)
+):
+    if data.quarter < 1 or data.quarter > 4:
+        raise HTTPException(status_code=400, detail="El trimestre debe ser 1, 2, 3 o 4")
+
+    match = {"year": data.year, "quarter": data.quarter}
+    existing = await db.wedding_agenda_quarters.find_one(match)
+    doc = data.model_dump()
+    doc["updated_at"] = datetime.utcnow()
+
+    if existing:
+        doc["id"] = existing["id"]
+        await db.wedding_agenda_quarters.update_one(match, {"$set": doc})
+    else:
+        doc["id"] = str(uuid.uuid4())
+        await db.wedding_agenda_quarters.insert_one(doc)
+
+    return WeddingAgendaQuarter(**doc)
 
 # ============= FAQ =============
 

@@ -53,11 +53,18 @@ const ADMIN_SECTIONS: AdminSection[] = [
     testID: 'admin-newborn-vocation',
   },
   {
-    title: 'Agenda de Bodas',
-    description: 'Fechas auspiciosas 2027',
+    title: 'Agenda de Bodas (Mes)',
+    description: 'Contenido mensual - suscripción (HOME)',
     icon: 'heart',
     route: '/admin/wedding-agenda',
     testID: 'admin-wedding-agenda',
+  },
+  {
+    title: 'Agenda de Bodas 2027',
+    description: 'Producto trimestral de pago (SERVICIOS)',
+    icon: 'calendar-heart',
+    route: '/admin/wedding-agenda-2027',
+    testID: 'admin-wedding-agenda-2027',
   },
   {
     title: 'Conceptos Metafísica',
