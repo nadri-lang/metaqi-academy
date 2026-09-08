@@ -21,6 +21,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import ZodiacEmblem from '@/src/components/ZodiacEmblem';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
+import HexagramBars from '@/src/components/HexagramBars';
 import { ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
 import { formatWeekdayDate } from '@/src/utils/dateInput';
 
@@ -240,9 +241,22 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Energía del Mes / Energía del Año - fila de 2 */}
+        {/* IChing / Energía del Mes / Energía del Año - fila de 3 */}
         <View style={styles.section}>
           <View style={styles.twinRow}>
+            <TouchableOpacity
+              testID="iching-button"
+              style={styles.twinCard}
+              onPress={() => router.push('/iching')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.twinIconContainer}>
+                <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
+              </View>
+              <Text style={styles.twinLabel}>{t('home.iching')}</Text>
+              <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               testID="month-energy-button"
               style={styles.twinCard}
@@ -554,6 +568,12 @@ const styles = StyleSheet.create({
   twinBadgeFree: {
     color: Colors.white,
     backgroundColor: Colors.freeGreen,
+  },
+  twinBadgeMuted: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: 10,
+    color: Colors.accent,
+    letterSpacing: 0.5,
   },
   // Subscription banner
   subscriptionBanner: {

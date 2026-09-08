@@ -39,6 +39,8 @@ export default {
     animal_of_day: 'Animalul zilei',
     subscription_title: 'Abonament 1,99€/lună',
     daily_activations: 'Activările Zilei',
+    iching: 'IChing',
+    iching_subtitle: 'GHICIRE',
     month_energy: 'Energia Lunii',
     year_energy: 'Energia Anului',
     wedding_agenda: 'Agenda Nunților din Lună',

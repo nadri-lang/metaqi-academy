@@ -34,6 +34,7 @@ from models import (
     AgendaMonth, AgendaMonthCreate,
     WeddingAgendaQuarter, WeddingAgendaQuarterCreate,
     WeddingAgendaIntro, WeddingAgendaIntroCreate,
+    IChingCastRequest,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
     Purchase, PurchaseCreate, PurchaseUpdate,
@@ -55,6 +56,7 @@ from translation_service import translate_dict, translate_list_of_dicts
 from email_service import email_service
 from analytics_service import AnalyticsService
 from storage_service import init_storage, put_object
+from iching_data import cast_iching, hexagram_lookup
 from concurrent.futures import ThreadPoolExecutor
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_request
@@ -2128,6 +2130,39 @@ async def upsert_wedding_agenda_2027_quarter(
         await db.wedding_agenda_quarters.insert_one(doc)
 
     return WeddingAgendaQuarter(**doc)
+
+# ============= I CHING (coin oracle) =============
+
+@api_router.get("/iching/hexagram/{number}")
+async def get_iching_hexagram(number: int, lang: str = "es"):
+    """Public: look up one hexagram by King Wen number, for the full-interpretation view."""
+    try:
+        hexagram = hexagram_lookup(number)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    if lang != "es":
+        hexagram = await translate_dict(hexagram, lang, ["name_es", "lower_trigram_es", "upper_trigram_es"])
+
+    return hexagram
+
+@api_router.post("/iching/cast")
+async def post_iching_cast(request: IChingCastRequest, lang: str = "es"):
+    """
+    Public: compute a hexagram from 6 coin-toss values (bottom to top, each
+    6/7/8/9). Pure deterministic reference data/math - no persistence.
+    """
+    try:
+        reading = cast_iching(request.lines)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if lang != "es":
+        reading = await translate_dict(reading, lang, ["name_es"])
+        if reading.get("result"):
+            reading["result"] = await translate_dict(reading["result"], lang, ["name_es"])
+
+    return reading
 
 # ============= FAQ =============
 

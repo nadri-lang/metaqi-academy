@@ -625,6 +625,10 @@ class WeddingAgendaIntro(BaseModel):
 class WeddingAgendaIntroCreate(BaseModel):
     main_description: str
 
+# I Ching coin oracle
+class IChingCastRequest(BaseModel):
+    lines: List[int]  # 6 values, bottom to top, each 6/7/8/9
+
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):
     id: str

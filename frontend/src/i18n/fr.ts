@@ -39,6 +39,8 @@ export default {
     animal_of_day: 'Animal du jour',
     subscription_title: 'Abonnement 1,99€/mois',
     daily_activations: 'Activations du Jour',
+    iching: 'IChing',
+    iching_subtitle: 'DIVINATION',
     month_energy: 'Énergie du Mois',
     year_energy: 'Énergie de l\'Année',
     wedding_agenda: 'Agenda de Mariage du Mois',
