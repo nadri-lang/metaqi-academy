@@ -38,7 +38,7 @@ interface HexagramReading {
 
 export default function IChingScreen() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [question, setQuestion] = useState('');
   const [digitsInput, setDigitsInput] = useState('');
   const [reading, setReading] = useState<HexagramReading | null>(null);
@@ -53,7 +53,7 @@ export default function IChingScreen() {
     const values = parts.map((p) => parseInt(p, 10));
 
     if (values.length !== 6 || values.some((v) => isNaN(v) || ![6, 7, 8, 9].includes(v))) {
-      setError('Escribe exactamente 6 cifras (6, 7, 8 o 9), separadas por espacio.');
+      setError(t('iching.error_invalid_digits'));
       return;
     }
 
@@ -65,7 +65,7 @@ export default function IChingScreen() {
       const response = await api.post('/iching/cast', { lines: values }, { params: { lang: language } });
       setReading(response.data);
     } catch (e: any) {
-      setError(e.response?.data?.detail || 'No se pudo calcular el hexagrama. Inténtalo de nuevo.');
+      setError(e.response?.data?.detail || t('iching.error_cast_failed'));
     } finally {
       setLoading(false);
     }
@@ -86,9 +86,9 @@ export default function IChingScreen() {
       setInterpretation(response.data.interpretation);
     } catch (e: any) {
       if (!e.response) {
-        setInterpretError('No se pudo conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
+        setInterpretError(t('iching.error_no_connection'));
       } else {
-        setInterpretError(e.response?.data?.detail || 'No se pudo generar la interpretación. Inténtalo de nuevo.');
+        setInterpretError(e.response?.data?.detail || t('iching.error_interpretation_failed'));
       }
     } finally {
       setInterpreting(false);
@@ -112,35 +112,37 @@ export default function IChingScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            <Text style={styles.introText}>
-              Antes de lanzar el oráculo, escribe tu pregunta en un papel. Piénsala bien: que sea
-              clara, específica y única — evita mezclar varias dudas en una sola consulta. Cuanto
-              más precisa la pregunta, más útil la respuesta.
-            </Text>
+            <Text style={styles.introText}>{t('iching.intro_text')}</Text>
             <TextInput
               style={styles.questionInput}
               value={question}
               onChangeText={setQuestion}
-              placeholder="Escribe tu pregunta aquí..."
+              placeholder={t('iching.question_placeholder')}
               placeholderTextColor={Colors.textLight}
               multiline
             />
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Método de las monedas</Text>
-            <Text style={styles.instructionsText}>
-              Lanza tres monedas iguales seis veces, de abajo hacia arriba. Suma cara=3, cruz=2 en
-              cada lanzamiento; el resultado será 6, 7, 8 o 9. Escribe aquí las seis cifras,
-              separadas por espacio.
-            </Text>
+            <Text style={styles.sectionTitle}>{t('iching.coin_method_title')}</Text>
+            <Text style={styles.instructionsText}>{t('iching.coin_step1')}</Text>
+            <Text style={styles.instructionsText}>{t('iching.coin_step2')}</Text>
+            <Text style={styles.instructionsText}>{t('iching.coin_step3_intro')}</Text>
+            <View style={styles.sumsList}>
+              <Text style={styles.sumsListItem}>• {t('iching.coin_sum_6')}</Text>
+              <Text style={styles.sumsListItem}>• {t('iching.coin_sum_7')}</Text>
+              <Text style={styles.sumsListItem}>• {t('iching.coin_sum_8')}</Text>
+              <Text style={styles.sumsListItem}>• {t('iching.coin_sum_9')}</Text>
+            </View>
+            <Text style={styles.instructionsText}>{t('iching.coin_step4')}</Text>
+            <Text style={[styles.instructionsText, { marginBottom: Spacing.md }]}>{t('iching.coin_step5')}</Text>
 
             <View style={styles.digitsRow}>
               <TextInput
                 style={styles.digitsInput}
                 value={digitsInput}
                 onChangeText={setDigitsInput}
-                placeholder="7 9 8 6 7 8"
+                placeholder={t('iching.digits_placeholder')}
                 placeholderTextColor={Colors.textLight}
                 keyboardType="numbers-and-punctuation"
               />
@@ -148,7 +150,7 @@ export default function IChingScreen() {
                 {loading ? (
                   <ActivityIndicator color={Colors.primary} size="small" />
                 ) : (
-                  <Text style={styles.enterButtonText}>Enter</Text>
+                  <Text style={styles.enterButtonText}>{t('common.enter')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -166,7 +168,7 @@ export default function IChingScreen() {
                   <Text style={styles.resultSubtitle}>{reading.name_es}</Text>
                   {reading.moving_lines.length > 0 && (
                     <Text style={styles.movingLinesText}>
-                      Líneas móviles: {reading.moving_lines.join(', ')}
+                      {t('iching.moving_lines_label')}{reading.moving_lines.join(', ')}
                     </Text>
                   )}
                 </View>
@@ -175,7 +177,7 @@ export default function IChingScreen() {
               {reading.result && (
                 <>
                   <View style={styles.resultDivider} />
-                  <Text style={styles.resultLabel}>HEXAGRAMA RESULTANTE</Text>
+                  <Text style={styles.resultLabel}>{t('iching.resulting_hexagram_label')}</Text>
                   <View style={styles.resultTopRow}>
                     <HexagramBars lines={reading.result.lines} size="small" />
                     <View style={styles.resultTextCol}>
@@ -185,10 +187,7 @@ export default function IChingScreen() {
                       <Text style={styles.resultSubtitle}>{reading.result.name_es}</Text>
                     </View>
                   </View>
-                  <Text style={styles.resultExplanation}>
-                    Cuando las líneas móviles del hexagrama principal se transforman, la situación
-                    tiende hacia la energía de este segundo hexagrama.
-                  </Text>
+                  <Text style={styles.resultExplanation}>{t('iching.transform_explanation')}</Text>
                 </>
               )}
 
@@ -200,7 +199,7 @@ export default function IChingScreen() {
                 {interpreting ? (
                   <ActivityIndicator color={Colors.accent} size="small" />
                 ) : (
-                  <Text style={styles.fullInterpretationButtonText}>Ver interpretación completa</Text>
+                  <Text style={styles.fullInterpretationButtonText}>{t('iching.full_interpretation_button')}</Text>
                 )}
               </TouchableOpacity>
 
@@ -210,7 +209,7 @@ export default function IChingScreen() {
                 <View style={styles.interpretationBox}>
                   <View style={styles.interpretationHeader}>
                     <MaterialCommunityIcons name="text-box-outline" size={16} color={Colors.accent} />
-                    <Text style={styles.interpretationHeaderText}>Interpretación</Text>
+                    <Text style={styles.interpretationHeaderText}>{t('iching.interpretation_label')}</Text>
                   </View>
                   <Text style={styles.interpretationText}>{interpretation}</Text>
                 </View>
@@ -287,7 +286,17 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
     lineHeight: 21,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  sumsList: {
+    marginBottom: Spacing.sm,
+    paddingLeft: Spacing.xs,
+  },
+  sumsListItem: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   digitsRow: {
     flexDirection: 'row',
