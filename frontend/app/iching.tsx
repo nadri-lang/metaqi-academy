@@ -81,6 +81,7 @@ export default function IChingScreen() {
         moving_lines: reading.moving_lines,
         result_number: reading.result?.number ?? null,
         question: question.trim() || null,
+        lang: language,
       });
       setInterpretation(response.data.interpretation);
     } catch (e: any) {

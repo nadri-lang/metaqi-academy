@@ -2164,7 +2164,7 @@ async def post_iching_interpret(request: IChingInterpretRequest):
         raise HTTPException(status_code=404, detail=str(e))
 
     try:
-        interpretation = await interpret_iching(request.question, context)
+        interpretation = await interpret_iching(request.question, context, request.lang)
     except InterpretationError as e:
         raise HTTPException(status_code=503, detail=str(e))
 

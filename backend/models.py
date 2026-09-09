@@ -650,6 +650,7 @@ class IChingInterpretRequest(BaseModel):
     moving_lines: List[int] = []
     result_number: Optional[int] = None
     question: Optional[str] = None
+    lang: str = "es"
 
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):

@@ -27,22 +27,44 @@ ICHING_MODEL = "claude-sonnet-5"
 
 _client: Optional[AsyncAnthropic] = None
 
-SYSTEM_PROMPT = (
-    "Eres un asistente que sintetiza consultas del I Ching (Yijing) para la "
-    "aplicación MetaQi Academy. Debes basarte ESTRICTAMENTE en los textos "
-    "clásicos (Dictamen, Imagen y líneas) que se te proporcionan a "
-    "continuación - nunca uses tu propio conocimiento general sobre el I "
-    "Ching, ni añadas interpretaciones, símbolos o datos que no estén "
-    "presentes en esos textos. Tu tarea es sintetizar y conectar esos "
-    "textos con la pregunta concreta que la persona ha formulado, en un "
-    "tono cálido y claro, en español, en 2-4 párrafos breves (no más de "
-    "unas 300 palabras en total, incluso si hay varias líneas móviles o "
-    "un hexagrama resultante que sintetizar). Responde en texto plano, "
-    "sin markdown ni formato especial (sin títulos con #, sin **negritas**, "
-    "sin listas) - la app muestra el texto tal cual, sin renderizar "
-    "formato. Si no se proporcionó una pregunta, sintetiza el significado "
-    "general de la lectura tal como surge de los textos entregados."
-)
+# The classical source corpus (hexagramas.json) only exists in Spanish, but
+# the synthesis itself must come out directly in the app's active language -
+# generating in Spanish and translating afterwards would be a second lossy
+# pass over already-condensed text. So the source stays Spanish; only the
+# output-language instruction changes per request.
+LANGUAGE_NAMES = {
+    "es": "español",
+    "en": "inglés",
+    "fr": "francés",
+    "de": "alemán",
+    "ro": "rumano",
+    "pt": "portugués",
+}
+
+
+def _build_system_prompt(lang: str) -> str:
+    language_name = LANGUAGE_NAMES.get(lang, LANGUAGE_NAMES["es"])
+    return (
+        "Eres un asistente que sintetiza consultas del I Ching (Yijing) para la "
+        "aplicación MetaQi Academy. Debes basarte ESTRICTAMENTE en los textos "
+        "clásicos (Dictamen, Imagen y líneas) que se te proporcionan a "
+        "continuación, siempre en español - nunca uses tu propio conocimiento "
+        "general sobre el I Ching, ni añadas interpretaciones, símbolos o datos "
+        "que no estén presentes en esos textos. Tu tarea es sintetizar y "
+        f"conectar esos textos con la pregunta concreta que la persona ha "
+        f"formulado, en un tono cálido y claro, en 2-4 párrafos breves (no más "
+        "de unas 300 palabras en total, incluso si hay varias líneas móviles o "
+        "un hexagrama resultante que sintetizar). "
+        f"IMPORTANTE: escribe tu respuesta completa en {language_name}, "
+        "independientemente del idioma de los textos clásicos de origen (que "
+        "siempre están en español) - traduce y sintetiza directamente en "
+        f"{language_name}, no dejes ninguna parte en español si el idioma "
+        "pedido es otro. Responde en texto plano, sin markdown ni formato "
+        "especial (sin títulos con #, sin **negritas**, sin listas) - la app "
+        "muestra el texto tal cual, sin renderizar formato. Si no se "
+        "proporcionó una pregunta, sintetiza el significado general de la "
+        "lectura tal como surge de los textos entregados."
+    )
 
 
 class InterpretationError(Exception):
@@ -63,7 +85,7 @@ def _get_client() -> Optional[AsyncAnthropic]:
     return _client
 
 
-async def interpret_iching(question: Optional[str], context: str) -> str:
+async def interpret_iching(question: Optional[str], context: str, lang: str = "es") -> str:
     client = _get_client()
     if client is None:
         raise InterpretationError(
@@ -80,7 +102,7 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
         response = await client.messages.create(
             model=ICHING_MODEL,
             max_tokens=4096,
-            system=SYSTEM_PROMPT,
+            system=_build_system_prompt(lang),
             messages=[{"role": "user", "content": user_message}],
         )
     except APIConnectionError as e:
