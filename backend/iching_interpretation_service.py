@@ -75,7 +75,7 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
     try:
         response = await client.messages.create(
             model=ICHING_MODEL,
-            max_tokens=800,
+            max_tokens=1600,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_message}],
         )
