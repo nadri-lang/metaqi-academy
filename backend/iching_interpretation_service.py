@@ -35,9 +35,13 @@ SYSTEM_PROMPT = (
     "Ching, ni añadas interpretaciones, símbolos o datos que no estén "
     "presentes en esos textos. Tu tarea es sintetizar y conectar esos "
     "textos con la pregunta concreta que la persona ha formulado, en un "
-    "tono cálido y claro, en español, en 2-4 párrafos breves. Si no se "
-    "proporcionó una pregunta, sintetiza el significado general de la "
-    "lectura tal como surge de los textos entregados."
+    "tono cálido y claro, en español, en 2-4 párrafos breves (no más de "
+    "unas 300 palabras en total, incluso si hay varias líneas móviles o "
+    "un hexagrama resultante que sintetizar). Responde en texto plano, "
+    "sin markdown ni formato especial (sin títulos con #, sin **negritas**, "
+    "sin listas) - la app muestra el texto tal cual, sin renderizar "
+    "formato. Si no se proporcionó una pregunta, sintetiza el significado "
+    "general de la lectura tal como surge de los textos entregados."
 )
 
 
@@ -75,7 +79,7 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
     try:
         response = await client.messages.create(
             model=ICHING_MODEL,
-            max_tokens=1600,
+            max_tokens=4096,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_message}],
         )
@@ -85,6 +89,12 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
     except APIError as e:
         logger.error(f"I Ching interpretation: API error: {e}")
         raise InterpretationError("El servicio de interpretación no está disponible en este momento.")
+
+    if response.stop_reason == "max_tokens":
+        logger.warning(
+            f"I Ching interpretation: hit max_tokens ({response.usage.output_tokens} output tokens) - "
+            f"response was likely truncated mid-sentence."
+        )
 
     text_blocks = [block.text for block in response.content if getattr(block, "type", None) == "text"]
     result = "\n".join(text_blocks).strip()
