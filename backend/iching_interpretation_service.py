@@ -1,5 +1,6 @@
 """
-I Ching interpretation synthesis via the Claude API (direct Anthropic key).
+I Ching interpretation synthesis via OpenAI (direct OpenAI API key, same
+account already used for translation - see translation_service.py).
 
 Strictly grounded: the system prompt forbids drawing on the model's own
 general I Ching knowledge - the synthesis must come only from the classical
@@ -10,19 +11,16 @@ import logging
 import os
 from typing import Optional
 
-from anthropic import AsyncAnthropic, APIError, APIConnectionError
+from openai import AsyncOpenAI, APIError, APIConnectionError
 from dotenv import load_dotenv
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Model choice: the current Claude 5 family - "claude-sonnet-4-6" (as
-# requested) is not a real/current model id, so this uses the closest
-# equivalent instead of failing every request against an unknown model.
-ICHING_MODEL = "claude-sonnet-5"
+ICHING_MODEL = "gpt-5.4"
 
-_client: Optional[AsyncAnthropic] = None
+_client: Optional[AsyncOpenAI] = None
 
 SYSTEM_PROMPT = (
     "Eres un asistente que sintetiza consultas del I Ching (Yijing) para la "
@@ -42,17 +40,17 @@ class InterpretationError(Exception):
     """Raised when the interpretation could not be generated - message is safe to show the user."""
 
 
-def _get_client() -> Optional[AsyncAnthropic]:
-    """Lazily build the Anthropic client so a missing key doesn't crash import."""
+def _get_client() -> Optional[AsyncOpenAI]:
+    """Lazily build the OpenAI client so a missing key doesn't crash import."""
     global _client
     if _client is not None:
         return _client
 
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
 
-    _client = AsyncAnthropic(api_key=api_key, max_retries=1, timeout=30.0)
+    _client = AsyncOpenAI(api_key=api_key, max_retries=1, timeout=30.0)
     return _client
 
 
@@ -60,7 +58,7 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
     client = _get_client()
     if client is None:
         raise InterpretationError(
-            "El servicio de interpretación no está configurado (falta ANTHROPIC_API_KEY)."
+            "El servicio de interpretación no está configurado (falta OPENAI_API_KEY)."
         )
 
     user_message = (
@@ -70,11 +68,13 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
     )
 
     try:
-        response = await client.messages.create(
+        response = await client.chat.completions.create(
             model=ICHING_MODEL,
             max_tokens=800,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
         )
     except APIConnectionError as e:
         logger.error(f"I Ching interpretation: connection error: {e}")
@@ -83,8 +83,7 @@ async def interpret_iching(question: Optional[str], context: str) -> str:
         logger.error(f"I Ching interpretation: API error: {e}")
         raise InterpretationError("El servicio de interpretación no está disponible en este momento.")
 
-    text_blocks = [block.text for block in response.content if getattr(block, "type", None) == "text"]
-    result = "\n".join(text_blocks).strip()
+    result = (response.choices[0].message.content or "").strip()
     if not result:
         raise InterpretationError("No se pudo generar la interpretación. Inténtalo de nuevo.")
     return result

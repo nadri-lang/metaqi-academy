@@ -91,6 +91,10 @@ export default {
     title: 'Energía del Mes',
     no_content: 'Sin contenido para este mes',
     come_back_later: 'Vuelve más tarde',
+    section_bazi: 'Influencias BaZi',
+    section_qimen: 'Estrategias QiMen',
+    section_feng_shui: 'Feng Shui del Mes',
+    section_activations: 'Activaciones del Mes',
   },
   year: {
     title: 'Energía del Año',

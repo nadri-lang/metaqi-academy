@@ -24,6 +24,10 @@ interface MonthEnergy {
   title_en?: string;
   content: string;
   content_en?: string;
+  bazi_influences?: string;
+  qimen_strategies?: string;
+  feng_shui?: string;
+  activations?: string;
   is_free: boolean;
 }
 
@@ -139,6 +143,46 @@ export default function MonthEnergyDetailScreen() {
           </Text>
         </View>
 
+        {!!data.bazi_influences && (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="yin-yang" size={20} color={Colors.accent} />
+              <Text style={styles.sectionTitle}>{t('month.section_bazi')}</Text>
+            </View>
+            <Text style={styles.description}>{data.bazi_influences}</Text>
+          </View>
+        )}
+
+        {!!data.qimen_strategies && (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="compass-outline" size={20} color={Colors.accent} />
+              <Text style={styles.sectionTitle}>{t('month.section_qimen')}</Text>
+            </View>
+            <Text style={styles.description}>{data.qimen_strategies}</Text>
+          </View>
+        )}
+
+        {!!data.feng_shui && (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="home-outline" size={20} color={Colors.accent} />
+              <Text style={styles.sectionTitle}>{t('month.section_feng_shui')}</Text>
+            </View>
+            <Text style={styles.description}>{data.feng_shui}</Text>
+          </View>
+        )}
+
+        {!!data.activations && (
+          <View style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="calendar-check-outline" size={20} color={Colors.accent} />
+              <Text style={styles.sectionTitle}>{t('month.section_activations')}</Text>
+            </View>
+            <Text style={styles.description}>{data.activations}</Text>
+          </View>
+        )}
+
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </View>
@@ -240,5 +284,18 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
+  sectionTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });

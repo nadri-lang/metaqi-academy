@@ -91,6 +91,10 @@ export default {
     title: 'Energia Lunii',
     no_content: 'Fără conținut pentru această lună',
     come_back_later: 'Revino mai târziu',
+    section_bazi: 'Influențe BaZi',
+    section_qimen: 'Strategii QiMen',
+    section_feng_shui: 'Feng Shui al Lunii',
+    section_activations: 'Activări ale Lunii',
   },
   year: {
     title: 'Energia Anului',

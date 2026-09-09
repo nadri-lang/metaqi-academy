@@ -57,7 +57,7 @@ from email_service import email_service
 from analytics_service import AnalyticsService
 from storage_service import init_storage, put_object
 from iching_data import cast_iching, hexagram_lookup, format_interpretation_context
-from anthropic_service import interpret_iching, InterpretationError
+from iching_interpretation_service import interpret_iching, InterpretationError
 from concurrent.futures import ThreadPoolExecutor
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_request
@@ -1557,8 +1557,11 @@ async def get_month_energy(lang: str = "es"):
     
     # Translate if not Spanish
     if lang != "es":
-        energy = await translate_dict(energy, lang, ["title", "content"])
-    
+        energy = await translate_dict(
+            energy, lang,
+            ["title", "content", "bazi_influences", "qimen_strategies", "feng_shui", "activations"],
+        )
+
     return MonthEnergy(**energy)
 
 @api_router.post("/admin/month-energy", response_model=MonthEnergy)

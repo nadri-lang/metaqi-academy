@@ -486,8 +486,16 @@ class MonthEnergy(BaseModel):
     month: str  # Format: YYYY-MM
     title: str
     title_en: Optional[str] = None
-    content: str
+    content: str  # General description of the month's energy
     content_en: Optional[str] = None
+    bazi_influences: Optional[str] = None  # Influencias BaZi
+    bazi_influences_en: Optional[str] = None
+    qimen_strategies: Optional[str] = None  # Estrategias QiMen
+    qimen_strategies_en: Optional[str] = None
+    feng_shui: Optional[str] = None  # Feng Shui del mes
+    feng_shui_en: Optional[str] = None
+    activations: Optional[str] = None  # Activaciones del mes
+    activations_en: Optional[str] = None
     is_free: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -497,6 +505,14 @@ class MonthEnergyCreate(BaseModel):
     title_en: Optional[str] = None
     content: str
     content_en: Optional[str] = None
+    bazi_influences: Optional[str] = None
+    bazi_influences_en: Optional[str] = None
+    qimen_strategies: Optional[str] = None
+    qimen_strategies_en: Optional[str] = None
+    feng_shui: Optional[str] = None
+    feng_shui_en: Optional[str] = None
+    activations: Optional[str] = None
+    activations_en: Optional[str] = None
     is_free: bool = True
 
 # Year Energy - Simple concept with YouTube link

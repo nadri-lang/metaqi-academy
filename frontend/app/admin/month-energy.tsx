@@ -25,6 +25,10 @@ interface MonthEntry {
   month: string; // YYYY-MM
   title: string;
   content: string;
+  bazi_influences?: string;
+  qimen_strategies?: string;
+  feng_shui?: string;
+  activations?: string;
   is_free: boolean;
 }
 
@@ -58,6 +62,10 @@ export default function MonthEnergyAdminScreen() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [baziInfluences, setBaziInfluences] = useState('');
+  const [qimenStrategies, setQimenStrategies] = useState('');
+  const [fengShui, setFengShui] = useState('');
+  const [activations, setActivations] = useState('');
   const [isFree, setIsFree] = useState(true);
 
   useEffect(() => {
@@ -69,10 +77,18 @@ export default function MonthEnergyAdminScreen() {
     if (existing) {
       setTitle(existing.title);
       setContent(existing.content);
+      setBaziInfluences(existing.bazi_influences || '');
+      setQimenStrategies(existing.qimen_strategies || '');
+      setFengShui(existing.feng_shui || '');
+      setActivations(existing.activations || '');
       setIsFree(existing.is_free);
     } else {
       setTitle('');
       setContent('');
+      setBaziInfluences('');
+      setQimenStrategies('');
+      setFengShui('');
+      setActivations('');
       setIsFree(true);
     }
   }, [selectedMonth, entries]);
@@ -135,6 +151,10 @@ export default function MonthEnergyAdminScreen() {
         month: selectedMonth,
         title: title.trim(),
         content: content.trim(),
+        bazi_influences: baziInfluences.trim() || undefined,
+        qimen_strategies: qimenStrategies.trim() || undefined,
+        feng_shui: fengShui.trim() || undefined,
+        activations: activations.trim() || undefined,
         is_free: isFree,
       });
       Alert.alert('Éxito', `Energía de ${formatMonthLabel(selectedMonth)} guardada correctamente`);
@@ -265,15 +285,69 @@ export default function MonthEnergyAdminScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Contenido *</Text>
+              <Text style={styles.label}>Contenido general *</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={content}
                 onChangeText={setContent}
-                placeholder="Describe la energía del mes..."
+                placeholder="Describe la energía general del mes..."
                 placeholderTextColor={Colors.textLight}
                 multiline
                 numberOfLines={8}
+              />
+            </View>
+
+            <Text style={styles.sectionDivider}>Secciones detalladas (opcionales)</Text>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Influencias BaZi</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={baziInfluences}
+                onChangeText={setBaziInfluences}
+                placeholder="Tendencias energéticas del mes y cómo afectan a las personas..."
+                placeholderTextColor={Colors.textLight}
+                multiline
+                numberOfLines={6}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Estrategias QiMen</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={qimenStrategies}
+                onChangeText={setQimenStrategies}
+                placeholder="Estrategias y momentos favorables para actuar..."
+                placeholderTextColor={Colors.textLight}
+                multiline
+                numberOfLines={6}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Feng Shui del mes</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={fengShui}
+                onChangeText={setFengShui}
+                placeholder="Sectores favorables, desfavorables y recomendaciones para el entorno..."
+                placeholderTextColor={Colors.textLight}
+                multiline
+                numberOfLines={6}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Activaciones del mes</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={activations}
+                onChangeText={setActivations}
+                placeholder="Fechas, sectores y acciones recomendadas para aprovechar la energía del mes..."
+                placeholderTextColor={Colors.textLight}
+                multiline
+                numberOfLines={6}
               />
             </View>
 
@@ -472,6 +546,14 @@ const styles = StyleSheet.create({
   textArea: {
     height: 160,
     textAlignVertical: 'top',
+  },
+  sectionDivider: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: Spacing.sm,
   },
   translateNote: {
     fontFamily: Typography.sans,
