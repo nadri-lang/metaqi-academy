@@ -417,7 +417,9 @@ async def get_current_user_info(authorization: str = Header(None)):
 # ============= REWARDED AD ENDPOINTS =============
 
 def user_has_premium_access(user: dict) -> bool:
-    """True if the user has a paid subscription or a still-valid rewarded-ad unlock."""
+    """True if the user has a paid subscription, is staff, or has a still-valid rewarded-ad unlock."""
+    if user.get("role") in ("admin", "editor"):
+        return True
     if user.get("has_active_subscription"):
         return True
     temp_access_until = user.get("temp_access_until")
