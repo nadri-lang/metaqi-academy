@@ -23,6 +23,8 @@ interface AppConfig {
   id: string;
   contact_email: string;
   contact_whatsapp: string;
+  bazi_calculator_url?: string;
+  qimen_calculator_url?: string;
   updated_at: string;
 }
 
@@ -34,6 +36,8 @@ export default function AppConfigAdminScreen() {
   // Form state - Solo contacto
   const [contactEmail, setContactEmail] = useState('');
   const [contactWhatsApp, setContactWhatsApp] = useState('');
+  const [baziCalculatorUrl, setBaziCalculatorUrl] = useState('');
+  const [qimenCalculatorUrl, setQimenCalculatorUrl] = useState('');
 
   useEffect(() => {
     loadConfig();
@@ -46,6 +50,8 @@ export default function AppConfigAdminScreen() {
       
       setContactEmail(config.contact_email);
       setContactWhatsApp(config.contact_whatsapp);
+      setBaziCalculatorUrl(config.bazi_calculator_url || '');
+      setQimenCalculatorUrl(config.qimen_calculator_url || '');
     } catch (error) {
       console.error('Error loading config:', error);
       Alert.alert('Error', 'No se pudo cargar la configuración');
@@ -65,6 +71,8 @@ export default function AppConfigAdminScreen() {
       await api.put('/admin/app-config', {
         contact_email: contactEmail,
         contact_whatsapp: contactWhatsApp,
+        bazi_calculator_url: baziCalculatorUrl.trim() || null,
+        qimen_calculator_url: qimenCalculatorUrl.trim() || null,
       });
       
       Alert.alert(
@@ -155,6 +163,36 @@ export default function AppConfigAdminScreen() {
                 Introduce el número de WhatsApp sin el símbolo +. Ejemplo: 34640510085
               </Text>
             </View>
+          </View>
+
+          {/* Personal Journal - Calculator Links Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Diario Personal - Enlaces de Cálculo</Text>
+            <Text style={styles.sectionDescription}>
+              Enlaces externos que se muestran en "Mi Diario Personal" (función premium) para que el usuario calcule su propia carta.
+            </Text>
+
+            <Text style={styles.label}>Enlace calculadora BaZi</Text>
+            <TextInput
+              style={styles.input}
+              value={baziCalculatorUrl}
+              onChangeText={setBaziCalculatorUrl}
+              placeholder="https://..."
+              placeholderTextColor={Colors.textLight}
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+
+            <Text style={styles.label}>Enlace calculadora Qi Men</Text>
+            <TextInput
+              style={styles.input}
+              value={qimenCalculatorUrl}
+              onChangeText={setQimenCalculatorUrl}
+              placeholder="https://..."
+              placeholderTextColor={Colors.textLight}
+              keyboardType="url"
+              autoCapitalize="none"
+            />
           </View>
 
           {/* Save Button */}

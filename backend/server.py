@@ -7,8 +7,12 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import uuid
 import re
+import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from models import (
     UserCreate, UserResponse, Token, LoginRequest,
@@ -44,6 +48,8 @@ from models import (
     GoogleIdTokenAuth, GoogleAuthResponse, UserSession,
     AnalyticsSummary, VisitorLog,
     UserContent, UserContentCreate,
+    UserJournal, UserJournalUpdate,
+    UserProfileUpdate,
 )
 from auth import (
     get_password_hash, 
@@ -78,6 +84,10 @@ api_router = APIRouter(prefix="/api")
 # Initialize Analytics Service
 analytics = AnalyticsService(db)
 
+# Daily push notification scheduler (INCIDENTA 6) - single job, fires at
+# 22:00 Europe/Bucharest, started/stopped alongside the app itself.
+push_scheduler = AsyncIOScheduler()
+
 # Initialize MongoDB indexes on startup
 @app.on_event("startup")
 async def create_indexes():
@@ -106,6 +116,19 @@ async def create_indexes():
         
     except Exception as e:
         logger.warning(f"Error creating indexes (may already exist): {e}")
+
+    # Daily push notification job (INCIDENTA 6) - 22:00 Europe/Bucharest daily
+    try:
+        push_scheduler.add_job(
+            send_daily_energy_notifications,
+            trigger=CronTrigger(hour=22, minute=0, timezone=ZoneInfo("Europe/Bucharest")),
+            id="daily_energy_push",
+            replace_existing=True,
+        )
+        push_scheduler.start()
+        logger.info("Daily push notification scheduler started (22:00 Europe/Bucharest)")
+    except Exception as scheduler_error:
+        logger.error(f"Failed to start push notification scheduler: {scheduler_error}")
 
 # ============= AUTH ENDPOINTS =============
 
@@ -414,6 +437,92 @@ async def get_current_user_info(authorization: str = Header(None)):
         )
 
 
+@api_router.post("/auth/request-cancellation", response_model=UserResponse)
+async def request_subscription_cancellation(current_user: dict = Depends(get_current_user)):
+    """
+    Self-service subscription cancellation request. Subscriptions are managed
+    manually by admin (no recurring auto-billing), so this doesn't cancel
+    anything by itself - it just flags the account so admin sees it and can
+    act on it (see cancellation_requested_at in /admin/users).
+    """
+    if not current_user.get("has_active_subscription"):
+        raise HTTPException(status_code=400, detail="No tienes una suscripción activa para cancelar")
+
+    if not current_user.get("cancellation_requested_at"):
+        await db.users.update_one(
+            {"id": current_user["id"]},
+            {"$set": {"cancellation_requested_at": datetime.utcnow()}}
+        )
+
+    updated = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
+    return UserResponse(**updated)
+
+
+# ============= PERSONAL JOURNAL ENDPOINTS (premium) =============
+
+@api_router.get("/journal/me")
+async def get_my_journal(current_user: dict = Depends(get_current_user)):
+    """Personal BaZi/Qi Men notebook: the user's own notes + the admin-set calculator links."""
+    if not user_has_premium_access(current_user):
+        raise HTTPException(status_code=403, detail="El diario personal es una función premium")
+
+    config = await db.app_config.find_one({"id": "app_config"}) or {}
+    journal = await db.user_journals.find_one({"user_id": current_user["id"]}, {"_id": 0})
+
+    return {
+        "bazi_notes": (journal or {}).get("bazi_notes", ""),
+        "qimen_notes": (journal or {}).get("qimen_notes", ""),
+        "bazi_calculator_url": config.get("bazi_calculator_url"),
+        "qimen_calculator_url": config.get("qimen_calculator_url"),
+    }
+
+@api_router.put("/journal/me")
+async def update_my_journal(
+    journal_data: UserJournalUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upsert the caller's own journal notes. Only the fields provided are changed."""
+    if not user_has_premium_access(current_user):
+        raise HTTPException(status_code=403, detail="El diario personal es una función premium")
+
+    update_fields = {k: v for k, v in journal_data.model_dump().items() if v is not None}
+    update_fields["updated_at"] = datetime.utcnow()
+    update_fields["user_id"] = current_user["id"]
+
+    await db.user_journals.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": update_fields, "$setOnInsert": {"id": current_user["id"]}},
+        upsert=True
+    )
+
+    journal = await db.user_journals.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    return {
+        "bazi_notes": journal.get("bazi_notes", ""),
+        "qimen_notes": journal.get("qimen_notes", ""),
+    }
+
+
+@api_router.patch("/auth/me", response_model=UserResponse)
+async def update_my_profile(
+    profile_data: UserProfileUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Self-service partial profile update. Backs: the optional display name
+    (shown instead of the user's real Google name, for privacy), the optional
+    phone number (push notifications only, never shown publicly), Expo push
+    token registration, notification opt-in, and privacy-policy acceptance -
+    see INCIDENTA 6.
+    """
+    update_fields = {k: v for k, v in profile_data.model_dump().items() if v is not None}
+    if not update_fields:
+        return UserResponse(**current_user)
+
+    await db.users.update_one({"id": current_user["id"]}, {"$set": update_fields})
+    updated = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
+    return UserResponse(**updated)
+
+
 # ============= REWARDED AD ENDPOINTS =============
 
 def user_has_premium_access(user: dict) -> bool:
@@ -476,14 +585,97 @@ async def grant_ad_reward(current_user: dict = Depends(get_current_user)):
 # ============= DAILY ENERGY ENDPOINTS =============
 
 def _resolve_today(client_date: Optional[str] = None) -> str:
-    """The client's local date when it sends a valid one, else the server's UTC date."""
+    """
+    The client's local date when it sends a valid one, else the server's UTC
+    date - then shifted one day forward once it's 22:00+ in Europe/Bucharest.
+
+    Daily content for day X is meant to go live at 22:00 on day X-1 (a single
+    global cutover, not per-user local time - see INCIDENTA 6): activations
+    with specific early-morning times need to be visible the evening before,
+    not only from midnight. This only affects the no-explicit-date "what's
+    today" resolution - an explicit ?date= is never touched.
+    """
     if client_date:
         try:
             datetime.strptime(client_date, "%Y-%m-%d")
-            return client_date
+            resolved = client_date
         except ValueError:
-            pass
-    return datetime.utcnow().strftime("%Y-%m-%d")
+            resolved = datetime.utcnow().strftime("%Y-%m-%d")
+    else:
+        resolved = datetime.utcnow().strftime("%Y-%m-%d")
+
+    if datetime.now(ZoneInfo("Europe/Bucharest")).hour >= 22:
+        resolved = (datetime.strptime(resolved, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    return resolved
+
+
+# ============= PUSH NOTIFICATIONS (INCIDENTA 6) =============
+
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
+
+async def _send_expo_push_batch(messages: list) -> None:
+    """POST up to 100 Expo push messages per request. Logs failures, never raises."""
+    async with httpx.AsyncClient(timeout=15) as http_client:
+        for i in range(0, len(messages), 100):
+            batch = messages[i:i + 100]
+            try:
+                resp = await http_client.post(
+                    EXPO_PUSH_URL,
+                    json=batch,
+                    headers={"Content-Type": "application/json", "Accept": "application/json"},
+                )
+                resp.raise_for_status()
+                results = resp.json().get("data", [])
+                failed = [r for r in results if r.get("status") != "ok"]
+                if failed:
+                    logger.warning(f"Expo push: {len(failed)}/{len(batch)} message(s) failed: {failed[:5]}")
+            except Exception as e:
+                logger.error(f"Expo push batch failed: {e}")
+
+
+async def send_daily_energy_notifications() -> dict:
+    """
+    Push "tomorrow's energy is ready" to every opted-in user with a push
+    token, for the day after the current Europe/Bucharest calendar date.
+    Skips (no send) if that day's content doesn't exist yet - never send an
+    empty/broken notification. Runs daily at 22:00 Europe/Bucharest via
+    push_scheduler; also callable on demand from POST
+    /admin/notifications/send-daily-test. See INCIDENTA 6.
+    """
+    target_date = (datetime.now(ZoneInfo("Europe/Bucharest")).date() + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    energy = await db.daily_energy.find_one({"date": target_date})
+    if not energy:
+        logger.warning(f"No daily energy content for {target_date} yet - skipping push notification")
+        return {"sent": 0, "skipped": True, "date": target_date, "reason": "no content for that date"}
+
+    recipients = await db.users.find(
+        {"notifications_enabled": True, "push_token": {"$ne": None}},
+        {"_id": 0, "push_token": 1},
+    ).to_list(10000)
+
+    messages = [
+        {
+            "to": u["push_token"],
+            "title": "🌙 Energía de mañana",
+            "body": "La energía del día de mañana ya está disponible. Descúbrela ahora.",
+            "data": {"date": target_date, "screen": "energy-detail"},
+        }
+        for u in recipients if u.get("push_token")
+    ]
+
+    if messages:
+        await _send_expo_push_batch(messages)
+
+    logger.info(f"Daily energy push: {len(messages)} notification(s) queued for {target_date}")
+    return {"sent": len(messages), "skipped": False, "date": target_date}
+
+
+@api_router.post("/admin/notifications/send-daily-test")
+async def trigger_daily_energy_notifications(current_user: dict = Depends(get_current_admin_user)):
+    """Manually run the daily push job on demand - for verifying the pipeline without waiting for 22:00."""
+    return await send_daily_energy_notifications()
 
 
 @api_router.get("/energy/daily", response_model=DailyEnergy)
@@ -2772,7 +2964,8 @@ async def get_all_users(
         "is_blocked": u.get("is_blocked", False),
         "created_at": u.get("created_at"),
         "phone": u.get("phone", ""),
-        "nickname": u.get("nickname", "")
+        "nickname": u.get("nickname", ""),
+        "cancellation_requested_at": u.get("cancellation_requested_at"),
     } for u in users]
 
 @api_router.put("/admin/users/{user_id}")
@@ -2810,7 +3003,10 @@ async def update_user_admin(
         # they used to be two disconnected fields, so setting a "monthly"/
         # "yearly" subscription here never unlocked anything for the user.
         update_dict["has_active_subscription"] = subscription in ("monthly", "yearly")
-    
+        if subscription == "free":
+            # Downgrading to free clears any pending cancellation request - it's been handled.
+            update_dict["cancellation_requested_at"] = None
+
     # Update password if provided
     if new_password is not None and new_password.strip():
         from auth import get_password_hash
@@ -2831,7 +3027,8 @@ async def update_user_admin(
         "name": updated.get("name", ""),
         "role": updated.get("role", "free_member"),
         "subscription": updated.get("subscription", "free"),
-        "is_blocked": updated.get("is_blocked", False)
+        "is_blocked": updated.get("is_blocked", False),
+        "cancellation_requested_at": updated.get("cancellation_requested_at"),
     }
 
 @api_router.delete("/admin/users/{user_id}")
@@ -2879,4 +3076,6 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    if push_scheduler.running:
+        push_scheduler.shutdown(wait=False)
     client.close()

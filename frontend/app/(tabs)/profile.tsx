@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,22 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PRIVACY_POLICY_URL } from '@/src/constants/Legal';
 import { confirmAsync } from '@/src/utils/confirmDialog';
+import api from '@/src/services/api';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
+  const [contactWhatsApp, setContactWhatsApp] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role !== 'admin' && user.role !== 'editor') {
+      api.get('/app-config')
+        .then((res) => setContactWhatsApp(res.data?.contact_whatsapp || null))
+        .catch((error) => console.error('Error loading app config:', error));
+    }
+  }, [user?.id]);
 
   const handleLogout = async () => {
     const confirmed = await confirmAsync(t('common.logout'), t('profile.logout_confirm'), t('common.logout'));
@@ -36,6 +47,36 @@ export default function ProfileScreen() {
 
   const handlePrivacyPolicy = () => {
     Linking.openURL(PRIVACY_POLICY_URL);
+  };
+
+  const handleSubscribeWhatsApp = () => {
+    if (!contactWhatsApp) {
+      Alert.alert('Error', 'WhatsApp no configurado');
+      return;
+    }
+    const message = t('profile.subscription_whatsapp_message');
+    Linking.openURL(`https://wa.me/${contactWhatsApp}?text=${encodeURIComponent(message)}`).catch(() => {
+      Alert.alert('Error', 'No se pudo abrir WhatsApp');
+    });
+  };
+
+  const handleCancelSubscription = async () => {
+    const confirmed = await confirmAsync(
+      t('profile.subscription_cancel_confirm_title'),
+      t('profile.subscription_cancel_confirm_message'),
+      t('profile.subscription_cancel_button'),
+    );
+    if (!confirmed) return;
+
+    setCancelling(true);
+    try {
+      await api.post('/auth/request-cancellation');
+      await refreshUser();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo enviar la solicitud');
+    } finally {
+      setCancelling(false);
+    }
   };
 
   // Not logged in view
@@ -173,11 +214,94 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Tu Suscripción - Only for non-admin users */}
+        {user.role !== 'admin' && user.role !== 'editor' && (
+          <View style={styles.subscriptionCard}>
+            <Text style={styles.subscriptionCardTitle}>{t('profile.subscription_title')}</Text>
+
+            {user.has_active_subscription ? (
+              <>
+                <View style={styles.subscriptionActiveRow}>
+                  <MaterialCommunityIcons name="star-circle" size={20} color={Colors.jade} />
+                  <Text style={styles.subscriptionActiveText}>
+                    {t('profile.subscription_active_label').replace(
+                      '{plan}',
+                      user.subscription === 'yearly'
+                        ? t('profile.subscription_plan_yearly')
+                        : t('profile.subscription_plan_monthly')
+                    )}
+                  </Text>
+                </View>
+
+                <Text style={styles.subscriptionIncludesTitle}>{t('profile.subscription_includes_title')}</Text>
+                {[
+                  'profile.subscription_benefit_daily',
+                  'profile.subscription_benefit_monthly',
+                  'profile.subscription_benefit_vocation',
+                  'profile.subscription_benefit_courses',
+                  'profile.subscription_benefit_journal',
+                ].map((key) => (
+                  <View key={key} style={styles.subscriptionBenefitRow}>
+                    <MaterialCommunityIcons name="check-circle" size={16} color={Colors.jade} />
+                    <Text style={styles.subscriptionBenefitText}>{t(key)}</Text>
+                  </View>
+                ))}
+
+                {user.cancellation_requested_at ? (
+                  <View style={styles.subscriptionCancelledNotice}>
+                    <MaterialCommunityIcons name="information" size={18} color={Colors.textSecondary} />
+                    <Text style={styles.subscriptionCancelledText}>
+                      {t('profile.subscription_cancel_requested')}
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    testID="cancel-subscription-btn"
+                    style={[styles.subscriptionCancelButton, cancelling && styles.saveButtonDisabled]}
+                    onPress={handleCancelSubscription}
+                    disabled={cancelling}
+                  >
+                    <Text style={styles.subscriptionCancelButtonText}>
+                      {t('profile.subscription_cancel_button')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={styles.subscriptionNoneTitle}>{t('profile.subscription_none_title')}</Text>
+                <Text style={styles.subscriptionIncludesTitle}>{t('profile.subscription_none_desc')}</Text>
+                {[
+                  'profile.subscription_benefit_daily',
+                  'profile.subscription_benefit_monthly',
+                  'profile.subscription_benefit_vocation',
+                  'profile.subscription_benefit_courses',
+                  'profile.subscription_benefit_journal',
+                ].map((key) => (
+                  <View key={key} style={styles.subscriptionBenefitRow}>
+                    <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.accent} />
+                    <Text style={styles.subscriptionBenefitText}>{t(key)}</Text>
+                  </View>
+                ))}
+
+                <TouchableOpacity
+                  testID="subscribe-cta-btn"
+                  style={styles.subscribeButton}
+                  onPress={handleSubscribeWhatsApp}
+                >
+                  <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.white} />
+                  <Text style={styles.subscribeButtonText}>{t('profile.subscription_cta')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
+
         {/* User Menu - Only for non-admin users */}
         {user.role !== 'admin' && user.role !== 'editor' && (
           <View style={styles.menuSection}>
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               testID="menu-favorites"
               onPress={() => router.push('/my-favorites')}
             >
@@ -186,8 +310,18 @@ export default function ProfileScreen() {
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
+              testID="menu-journal"
+              onPress={() => router.push('/my-journal')}
+            >
+              <MaterialCommunityIcons name="notebook-outline" size={22} color={Colors.accent} />
+              <Text style={styles.menuText}>{t('profile.my_journal')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
               testID="menu-purchases"
               onPress={() => router.push('/my-purchases')}
             >
@@ -403,6 +537,103 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans,
     fontSize: Typography.base,
     color: Colors.textPrimary,
+  },
+  subscriptionCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  subscriptionCardTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  subscriptionActiveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  subscriptionActiveText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+  },
+  subscriptionNoneTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
+  },
+  subscriptionIncludesTitle: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: Spacing.sm,
+  },
+  subscriptionBenefitRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  subscriptionBenefitText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  subscriptionCancelButton: {
+    borderWidth: 1,
+    borderColor: Colors.error,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  subscriptionCancelButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.error,
+  },
+  subscriptionCancelledNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  subscriptionCancelledText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+  },
+  subscribeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  subscribeButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   menuSection: {
     backgroundColor: Colors.card,

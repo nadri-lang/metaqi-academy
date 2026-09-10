@@ -9,7 +9,14 @@ interface User {
   role: string;
   language: string;
   has_active_subscription: boolean;
+  subscription: string;
+  cancellation_requested_at: string | null;
   temp_access_until: string | null;
+  display_name: string | null;
+  phone: string | null;
+  push_token: string | null;
+  notifications_enabled: boolean;
+  privacy_policy_accepted_at: string | null;
   created_at: string;
   last_login: string | null;
 }

@@ -32,6 +32,7 @@ interface User {
   created_at?: string;
   phone?: string;
   nickname?: string;
+  cancellation_requested_at?: string | null;
 }
 
 export default function AdminUsersScreen() {
@@ -491,6 +492,11 @@ export default function AdminUsersScreen() {
                     <Text style={styles.badgeText}>BLOQUEADO</Text>
                   </View>
                 )}
+                {user.cancellation_requested_at && (
+                  <View style={[styles.badge, { backgroundColor: Colors.error }]}>
+                    <Text style={styles.badgeText}>SOLICITA CANCELACIÓN</Text>
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
@@ -527,6 +533,14 @@ export default function AdminUsersScreen() {
               {selectedUser && (
                 <ScrollView contentContainerStyle={styles.modalContent}>
                   <Text style={styles.modalUserEmail}>{selectedUser.email}</Text>
+
+                  {selectedUser.cancellation_requested_at && (
+                    <View style={[styles.badge, { backgroundColor: Colors.error, alignSelf: 'flex-start', marginBottom: Spacing.md }]}>
+                      <Text style={styles.badgeText}>
+                        SOLICITA CANCELACIÓN ({formatDate(selectedUser.cancellation_requested_at)})
+                      </Text>
+                    </View>
+                  )}
 
                   {/* Role Selection */}
                   <Text style={styles.modalLabel}>Rol</Text>

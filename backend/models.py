@@ -61,7 +61,14 @@ class User(UserBase):
     id: str
     hashed_password: str
     has_active_subscription: bool = False
+    subscription: str = "free"  # free, monthly, yearly - set by admin, see /admin/users
+    cancellation_requested_at: Optional[datetime] = None  # user asked to cancel; admin still has to act on it
     temp_access_until: Optional[datetime] = None  # rewarded-ad unlock, cleared once expired
+    display_name: Optional[str] = None  # shown instead of `name` (their real Google name) wherever the app is user-facing
+    phone: Optional[str] = None  # push notifications only - never shown publicly
+    push_token: Optional[str] = None  # Expo push token
+    notifications_enabled: bool = False
+    privacy_policy_accepted_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
@@ -71,9 +78,25 @@ class User(UserBase):
 class UserResponse(UserBase):
     id: str
     has_active_subscription: bool
+    subscription: str = "free"
+    cancellation_requested_at: Optional[datetime] = None
     temp_access_until: Optional[datetime] = None
+    display_name: Optional[str] = None
+    phone: Optional[str] = None
+    push_token: Optional[str] = None
+    notifications_enabled: bool = False
+    privacy_policy_accepted_at: Optional[datetime] = None
     created_at: datetime
     last_login: Optional[datetime]
+
+class UserProfileUpdate(BaseModel):
+    """Partial self-service update via PATCH /auth/me - only provided fields change."""
+    display_name: Optional[str] = None
+    phone: Optional[str] = None
+    push_token: Optional[str] = None
+    notifications_enabled: Optional[bool] = None
+    privacy_policy_accepted_at: Optional[datetime] = None
+    language: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -778,7 +801,11 @@ class AppConfig(BaseModel):
     agenda_2027_title_en: str = "WEDDING AGENDA 2027"
     agenda_2027_description_es: str = "Se muestran solo los mejores días para bodas, ceremonias y pedidas de mano, evaluados según Feng Shui, BaZi y Qi Men Dun Jia."
     agenda_2027_description_en: str = "Only the best days for weddings, ceremonies and marriage proposals are shown, evaluated according to Feng Shui, BaZi and Qi Men Dun Jia."
-    
+
+    # Personal journal - external calculator links (admin-configured, same for everyone)
+    bazi_calculator_url: Optional[str] = None
+    qimen_calculator_url: Optional[str] = None
+
     # Other configurable texts can be added here
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -790,6 +817,20 @@ class AppConfigUpdate(BaseModel):
     agenda_2027_title_en: Optional[str] = None
     agenda_2027_description_es: Optional[str] = None
     agenda_2027_description_en: Optional[str] = None
+    bazi_calculator_url: Optional[str] = None
+    qimen_calculator_url: Optional[str] = None
+
+# Personal Journal (premium) - external chart-calculator links + the user's own notes
+class UserJournal(BaseModel):
+    id: str  # = user_id, one document per user
+    user_id: str
+    bazi_notes: str = ""
+    qimen_notes: str = ""
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserJournalUpdate(BaseModel):
+    bazi_notes: Optional[str] = None
+    qimen_notes: Optional[str] = None
 
 # BaZi Service Configuration
 class BaziServiceConfig(BaseModel):
