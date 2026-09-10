@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -18,6 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
+import * as ImagePicker from 'expo-image-picker';
+import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface MonthEntry {
@@ -29,6 +32,8 @@ interface MonthEntry {
   qimen_strategies?: string;
   feng_shui?: string;
   activations?: string;
+  activations_image_url?: string;
+  activations_video_url?: string;
   is_free: boolean;
 }
 
@@ -67,6 +72,10 @@ export default function MonthEnergyAdminScreen() {
   const [fengShui, setFengShui] = useState('');
   const [activations, setActivations] = useState('');
   const [isFree, setIsFree] = useState(true);
+  const [activationsVideoUrl, setActivationsVideoUrl] = useState('');
+  const [activationsImageUri, setActivationsImageUri] = useState('');
+  const [activationsImageUrl, setActivationsImageUrl] = useState('');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   useEffect(() => {
     loadEntries();
@@ -82,6 +91,9 @@ export default function MonthEnergyAdminScreen() {
       setFengShui(existing.feng_shui || '');
       setActivations(existing.activations || '');
       setIsFree(existing.is_free);
+      setActivationsVideoUrl(existing.activations_video_url || '');
+      setActivationsImageUrl(existing.activations_image_url || '');
+      setActivationsImageUri('');
     } else {
       setTitle('');
       setContent('');
@@ -90,8 +102,82 @@ export default function MonthEnergyAdminScreen() {
       setFengShui('');
       setActivations('');
       setIsFree(true);
+      setActivationsVideoUrl('');
+      setActivationsImageUri('');
+      setActivationsImageUrl('');
     }
   }, [selectedMonth, entries]);
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos permiso para acceder a tu galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setActivationsImageUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadActivationsMedia = async () => {
+    if (!hasContent) {
+      Alert.alert('Error', 'Primero debes guardar la Energía del Mes antes de subir imagen/video');
+      return;
+    }
+
+    if (!activationsImageUri && !activationsVideoUrl) {
+      Alert.alert('Info', 'No hay imagen ni URL de video para subir');
+      return;
+    }
+
+    setUploadingMedia(true);
+    try {
+      const formData = new FormData();
+      formData.append('month', selectedMonth);
+
+      if (activationsVideoUrl.trim()) {
+        formData.append('activations_video_url', activationsVideoUrl.trim());
+      }
+
+      if (activationsImageUri) {
+        const filename = activationsImageUri.split('/').pop() || 'image.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        formData.append('activations_image', {
+          uri: activationsImageUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      // No manual Content-Type - axios must generate the multipart boundary
+      // itself from the FormData body, or the backend can't parse it.
+      const response = await api.post('/energy/monthly/activations-media', formData);
+
+      Alert.alert('Éxito', 'Imagen y/o video de activaciones guardados correctamente');
+
+      if (response.data.activations_image_url) {
+        setActivationsImageUrl(response.data.activations_image_url);
+        setActivationsImageUri('');
+      }
+      if (response.data.activations_video_url) {
+        setActivationsVideoUrl(response.data.activations_video_url);
+      }
+      loadEntries();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al subir imagen/video');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
 
   const loadEntries = async () => {
     try {
@@ -351,6 +437,67 @@ export default function MonthEnergyAdminScreen() {
               />
             </View>
 
+            {/* Activations Media Section */}
+            <View style={styles.mediaSection}>
+              <Text style={styles.mediaSectionTitle}>📸 Multimedia para Activaciones</Text>
+              <Text style={styles.mediaSectionHelper}>
+                Añade imagen y/o video para enriquecer el contenido de las activaciones del mes
+              </Text>
+
+              <Text style={styles.label}>🎥 Enlace de Video (YouTube/Vimeo)</Text>
+              <TextInput
+                style={styles.input}
+                value={activationsVideoUrl}
+                onChangeText={setActivationsVideoUrl}
+                placeholder="https://youtube.com/watch?v=..."
+                placeholderTextColor={Colors.textLight}
+                autoCapitalize="none"
+              />
+              {activationsVideoUrl ? (
+                <Text style={styles.helperTextGreen}>✓ URL de video ingresada</Text>
+              ) : null}
+
+              <Text style={styles.label}>🖼️ Imagen (JPEG/PNG)</Text>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                <MaterialCommunityIcons name="image-plus" size={24} color={Colors.accent} />
+                <Text style={styles.imagePickerText}>Seleccionar Imagen</Text>
+              </TouchableOpacity>
+
+              {activationsImageUri ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: activationsImageUri }} style={styles.imagePreview} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => setActivationsImageUri('')}
+                  >
+                    <MaterialCommunityIcons name="close-circle" size={24} color={Colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ) : activationsImageUrl ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: toAbsoluteMediaUrl(activationsImageUrl) }} style={styles.imagePreview} />
+                  <Text style={styles.helperTextGreen}>✓ Imagen ya subida</Text>
+                </View>
+              ) : null}
+
+              {(activationsImageUri || activationsVideoUrl) && (
+                <TouchableOpacity
+                  style={[styles.uploadMediaButton, uploadingMedia && styles.submitButtonDisabled]}
+                  onPress={uploadActivationsMedia}
+                  disabled={uploadingMedia}
+                >
+                  {uploadingMedia ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="cloud-upload" size={20} color={Colors.white} />
+                      <Text style={styles.uploadMediaButtonText}>Subir Imagen/Video</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
             <Text style={styles.translateNote}>
               Solo se escribe en español - los demás idiomas (EN/FR/DE/RO/PT) se traducen automáticamente.
             </Text>
@@ -560,6 +707,81 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.textLight,
     fontStyle: 'italic',
+  },
+  helperTextGreen: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.jade,
+    marginTop: 4,
+  },
+  mediaSection: {
+    marginTop: Spacing.sm,
+    padding: Spacing.md,
+    backgroundColor: Colors.accent + '10',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+    gap: Spacing.xs,
+  },
+  mediaSectionTitle: {
+    fontFamily: Typography.sansBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  mediaSectionHelper: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+  },
+  imagePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.accent + '50',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  imagePickerText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+  },
+  imagePreviewContainer: {
+    marginTop: Spacing.md,
+    position: 'relative',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.background,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+  },
+  uploadMediaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.jade,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  uploadMediaButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
   checkboxRow: {
     flexDirection: 'row',

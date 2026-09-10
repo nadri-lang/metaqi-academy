@@ -256,9 +256,9 @@ export default function AdminBaziReportsScreen() {
 
     setUploadingContent(true);
     try {
-      await api.post('/admin/user-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // No manual Content-Type - axios must generate the multipart boundary
+      // itself from the FormData body, or the backend can't parse it.
+      await api.post('/admin/user-content', formData);
       Alert.alert('Éxito', 'Imagen subida correctamente');
       loadUserContent(user.email);
     } catch (error: any) {
@@ -295,9 +295,7 @@ export default function AdminBaziReportsScreen() {
 
     setUploadingContent(true);
     try {
-      await api.post('/admin/user-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post('/admin/user-content', formData);
       Alert.alert('Éxito', 'PDF subido correctamente');
       loadUserContent(user.email);
     } catch (error: any) {
@@ -322,9 +320,7 @@ export default function AdminBaziReportsScreen() {
 
     setUploadingContent(true);
     try {
-      await api.post('/admin/user-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post('/admin/user-content', formData);
       Alert.alert('Éxito', 'Enlace de video guardado');
       setVideoUrl('');
       loadUserContent(user.email);
@@ -350,9 +346,7 @@ export default function AdminBaziReportsScreen() {
 
     setUploadingContent(true);
     try {
-      await api.post('/admin/user-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post('/admin/user-content', formData);
       Alert.alert('Éxito', 'Enlace de PDF guardado');
       setPdfUrl('');
       loadUserContent(user.email);
@@ -378,9 +372,7 @@ export default function AdminBaziReportsScreen() {
 
     setUploadingContent(true);
     try {
-      await api.post('/admin/user-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post('/admin/user-content', formData);
       Alert.alert('Éxito', 'Enlace web guardado');
       setWebUrl('');
       loadUserContent(user.email);

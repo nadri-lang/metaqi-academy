@@ -1596,6 +1596,104 @@ async def create_month_energy(
     
     return MonthEnergy(**energy_dict)
 
+@api_router.post("/energy/monthly/activations-media")
+async def update_month_energy_activations_media(
+    month: str = Form(...),
+    activations_video_url: Optional[str] = Form(None),
+    activations_image: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Update month energy activations with image and/or video URL.
+    Only updates the activations_image_url and activations_video_url fields.
+    Uses R2 object storage for image uploads.
+    """
+    normalized_month = require_valid_month_key(month)
+
+    # Check if month energy exists for this month
+    existing = await db.month_energy.find_one({"month": normalized_month})
+
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No se encontró Energía del Mes para {normalized_month}"
+        )
+
+    update_fields = {}
+
+    # Handle video URL
+    if activations_video_url:
+        update_fields["activations_video_url"] = activations_video_url
+
+    # Handle image upload
+    if activations_image:
+        # Validate image type
+        allowed_types = ["image/jpeg", "image/png"]
+        content_type = activations_image.content_type or ""
+
+        if content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Tipo de archivo inválido. Solo se permiten imágenes JPEG/PNG. Recibido: {content_type}"
+            )
+
+        # Read file content
+        max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))  # 10MB
+        file_data = bytearray()
+
+        while chunk := await activations_image.read(1024 * 1024):  # Read 1MB at a time
+            file_data.extend(chunk)
+            if len(file_data) > max_upload_bytes:
+                raise HTTPException(status_code=413, detail="Imagen excede el límite de tamaño (10MB)")
+
+        if not file_data:
+            raise HTTPException(status_code=400, detail="Imagen vacía")
+
+        # Generate storage path
+        extension = Path(activations_image.filename or "upload").suffix.lower()
+        if not extension:
+            extension = ".jpg"
+        storage_path = f"metaqi-academy/activations/monthly/{normalized_month}/{uuid.uuid4().hex}{extension}"
+
+        try:
+            # Upload to R2 object storage (sync call, run in thread pool)
+            import asyncio
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as executor:
+                result = await loop.run_in_executor(
+                    executor,
+                    put_object,
+                    storage_path,
+                    bytes(file_data),
+                    content_type
+                )
+
+            # Store the path - we'll serve it through our own endpoint
+            update_fields["activations_image_url"] = f"/api/storage/objects/{storage_path}"
+
+        except Exception as e:
+            logger.error(f"Storage upload failed: {e}")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Error al subir imagen: {str(e)}"
+            )
+
+    # Update the month energy record
+    if update_fields:
+        await db.month_energy.update_one(
+            {"month": normalized_month},
+            {"$set": update_fields}
+        )
+
+    # Fetch updated record
+    updated = await db.month_energy.find_one({"month": normalized_month})
+
+    return {
+        "message": "Activaciones actualizadas correctamente",
+        "activations_image_url": updated.get("activations_image_url"),
+        "activations_video_url": updated.get("activations_video_url")
+    }
+
 @api_router.delete("/admin/month-energy/{month}")
 async def delete_month_energy(
     month: str,

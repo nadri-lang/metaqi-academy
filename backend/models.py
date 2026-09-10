@@ -496,6 +496,8 @@ class MonthEnergy(BaseModel):
     feng_shui_en: Optional[str] = None
     activations: Optional[str] = None  # Activaciones del mes
     activations_en: Optional[str] = None
+    activations_image_url: Optional[str] = None  # Image URL for activations (JPEG/PNG)
+    activations_video_url: Optional[str] = None  # Video URL for activations (YouTube/Vimeo)
     is_free: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -513,6 +515,8 @@ class MonthEnergyCreate(BaseModel):
     feng_shui_en: Optional[str] = None
     activations: Optional[str] = None
     activations_en: Optional[str] = None
+    activations_image_url: Optional[str] = None
+    activations_video_url: Optional[str] = None
     is_free: bool = True
 
 # Year Energy - Simple concept with YouTube link

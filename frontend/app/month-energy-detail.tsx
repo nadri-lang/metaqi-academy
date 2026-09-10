@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Image,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -16,6 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 
 interface MonthEnergy {
   id: string;
@@ -28,6 +31,8 @@ interface MonthEnergy {
   qimen_strategies?: string;
   feng_shui?: string;
   activations?: string;
+  activations_image_url?: string;
+  activations_video_url?: string;
   is_free: boolean;
 }
 
@@ -173,13 +178,43 @@ export default function MonthEnergyDetailScreen() {
           </View>
         )}
 
-        {!!data.activations && (
+        {(!!data.activations || !!data.activations_image_url || !!data.activations_video_url) && (
           <View style={styles.card}>
             <View style={styles.sectionHeader}>
               <MaterialCommunityIcons name="calendar-check-outline" size={20} color={Colors.accent} />
               <Text style={styles.sectionTitle}>{t('month.section_activations')}</Text>
             </View>
-            <Text style={styles.description}>{data.activations}</Text>
+            {!!data.activations && (
+              <Text style={styles.description}>{data.activations}</Text>
+            )}
+
+            {data.activations_image_url && (
+              <View style={styles.activationsImageContainer}>
+                <Image
+                  source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }}
+                  style={styles.activationsImage}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
+
+            {data.activations_video_url && (
+              <TouchableOpacity
+                style={styles.videoLinkButton}
+                onPress={() => {
+                  if (data.activations_video_url) {
+                    Linking.openURL(data.activations_video_url).catch(err =>
+                      console.error('Error opening video URL:', err)
+                    );
+                  }
+                }}
+              >
+                <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
+                <Text style={styles.videoLinkText}>
+                  {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : language === 'pt' ? 'Ver Vídeo' : 'Vizionează Video'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -297,5 +332,32 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     letterSpacing: 1,
     textTransform: 'uppercase',
+  },
+  activationsImageContainer: {
+    marginTop: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: Colors.background,
+  },
+  activationsImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+  },
+  videoLinkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.error,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  videoLinkText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.white,
   },
 });

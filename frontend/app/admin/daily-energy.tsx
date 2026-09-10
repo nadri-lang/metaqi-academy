@@ -206,11 +206,10 @@ export default function AdminDailyEnergyScreen() {
         } as any);
       }
 
-      const response = await api.post('/energy/daily/activations-media', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Don't set Content-Type manually here - axios/the browser must generate
+      // the multipart boundary itself from the FormData body, or the backend
+      // can't parse the request and the upload fails silently.
+      const response = await api.post('/energy/daily/activations-media', formData);
 
       Alert.alert('Éxito', 'Imagen y/o video de activaciones guardados correctamente');
       
