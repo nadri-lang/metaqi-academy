@@ -1228,9 +1228,20 @@ async def delete_service(
 async def get_service_requests(current_user: dict = Depends(get_current_user)):
     if current_user["role"] in ["admin", "editor"]:
         requests = await db.service_requests.find().sort("created_at", -1).to_list(100)
+
+        # Enrich with requester identity for the admin queue only - one bulk
+        # lookup instead of N+1, and never exposed on the non-admin branch below.
+        user_ids = list({r["user_id"] for r in requests})
+        users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "name": 1, "email": 1}).to_list(len(user_ids))
+        users_by_id = {u["id"]: u for u in users}
+        for r in requests:
+            u = users_by_id.get(r["user_id"])
+            if u:
+                r["user_name"] = u.get("name")
+                r["user_email"] = u.get("email")
     else:
         requests = await db.service_requests.find({"user_id": current_user["id"]}).sort("created_at", -1).to_list(100)
-    
+
     return [ServiceRequest(**r) for r in requests]
 
 @api_router.post("/service-requests", response_model=ServiceRequest)

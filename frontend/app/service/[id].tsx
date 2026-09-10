@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { useAuth } from '@/src/context/AuthContext';
 import * as Linking from 'expo-linking';
 import api from '@/src/services/api';
 
@@ -34,6 +35,7 @@ export default function ServiceDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [service, setService] = useState<CustomService | null>(null);
   const [loading, setLoading] = useState(true);
   const [appConfig, setAppConfig] = useState<any>(null);
@@ -66,10 +68,21 @@ export default function ServiceDetailScreen() {
       return;
     }
 
+    // Best-effort: let the admin see this interest in "Solicitudes Pendientes"
+    // right away. Never blocks or breaks the WhatsApp flow on failure.
+    if (user) {
+      api.post('/service-requests', {
+        service_id: service.id,
+        form_data: { source: 'whatsapp_button' },
+      }).catch((error) => {
+        console.error('Error recording service request:', error);
+      });
+    }
+
     const message = `Hola, estoy interesado en el servicio: ${service.title}. ¿Podrían proporcionarme más información sobre el pago y los pasos a seguir? Gracias.`;
     const phone = appConfig.contact_whatsapp.replace(/\D/g, '');
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    
+
     Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'No se pudo abrir WhatsApp');
     });

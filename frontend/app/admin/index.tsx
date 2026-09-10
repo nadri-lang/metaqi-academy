@@ -14,6 +14,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import AnalyticsDashboard from '@/src/components/AnalyticsDashboard';
+import api from '@/src/services/api';
 
 interface AdminSection {
   title: string;
@@ -24,6 +25,13 @@ interface AdminSection {
 }
 
 const ADMIN_SECTIONS: AdminSection[] = [
+  {
+    title: 'Solicitudes Pendientes',
+    description: 'Usuarios interesados en un servicio o guía',
+    icon: 'bell-ring',
+    route: '/admin/service-requests',
+    testID: 'admin-service-requests',
+  },
   {
     title: 'Energía del Día',
     description: 'Programar días por adelantado',
@@ -106,6 +114,17 @@ const ADMIN_SECTIONS: AdminSection[] = [
 export default function AdminScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!user || (user.role !== 'admin' && user.role !== 'editor')) return;
+    api.get('/service-requests')
+      .then((response) => {
+        const pending = (response.data || []).filter((r: any) => r.status === 'pending').length;
+        setPendingRequestsCount(pending);
+      })
+      .catch((error) => console.error('Error loading pending requests count:', error));
+  }, [user]);
 
   if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
     return (
@@ -164,6 +183,11 @@ export default function AdminScreen() {
             >
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons name={section.icon as any} size={26} color={Colors.accent} />
+                {section.route === '/admin/service-requests' && pendingRequestsCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}</Text>
+                  </View>
+                )}
               </View>
               <Text style={styles.itemTitle}>{section.title}</Text>
               <Text style={styles.itemDesc} numberOfLines={2}>{section.description}</Text>
@@ -236,6 +260,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 4,
+    backgroundColor: Colors.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.background,
+  },
+  badgeText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: 10,
+    color: Colors.white,
   },
   itemTitle: {
     fontFamily: Typography.sansSemiBold,

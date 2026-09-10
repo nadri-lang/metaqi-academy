@@ -14,7 +14,9 @@ import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { useAuth } from '@/src/context/AuthContext';
 import { BaziPillarsIcon, FiveElementsIcon, GuaIcon } from '@/src/components/CourseIcons';
+import api from '@/src/services/api';
 
 interface Course {
   id: string;
@@ -82,12 +84,25 @@ const COURSES: Course[] = [
 
 export default function CoursesScreen() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   const handleWhatsAppContact = (courseTitleKey: string) => {
     const courseTitle = t(courseTitleKey);
     const message = t('courses.whatsapp_message').replace('{course}', courseTitle);
-    
+
+    // Best-effort: let the admin see this interest in "Solicitudes Pendientes"
+    // right away. These are the static catalog entries, not real backend
+    // Service records, so they're tagged with a synthetic id + type:'guide'.
+    if (user) {
+      api.post('/service-requests', {
+        service_id: `guide-${selectedCourse?.id ?? ''}`,
+        form_data: { source: 'whatsapp_button', type: 'guide', guide_title: courseTitle },
+      }).catch((error) => {
+        console.error('Error recording guide request:', error);
+      });
+    }
+
     // Get WhatsApp from app config (hardcoded for now, can be loaded from API)
     const whatsapp = '34640510085';
     Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);

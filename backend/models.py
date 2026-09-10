@@ -378,6 +378,10 @@ class ServiceRequest(BaseModel):
     admin_notes: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    # Populated server-side for the admin listing only (see GET /service-requests) -
+    # never set by the client, so a regular user's own requests just omit these.
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
 
 class ServiceRequestCreate(BaseModel):
     service_id: str
