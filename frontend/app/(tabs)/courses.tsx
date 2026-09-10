@@ -144,8 +144,18 @@ export default function CoursesScreen() {
                 <>
                   {/* Modal Header */}
                   <View style={styles.modalHeader}>
-                    <View style={styles.modalIconContainer}>
-                      <CourseIcon icon={selectedCourse.icon} size={32} color={Colors.accent} />
+                    <View style={styles.modalHeaderLeft}>
+                      <TouchableOpacity
+                        testID="modal-back-button"
+                        style={styles.modalBackArrow}
+                        onPress={() => setSelectedCourse(null)}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.textSecondary} />
+                      </TouchableOpacity>
+                      <View style={styles.modalIconContainer}>
+                        <CourseIcon icon={selectedCourse.icon} size={32} color={Colors.accent} />
+                      </View>
                     </View>
                     <TouchableOpacity
                       style={styles.closeButton}
@@ -290,6 +300,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
+  },
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  modalBackArrow: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalIconContainer: {
     width: 64,

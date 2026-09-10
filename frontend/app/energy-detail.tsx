@@ -20,6 +20,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
+import ZodiacEmblem from '@/src/components/ZodiacEmblem';
+import ZodiacGlyph from '@/src/components/ZodiacGlyph';
+import { ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
 // TEMP: AdMob disabled for Expo Go testing (needs a dev build).
@@ -33,6 +36,8 @@ interface DailyEnergy {
   content: string;
   content_en?: string;
   animal?: string;
+  animal_type?: ZodiacAnimalKey;
+  element?: ElementKey;
   bazi_relationships?: string;
   recommendations: string[];
   avoid: string[];
@@ -367,7 +372,7 @@ export default function EnergyDetailScreen() {
   if (!data) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={Gradients.gold} style={styles.headerCompact}>
+        <LinearGradient colors={Gradients.navy} style={styles.header}>
           <SafeAreaView edges={['top']}>
             <View style={styles.headerRow}>
               <TouchableOpacity
@@ -376,9 +381,9 @@ export default function EnergyDetailScreen() {
                 onPress={() => router.back()}
                 activeOpacity={0.7}
               >
-                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               </TouchableOpacity>
-              <Text style={styles.headerTitleCompact}>{t('daily.title')}</Text>
+              <Text style={styles.headerTitle}>{t('daily.title')}</Text>
               <View style={{ width: 40 }} />
             </View>
           </SafeAreaView>
@@ -394,8 +399,8 @@ export default function EnergyDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Compact Header Banner */}
-      <LinearGradient colors={Gradients.gold} style={styles.headerCompact}>
+      {/* Header */}
+      <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -404,20 +409,10 @@ export default function EnergyDetailScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.primary} />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
             </TouchableOpacity>
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerDate}>
-                {formatDate(data.date)}{previewDate ? ` · ${t('daily.preview_badge')}` : ''}
-              </Text>
-              <Text style={styles.headerTitleCompact} numberOfLines={1}>{data.title}</Text>
-            </View>
-            <FavoriteButton 
-              itemType="daily_energy" 
-              itemId={data.date} 
-              size={24} 
-              color={Colors.primary}
-            />
+            <Text style={styles.headerTitle}>{t('daily.title')}</Text>
+            <View style={{ width: 40 }} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -429,13 +424,49 @@ export default function EnergyDetailScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
         }
       >
-        {/* Animal del Día */}
-        {data.animal && (
-          <View style={styles.animalCard}>
-            <MaterialCommunityIcons name="paw" size={20} color={Colors.accent} />
-            <Text style={styles.animalText}>{data.animal}</Text>
+        {/* Date / Animal / Emblem card */}
+        <View style={styles.dateCard}>
+          <View style={styles.dateCardTopRow}>
+            <View style={styles.dateCardTextCol}>
+              <View style={styles.dateRow}>
+                <MaterialCommunityIcons name="calendar-blank-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.dateText}>
+                  {formatDate(data.date)}{previewDate ? ` · ${t('daily.preview_badge')}` : ''}
+                </Text>
+              </View>
+              <Text style={styles.dayTitle} numberOfLines={3}>{data.title}</Text>
+              {data.animal ? (
+                <View style={styles.animalRow}>
+                  {data.animal_type ? (
+                    <ZodiacGlyph animal={data.animal_type} size={16} color={Colors.accent} />
+                  ) : (
+                    <MaterialCommunityIcons name="paw" size={16} color={Colors.accent} />
+                  )}
+                  <Text style={styles.animalRowText}>
+                    {t('home.animal_of_day')}: <Text style={styles.animalRowName}>{data.animal}</Text>
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            {data.animal_type ? (
+              <ZodiacEmblem
+                animal={data.animal_type}
+                element={data.element}
+                size={80}
+                ringColor={Colors.accent}
+                backgroundColor={Colors.primary}
+              />
+            ) : (
+              <View style={styles.dateCardIconRing}>
+                <MaterialCommunityIcons name="white-balance-sunny" size={26} color={Colors.accent} />
+              </View>
+            )}
           </View>
-        )}
+          <View style={styles.onlyTodayRow}>
+            <MaterialCommunityIcons name="clock-outline" size={13} color={Colors.textLight} />
+            <Text style={styles.onlyTodayText}>{t('daily.only_today_note')}</Text>
+          </View>
+        </View>
 
         {/* Main Description */}
         <View style={styles.descriptionCard}>
@@ -447,24 +478,39 @@ export default function EnergyDetailScreen() {
           {t('common.day_information')}
         </Text>
         <View style={styles.buttonsGrid}>
-          {buttons.map((btn) => (
-            <TouchableOpacity
-              key={btn.id}
-              style={styles.gridButton}
-              onPress={() => setActiveModal(btn.id as ModalType)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
-                <MaterialCommunityIcons name={btn.icon as any} size={26} color={btn.color} />
-                {btn.id === 'activations' && data?.activations_locked && (
-                  <View style={styles.gridButtonLockBadge}>
-                    <MaterialCommunityIcons name="lock" size={11} color={Colors.white} />
-                  </View>
-                )}
-              </View>
-              <Text style={styles.gridButtonLabel}>{btn.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {buttons.map((btn) => {
+            const active = activeModal === btn.id;
+            return (
+              <TouchableOpacity
+                key={btn.id}
+                style={[styles.gridButton, active && styles.gridButtonActive]}
+                onPress={() => setActiveModal(btn.id as ModalType)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
+                  <MaterialCommunityIcons name={btn.icon as any} size={26} color={btn.color} />
+                  {btn.id === 'activations' && data?.activations_locked && (
+                    <View style={styles.gridButtonLockBadge}>
+                      <MaterialCommunityIcons name="lock" size={11} color={Colors.white} />
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.gridButtonLabel}>{btn.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Footer: save to favorites + "content only today" */}
+        <View style={styles.footerRow}>
+          <View style={styles.favoriteRow}>
+            <FavoriteButton itemType="daily_energy" itemId={data.date} size={20} color={Colors.accent} />
+            <Text style={styles.favoriteRowText}>{t('home.save_favorite')}</Text>
+          </View>
+          <View style={styles.onlyTodayPill}>
+            <MaterialCommunityIcons name="check-circle" size={14} color={Colors.success} />
+            <Text style={styles.onlyTodayPillText}>{t('daily.content_only_today')}</Text>
+          </View>
         </View>
 
         <View style={{ height: Spacing.xl }} />
@@ -480,7 +526,17 @@ export default function EnergyDetailScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <SafeAreaView edges={['bottom']}>
-              <ScrollView 
+              <View style={styles.modalTopBar}>
+                <TouchableOpacity
+                  testID="modal-back-button"
+                  style={styles.modalBackArrow}
+                  onPress={() => setActiveModal(null)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.modalScrollContent}
               >
@@ -527,8 +583,8 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
-  // Compact Header
-  headerCompact: {
+  // Header
+  header: {
     paddingBottom: Spacing.md,
   },
   headerRow: {
@@ -544,42 +600,87 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerDate: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.xs,
-    color: Colors.primary,
-    opacity: 0.8,
-  },
-  headerTitleCompact: {
+  headerTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
-    color: Colors.primary,
+    fontSize: Typography.xl,
+    color: Colors.white,
     textAlign: 'center',
+    flex: 1,
   },
   content: {
     padding: Spacing.md,
   },
-  // Animal Card - Compact
-  animalCard: {
+  // Date / Animal / Emblem Card
+  dateCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  dateCardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.card,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.accent + '40',
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
-  animalText: {
+  dateCardTextCol: {
+    flex: 1,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.xs,
+  },
+  dateText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+  },
+  dayTitle: {
     fontFamily: Typography.serifBold,
-    fontSize: Typography.lg,
+    fontSize: Typography.xl,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  animalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  animalRowText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  animalRowName: {
+    fontFamily: Typography.sansSemiBold,
     color: Colors.accent,
+  },
+  dateCardIconRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 1.5,
+    borderColor: Colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  onlyTodayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.cardBorder,
+  },
+  onlyTodayText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    flex: 1,
   },
   // Description Card
   descriptionCard: {
@@ -627,6 +728,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 3,
+  },
+  gridButtonActive: {
+    borderColor: Colors.accent,
+    borderWidth: 2,
+    shadowOpacity: 0.4,
   },
   gridButtonIconContainer: {
     width: 48,
@@ -682,6 +788,39 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
+  // Footer row: save to favorites + "content only today" pill
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.md,
+  },
+  favoriteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  favoriteRowText: {
+    fontFamily: Typography.sansMedium,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+  },
+  onlyTodayPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.success + '20',
+    borderWidth: 1,
+    borderColor: Colors.success + '60',
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+  },
+  onlyTodayPillText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.success,
+  },
   // Modal Styles
   modalOverlay: {
     flex: 1,
@@ -698,6 +837,17 @@ const styles = StyleSheet.create({
   modalScrollContent: {
     padding: Spacing.lg,
     paddingBottom: Spacing.md,
+  },
+  modalTopBar: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  modalBackArrow: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalHeader: {
     flexDirection: 'row',
