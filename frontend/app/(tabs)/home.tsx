@@ -134,7 +134,7 @@ export default function HomeScreen() {
         <LinearGradient colors={Gradients.navy} style={styles.header}>
           <View style={styles.headerTopRow}>
             {user ? (
-              <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.name}</Text>
+              <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.display_name || user.name}</Text>
             ) : (
               <View />
             )}

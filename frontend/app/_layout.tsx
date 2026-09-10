@@ -1,7 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { Stack } from 'expo-router';
-import { AuthProvider } from '@/src/context/AuthContext';
+import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { LanguageProvider } from '@/src/context/LanguageContext';
+import { storage } from '@/src/utils/storage';
+import OnboardingModal from '@/src/components/OnboardingModal';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { 
@@ -26,6 +28,35 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // One-time AdMob SDK init for the rewarded-ad flow (see RewardedAccessButton).
 // mobileAds().initialize().catch(() => {});
+
+const HAS_SEEN_ONBOARDING_KEY = 'has_seen_onboarding';
+
+// First-launch onboarding (push notifications + optional phone + privacy
+// policy acceptance) - shown once per device, only after login, since it
+// needs a user to attach the optional fields to. See INCIDENTA 6.
+function OnboardingGate() {
+  const { user } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    storage.getItem(HAS_SEEN_ONBOARDING_KEY, false).then((seen) => {
+      if (!cancelled && !seen) setShowOnboarding(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const handleDismiss = useCallback(async () => {
+    await storage.setItem(HAS_SEEN_ONBOARDING_KEY, true);
+    setShowOnboarding(false);
+  }, []);
+
+  if (!user) return null;
+  return <OnboardingModal visible={showOnboarding} onDismiss={handleDismiss} />;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -108,6 +139,7 @@ export default function RootLayout() {
             <Stack.Screen name="faq" />
             <Stack.Screen name="daily-energy-detail" />
           </Stack>
+          <OnboardingGate />
         </AuthProvider>
       </LanguageProvider>
     </GestureHandlerRootView>

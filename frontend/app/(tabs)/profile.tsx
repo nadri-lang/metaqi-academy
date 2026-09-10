@@ -175,7 +175,7 @@ export default function ProfileScreen() {
             <View style={styles.avatarContainer}>
               <MaterialCommunityIcons name="account" size={40} color={Colors.accent} />
             </View>
-            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userName}>{user.display_name || user.name}</Text>
             <Text style={styles.userEmail}>{user.email}</Text>
 
             {user.has_active_subscription ? (
@@ -307,6 +307,16 @@ export default function ProfileScreen() {
             >
               <MaterialCommunityIcons name="heart" size={22} color={Colors.textSecondary} />
               <Text style={styles.menuText}>{t('profile.my_favorites')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              testID="menu-edit-profile"
+              onPress={() => router.push('/edit-profile')}
+            >
+              <MaterialCommunityIcons name="account-edit-outline" size={22} color={Colors.textSecondary} />
+              <Text style={styles.menuText}>{t('profile.edit_profile')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>
 
