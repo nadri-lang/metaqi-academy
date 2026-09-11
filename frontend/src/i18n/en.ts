@@ -368,6 +368,7 @@ export default {
     feature_analysis: 'Analysis according to Feng Shui, BaZi and Qimen',
     feature_orientations: 'Auspicious orientations for the ceremony',
     buy_whatsapp: 'Buy via WhatsApp',
+    buy_coming_soon: 'Coming soon! You will be able to buy directly from the app.',
     whatsapp_message: 'Hello, I\'m interested in purchasing the Wedding Agenda 2027 for quarter {quarter}. Could you provide me with the payment information to complete the purchase? Thank you very much.',
     quarter_1_title: 'Q1 January-March 2027',
     quarter_1_months: 'January, February and March',

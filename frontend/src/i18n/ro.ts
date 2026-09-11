@@ -368,6 +368,7 @@ export default {
     feature_analysis: 'Analiză conform Feng Shui, BaZi și Qimen',
     feature_orientations: 'Orientări propice pentru ceremonie',
     buy_whatsapp: 'Cumpără prin WhatsApp',
+    buy_coming_soon: 'În curând! Vei putea cumpăra direct din aplicație.',
     whatsapp_message: 'Bună, sunt interesat să cumpăr Agenda Nunților 2027 pentru trimestrul {quarter}. Îmi puteți furniza informațiile de plată? Mulțumesc mult.',
     quarter_1_title: 'T1 Ianuarie-Martie 2027',
     quarter_1_months: 'Ianuarie, Februarie și Martie',

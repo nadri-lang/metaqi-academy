@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Linking,
+  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -50,10 +50,8 @@ export default function WeddingAgenda2027Screen() {
     }
   };
 
-  const handleWhatsAppPurchase = (quarterNumber: number) => {
-    const message = t('wedding_agenda_2027.whatsapp_message').replace('{quarter}', String(quarterNumber));
-    const whatsapp = '34640510085';
-    Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
+  const handlePurchase = () => {
+    Alert.alert(t('wedding_agenda_2027.header_title'), t('wedding_agenda_2027.buy_coming_soon'));
   };
 
   return (
@@ -214,18 +212,15 @@ export default function WeddingAgenda2027Screen() {
                       </View>
                     </View>
 
-                    {/* WhatsApp Purchase Button */}
+                    {/* Purchase Button */}
                     <TouchableOpacity
                       style={styles.whatsappButton}
-                      onPress={() => {
-                        handleWhatsAppPurchase(selectedQuarter.quarter);
-                        setSelectedQuarter(null);
-                      }}
+                      onPress={handlePurchase}
                       activeOpacity={0.85}
                     >
-                      <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
+                      <MaterialCommunityIcons name="star" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
-                        {t('wedding_agenda_2027.buy_whatsapp')}
+                        {t('wedding_agenda_2027.buy_coming_soon')}
                       </Text>
                     </TouchableOpacity>
 

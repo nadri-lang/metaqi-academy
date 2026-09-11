@@ -368,6 +368,7 @@ export default {
     feature_analysis: 'Analyse nach Feng Shui, BaZi und Qimen',
     feature_orientations: 'Günstige Ausrichtungen für die Zeremonie',
     buy_whatsapp: 'Über WhatsApp kaufen',
+    buy_coming_soon: 'Bald verfügbar! Du wirst direkt in der App kaufen können.',
     whatsapp_message: 'Hallo, ich interessiere mich für den Hochzeitskalender 2027 für das Quartal {quarter}. Könnten Sie mir die Zahlungsinformationen mitteilen? Vielen Dank.',
     quarter_1_title: 'Q1 Januar-März 2027',
     quarter_1_months: 'Januar, Februar und März',
