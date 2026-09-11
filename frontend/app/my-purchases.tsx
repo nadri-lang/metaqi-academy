@@ -17,8 +17,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { useAuth } from '@/src/context/AuthContext';
 import api from '@/src/services/api';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
+import { confirmAsync } from '@/src/utils/confirmDialog';
 
 interface Purchase {
   id: string;
@@ -54,6 +56,7 @@ interface UserContent {
 export default function MyPurchasesScreen() {
   const router = useRouter();
   const { t, language } = useLanguage();
+  const { user, refreshUser } = useAuth();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [baziReport, setBaziReport] = useState<BaziReport | null>(null);
   const [hasBaziReport, setHasBaziReport] = useState(false);
@@ -61,6 +64,26 @@ export default function MyPurchasesScreen() {
   const [hasUserContent, setHasUserContent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancelSubscription = async () => {
+    const confirmed = await confirmAsync(
+      t('profile.subscription_cancel_confirm_title'),
+      t('profile.subscription_cancel_confirm_message'),
+      t('profile.subscription_cancel_button'),
+    );
+    if (!confirmed) return;
+
+    setCancelling(true);
+    try {
+      await api.post('/auth/request-cancellation');
+      await refreshUser();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo enviar la solicitud');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -211,6 +234,36 @@ export default function MyPurchasesScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
         }
       >
+        {user?.has_active_subscription && (
+          <View style={styles.section}>
+            <View style={styles.subscriptionCard}>
+              <View style={styles.subscriptionCardHeader}>
+                <MaterialCommunityIcons name="star-circle" size={22} color={Colors.jade} />
+                <Text style={styles.subscriptionCardTitle}>{t('profile.subscription_title')}</Text>
+              </View>
+              {user.cancellation_requested_at ? (
+                <View style={styles.subscriptionCancelledNotice}>
+                  <MaterialCommunityIcons name="information" size={18} color={Colors.textSecondary} />
+                  <Text style={styles.subscriptionCancelledText}>
+                    {t('profile.subscription_cancel_requested')}
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  testID="cancel-subscription-btn"
+                  style={[styles.subscriptionCancelButton, cancelling && styles.saveButtonDisabled]}
+                  onPress={handleCancelSubscription}
+                  disabled={cancelling}
+                >
+                  <Text style={styles.subscriptionCancelButtonText}>
+                    {t('profile.subscription_cancel_button')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
         {!hasContent ? (
           <View style={styles.emptyState}>
             <MaterialCommunityIcons name="shopping-outline" size={64} color={Colors.textLight} />
@@ -427,6 +480,53 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: Spacing.xl,
+  },
+  subscriptionCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.lg,
+  },
+  subscriptionCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  subscriptionCardTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.textPrimary,
+  },
+  subscriptionCancelButton: {
+    borderWidth: 1,
+    borderColor: Colors.error,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  subscriptionCancelButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.error,
+  },
+  subscriptionCancelledNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  subscriptionCancelledText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   sectionTitle: {
     fontFamily: Typography.serifBold,

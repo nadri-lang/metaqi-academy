@@ -34,6 +34,7 @@ export default function ServicesScreen() {
   const { t, language } = useLanguage();
   const [services, setServices] = useState<CustomService[]>([]);
   const [loading, setLoading] = useState(true);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     loadServices();
@@ -120,8 +121,8 @@ export default function ServicesScreen() {
           </LinearGradient>
         </View>
 
-        {/* Lista de Servicios */}
-        {services.map((service) => (
+        {/* Lista de Servicios - oculta temporalmente para usuarios normales */}
+        {isAdmin && services.map((service) => (
           <View key={service.id} style={styles.card} testID={`service-card-${service.id}`}>
             <View style={styles.cardHeader}>
               <View style={styles.iconWrapper}>

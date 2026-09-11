@@ -22,9 +22,16 @@ import api from '@/src/services/api';
 interface AppConfig {
   id: string;
   contact_email: string;
-  contact_whatsapp: string;
   bazi_calculator_url?: string;
   qimen_calculator_url?: string;
+  social_facebook_url?: string;
+  social_facebook_desc?: string;
+  social_instagram_url?: string;
+  social_instagram_desc?: string;
+  social_tiktok_url?: string;
+  social_tiktok_desc?: string;
+  social_youtube_url?: string;
+  social_youtube_desc?: string;
   updated_at: string;
 }
 
@@ -35,9 +42,16 @@ export default function AppConfigAdminScreen() {
   
   // Form state - Solo contacto
   const [contactEmail, setContactEmail] = useState('');
-  const [contactWhatsApp, setContactWhatsApp] = useState('');
   const [baziCalculatorUrl, setBaziCalculatorUrl] = useState('');
   const [qimenCalculatorUrl, setQimenCalculatorUrl] = useState('');
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [facebookDesc, setFacebookDesc] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [instagramDesc, setInstagramDesc] = useState('');
+  const [tiktokUrl, setTiktokUrl] = useState('');
+  const [tiktokDesc, setTiktokDesc] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [youtubeDesc, setYoutubeDesc] = useState('');
 
   useEffect(() => {
     loadConfig();
@@ -49,9 +63,16 @@ export default function AppConfigAdminScreen() {
       const config: AppConfig = response.data;
       
       setContactEmail(config.contact_email);
-      setContactWhatsApp(config.contact_whatsapp);
       setBaziCalculatorUrl(config.bazi_calculator_url || '');
       setQimenCalculatorUrl(config.qimen_calculator_url || '');
+      setFacebookUrl(config.social_facebook_url || '');
+      setFacebookDesc(config.social_facebook_desc || '');
+      setInstagramUrl(config.social_instagram_url || '');
+      setInstagramDesc(config.social_instagram_desc || '');
+      setTiktokUrl(config.social_tiktok_url || '');
+      setTiktokDesc(config.social_tiktok_desc || '');
+      setYoutubeUrl(config.social_youtube_url || '');
+      setYoutubeDesc(config.social_youtube_desc || '');
     } catch (error) {
       console.error('Error loading config:', error);
       Alert.alert('Error', 'No se pudo cargar la configuración');
@@ -61,8 +82,8 @@ export default function AppConfigAdminScreen() {
   };
 
   const handleSave = async () => {
-    if (!contactEmail || !contactWhatsApp) {
-      Alert.alert('Error', 'Email y WhatsApp son obligatorios');
+    if (!contactEmail) {
+      Alert.alert('Error', 'El email es obligatorio');
       return;
     }
 
@@ -70,9 +91,16 @@ export default function AppConfigAdminScreen() {
     try {
       await api.put('/admin/app-config', {
         contact_email: contactEmail,
-        contact_whatsapp: contactWhatsApp,
         bazi_calculator_url: baziCalculatorUrl.trim() || null,
         qimen_calculator_url: qimenCalculatorUrl.trim() || null,
+        social_facebook_url: facebookUrl.trim() || null,
+        social_facebook_desc: facebookDesc.trim() || null,
+        social_instagram_url: instagramUrl.trim() || null,
+        social_instagram_desc: instagramDesc.trim() || null,
+        social_tiktok_url: tiktokUrl.trim() || null,
+        social_tiktok_desc: tiktokDesc.trim() || null,
+        social_youtube_url: youtubeUrl.trim() || null,
+        social_youtube_desc: youtubeDesc.trim() || null,
       });
       
       Alert.alert(
@@ -133,9 +161,9 @@ export default function AppConfigAdminScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Información de Contacto</Text>
             <Text style={styles.sectionDescription}>
-              Estos datos se usarán para los botones de contacto por WhatsApp en toda la aplicación.
+              Este email se usará como dato de contacto en toda la aplicación.
             </Text>
-            
+
             <Text style={styles.label}>Email de Contacto *</Text>
             <TextInput
               style={styles.input}
@@ -146,30 +174,97 @@ export default function AppConfigAdminScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
+          </View>
 
-            <Text style={styles.label}>WhatsApp (sin +) *</Text>
+          {/* Social Media Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Redes Sociales</Text>
+            <Text style={styles.sectionDescription}>
+              Enlace de cada red social y una nota sobre el tipo de contenido que se publica ahí.
+            </Text>
+
+            <Text style={styles.label}>Facebook</Text>
             <TextInput
               style={styles.input}
-              value={contactWhatsApp}
-              onChangeText={setContactWhatsApp}
-              placeholder="34640510085"
+              value={facebookUrl}
+              onChangeText={setFacebookUrl}
+              placeholder="https://facebook.com/..."
               placeholderTextColor={Colors.textLight}
-              keyboardType="phone-pad"
+              keyboardType="url"
+              autoCapitalize="none"
             />
-            
-            <View style={styles.infoBox}>
-              <MaterialCommunityIcons name="information-outline" size={20} color={Colors.accent} />
-              <Text style={styles.infoText}>
-                Introduce el número de WhatsApp sin el símbolo +. Ejemplo: 34640510085
-              </Text>
-            </View>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={facebookDesc}
+              onChangeText={setFacebookDesc}
+              placeholder="Ej: Publicamos la energía del día y noticias de la academia"
+              placeholderTextColor={Colors.textLight}
+              multiline
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.md }]}>Instagram</Text>
+            <TextInput
+              style={styles.input}
+              value={instagramUrl}
+              onChangeText={setInstagramUrl}
+              placeholder="https://instagram.com/..."
+              placeholderTextColor={Colors.textLight}
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={instagramDesc}
+              onChangeText={setInstagramDesc}
+              placeholder="Ej: Contenido visual, reels y stories diarios"
+              placeholderTextColor={Colors.textLight}
+              multiline
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.md }]}>TikTok</Text>
+            <TextInput
+              style={styles.input}
+              value={tiktokUrl}
+              onChangeText={setTiktokUrl}
+              placeholder="https://tiktok.com/@..."
+              placeholderTextColor={Colors.textLight}
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={tiktokDesc}
+              onChangeText={setTiktokDesc}
+              placeholder="Ej: Vídeos cortos explicando conceptos de metafísica china"
+              placeholderTextColor={Colors.textLight}
+              multiline
+            />
+
+            <Text style={[styles.label, { marginTop: Spacing.md }]}>YouTube</Text>
+            <TextInput
+              style={styles.input}
+              value={youtubeUrl}
+              onChangeText={setYoutubeUrl}
+              placeholder="https://youtube.com/@..."
+              placeholderTextColor={Colors.textLight}
+              keyboardType="url"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={youtubeDesc}
+              onChangeText={setYoutubeDesc}
+              placeholder="Ej: Vídeos largos y tutoriales completos"
+              placeholderTextColor={Colors.textLight}
+              multiline
+            />
           </View>
 
           {/* Personal Journal - Calculator Links Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Diario Personal - Enlaces de Cálculo</Text>
+            <Text style={styles.sectionTitle}>Mis Datos BaZi/Qimen - Enlaces de Cálculo</Text>
             <Text style={styles.sectionDescription}>
-              Enlaces externos que se muestran en "Mi Diario Personal" (función premium) para que el usuario calcule su propia carta.
+              Enlaces externos que se muestran en "Mis Datos BaZi/Qimen" (función premium) para que el usuario calcule su propia carta.
             </Text>
 
             <Text style={styles.label}>Enlace calculadora BaZi</Text>

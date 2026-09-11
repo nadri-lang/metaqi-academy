@@ -52,6 +52,23 @@ export default function HomeScreen() {
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<{
+    social_facebook_url?: string;
+    social_instagram_url?: string;
+    social_tiktok_url?: string;
+    social_youtube_url?: string;
+  }>({});
+
+  useEffect(() => {
+    api.get('/app-config')
+      .then((res) => setSocialLinks(res.data || {}))
+      .catch((error) => console.error('Error loading app config:', error));
+  }, []);
+
+  const openSocial = (url?: string, title?: string) => {
+    if (!url) return;
+    router.push({ pathname: '/webview', params: { url, title: title || '' } });
+  };
 
   const languages = [
     { code: 'es' as Language, flag: '🇪🇸', label: 'ES' },
@@ -160,8 +177,31 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.brandBlock}>
-            <Text style={styles.logo}>MetaQi</Text>
-            <Text style={styles.subtitle}>{t('home.academy')}</Text>
+            <Text style={styles.logo}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+            {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
+              <View style={styles.socialRow}>
+                {socialLinks.social_facebook_url && (
+                  <TouchableOpacity testID="home-social-facebook" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_facebook_url, 'Facebook')}>
+                    <MaterialCommunityIcons name="facebook" size={18} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+                {socialLinks.social_instagram_url && (
+                  <TouchableOpacity testID="home-social-instagram" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_instagram_url, 'Instagram')}>
+                    <MaterialCommunityIcons name="instagram" size={18} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+                {socialLinks.social_tiktok_url && (
+                  <TouchableOpacity testID="home-social-tiktok" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_tiktok_url, 'TikTok')}>
+                    <MaterialCommunityIcons name="music-note" size={18} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+                {socialLinks.social_youtube_url && (
+                  <TouchableOpacity testID="home-social-youtube" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_youtube_url, 'YouTube')}>
+                    <MaterialCommunityIcons name="youtube" size={18} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
             <View style={styles.brandDivider} />
           </View>
 
@@ -409,13 +449,18 @@ const styles = StyleSheet.create({
     fontSize: Typography['3xl'],
     color: Colors.accent,
   },
-  subtitle: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.xs,
-    color: Colors.white,
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-    marginTop: 2,
+  socialRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  socialIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   brandDivider: {
     width: 40,

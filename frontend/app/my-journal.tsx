@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
+import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
 
 interface JournalData {
   bazi_notes: string;
@@ -49,13 +50,12 @@ export default function MyJournalScreen() {
   const [qimenNotes, setQimenNotes] = useState('');
   const [savingBazi, setSavingBazi] = useState(false);
   const [savingQimen, setSavingQimen] = useState(false);
-  const [whatsapp, setWhatsapp] = useState<string | null>(null);
 
   useEffect(() => {
     if (isPremium) {
       loadJournal();
     } else {
-      loadAppConfigForContact();
+      setLoading(false);
     }
   }, [isPremium]);
 
@@ -72,26 +72,8 @@ export default function MyJournalScreen() {
     }
   };
 
-  const loadAppConfigForContact = async () => {
-    try {
-      const response = await api.get('/app-config');
-      setWhatsapp(response.data.contact_whatsapp || null);
-    } catch (error) {
-      console.error('Error loading app config:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubscribeContact = () => {
-    if (!whatsapp) {
-      Alert.alert('Error', 'WhatsApp no configurado');
-      return;
-    }
-    const message = t('journal.subscribe_whatsapp_message');
-    Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`).catch(() => {
-      Alert.alert('Error', 'No se pudo abrir WhatsApp');
-    });
+  const handleSubscribe = () => {
+    Alert.alert(t('journal.title'), t('profile.subscription_coming_soon'));
   };
 
   const openCalculator = (url: string | null) => {
@@ -146,15 +128,19 @@ export default function MyJournalScreen() {
             <MaterialCommunityIcons name="lock-outline" size={48} color={Colors.textLight} />
             <Text style={styles.lockedTitle}>{t('journal.locked_title')}</Text>
             <Text style={styles.lockedDesc}>{t('journal.locked_desc')}</Text>
-            <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribeContact}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.white} />
-              <Text style={styles.subscribeButtonText}>{t('journal.subscribe_cta')}</Text>
+            <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribe}>
+              <MaterialCommunityIcons name="star" size={20} color={Colors.white} />
+              <Text style={styles.subscribeButtonText}>
+                {t('profile.subscription_cta_price').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       ) : (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <Text style={styles.screenDescription}>{t('journal.description')}</Text>
+
             {/* BaZi Card */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
@@ -269,6 +255,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: { padding: Spacing.lg },
+  screenDescription: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.lg,
+  },
   lockedCard: {
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,

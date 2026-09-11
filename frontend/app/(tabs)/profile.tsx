@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Linking,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -17,20 +17,30 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PRIVACY_POLICY_URL } from '@/src/constants/Legal';
+import { CONTACT_EMAIL } from '@/src/constants/Contact';
+import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
 import { confirmAsync } from '@/src/utils/confirmDialog';
 import api from '@/src/services/api';
+
+interface SocialLinks {
+  social_facebook_url?: string;
+  social_instagram_url?: string;
+  social_tiktok_url?: string;
+  social_youtube_url?: string;
+}
 
 export default function ProfileScreen() {
   const { user, logout, refreshUser } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const [contactWhatsApp, setContactWhatsApp] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [contactModalVisible, setContactModalVisible] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
   useEffect(() => {
-    if (user && user.role !== 'admin' && user.role !== 'editor') {
+    if (user) {
       api.get('/app-config')
-        .then((res) => setContactWhatsApp(res.data?.contact_whatsapp || null))
+        .then((res) => setSocialLinks(res.data || {}))
         .catch((error) => console.error('Error loading app config:', error));
     }
   }, [user?.id]);
@@ -41,24 +51,76 @@ export default function ProfileScreen() {
     await logout();
   };
 
-  const handleContact = () => {
-    Linking.openURL('mailto:r.scala1108@gmail.com?subject=Contacto desde MetaQi Academy');
+  const openInApp = (url?: string, title?: string) => {
+    if (!url) return;
+    setContactModalVisible(false);
+    router.push({ pathname: '/webview', params: { url, title: title || '' } });
   };
 
   const handlePrivacyPolicy = () => {
-    Linking.openURL(PRIVACY_POLICY_URL);
+    router.push({ pathname: '/webview', params: { url: PRIVACY_POLICY_URL, title: t('profile.privacy_policy') } });
   };
 
-  const handleSubscribeWhatsApp = () => {
-    if (!contactWhatsApp) {
-      Alert.alert('Error', 'WhatsApp no configurado');
-      return;
-    }
-    const message = t('profile.subscription_whatsapp_message');
-    Linking.openURL(`https://wa.me/${contactWhatsApp}?text=${encodeURIComponent(message)}`).catch(() => {
-      Alert.alert('Error', 'No se pudo abrir WhatsApp');
-    });
+  const handleSubscribe = () => {
+    Alert.alert(t('profile.subscription_title'), t('profile.subscription_coming_soon'));
   };
+
+  const contactModal = (
+    <Modal
+      visible={contactModalVisible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setContactModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{t('profile.contact')}</Text>
+            <TouchableOpacity testID="contact-modal-close" onPress={() => setContactModalVisible(false)}>
+              <MaterialCommunityIcons name="close" size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.contactRow}>
+            <MaterialCommunityIcons name="email-outline" size={22} color={Colors.accent} />
+            <Text style={styles.contactRowText}>{CONTACT_EMAIL}</Text>
+          </View>
+
+          {socialLinks.social_facebook_url ? (
+            <TouchableOpacity testID="contact-facebook" style={styles.contactRow} onPress={() => openInApp(socialLinks.social_facebook_url, 'Facebook')}>
+              <MaterialCommunityIcons name="facebook" size={22} color={Colors.accent} />
+              <Text style={styles.contactRowText}>Facebook</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          ) : null}
+
+          {socialLinks.social_instagram_url ? (
+            <TouchableOpacity testID="contact-instagram" style={styles.contactRow} onPress={() => openInApp(socialLinks.social_instagram_url, 'Instagram')}>
+              <MaterialCommunityIcons name="instagram" size={22} color={Colors.accent} />
+              <Text style={styles.contactRowText}>Instagram</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          ) : null}
+
+          {socialLinks.social_tiktok_url ? (
+            <TouchableOpacity testID="contact-tiktok" style={styles.contactRow} onPress={() => openInApp(socialLinks.social_tiktok_url, 'TikTok')}>
+              <MaterialCommunityIcons name="music-note" size={22} color={Colors.accent} />
+              <Text style={styles.contactRowText}>TikTok</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          ) : null}
+
+          {socialLinks.social_youtube_url ? (
+            <TouchableOpacity testID="contact-youtube" style={styles.contactRow} onPress={() => openInApp(socialLinks.social_youtube_url, 'YouTube')}>
+              <MaterialCommunityIcons name="youtube" size={22} color={Colors.accent} />
+              <Text style={styles.contactRowText}>YouTube</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+    </Modal>
+  );
 
   const handleCancelSubscription = async () => {
     const confirmed = await confirmAsync(
@@ -150,7 +212,7 @@ export default function ProfileScreen() {
 
           {/* Info Section */}
           <View style={styles.infoSection}>
-            <TouchableOpacity style={styles.infoItem} testID="info-contact-btn" onPress={handleContact}>
+            <TouchableOpacity style={styles.infoItem} testID="info-contact-btn" onPress={() => setContactModalVisible(true)}>
               <MaterialCommunityIcons name="email" size={20} color={Colors.textSecondary} />
               <Text style={styles.infoText}>{t('profile.contact')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textLight} />
@@ -162,6 +224,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        {contactModal}
       </View>
     );
   }
@@ -238,7 +301,6 @@ export default function ProfileScreen() {
                   'profile.subscription_benefit_daily',
                   'profile.subscription_benefit_monthly',
                   'profile.subscription_benefit_vocation',
-                  'profile.subscription_benefit_courses',
                   'profile.subscription_benefit_journal',
                 ].map((key) => (
                   <View key={key} style={styles.subscriptionBenefitRow}>
@@ -275,7 +337,6 @@ export default function ProfileScreen() {
                   'profile.subscription_benefit_daily',
                   'profile.subscription_benefit_monthly',
                   'profile.subscription_benefit_vocation',
-                  'profile.subscription_benefit_courses',
                   'profile.subscription_benefit_journal',
                 ].map((key) => (
                   <View key={key} style={styles.subscriptionBenefitRow}>
@@ -287,10 +348,12 @@ export default function ProfileScreen() {
                 <TouchableOpacity
                   testID="subscribe-cta-btn"
                   style={styles.subscribeButton}
-                  onPress={handleSubscribeWhatsApp}
+                  onPress={handleSubscribe}
                 >
-                  <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.white} />
-                  <Text style={styles.subscribeButtonText}>{t('profile.subscription_cta')}</Text>
+                  <MaterialCommunityIcons name="star" size={20} color={Colors.white} />
+                  <Text style={styles.subscribeButtonText}>
+                    {t('profile.subscription_cta_price').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)}
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -342,10 +405,10 @@ export default function ProfileScreen() {
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textLight} />
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.menuItem} 
+            <TouchableOpacity
+              style={styles.menuItem}
               testID="menu-contact"
-              onPress={handleContact}
+              onPress={() => setContactModalVisible(true)}
             >
               <MaterialCommunityIcons name="email" size={22} color={Colors.textSecondary} />
               <Text style={styles.menuText}>{t('profile.contact')}</Text>
@@ -373,6 +436,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
       </ScrollView>
+      {contactModal}
     </View>
   );
 }
@@ -718,5 +782,42 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: 10,
     color: Colors.accent,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  modalTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.textPrimary,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.cardBorder,
+    gap: Spacing.md,
+  },
+  contactRowText: {
+    flex: 1,
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
   },
 });

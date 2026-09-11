@@ -86,6 +86,7 @@ export default function CoursesScreen() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const isAdmin = user?.role === 'admin';
 
   const handleWhatsAppContact = (courseTitleKey: string) => {
     const courseTitle = t(courseTitleKey);
@@ -117,8 +118,18 @@ export default function CoursesScreen() {
         <Text style={styles.headerTitle}>
           {t('courses.title')}
         </Text>
+        {!isAdmin && (
+          <Text style={styles.comingSoonBadge}>{t('courses.empty_title')}</Text>
+        )}
       </LinearGradient>
 
+      {!isAdmin ? (
+        <View style={styles.comingSoonContainer}>
+          <MaterialCommunityIcons name="clock-outline" size={64} color={Colors.textLight} />
+          <Text style={styles.comingSoonTitle}>{t('courses.empty_title')}</Text>
+          <Text style={styles.comingSoonText}>{t('courses.empty_text')}</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {COURSES.map((course) => (
           <TouchableOpacity
@@ -144,6 +155,7 @@ export default function CoursesScreen() {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+      )}
 
       {/* Course Detail Modal */}
       <Modal
@@ -252,6 +264,31 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   content: { padding: Spacing.lg },
+  comingSoonBadge: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    marginTop: Spacing.xs,
+  },
+  comingSoonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+    gap: Spacing.sm,
+  },
+  comingSoonTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.xl,
+    color: Colors.textPrimary,
+    marginTop: Spacing.md,
+  },
+  comingSoonText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.base,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
   // Course Buttons (Vertical List with Blue Border & Shadow)
   courseButton: {
     borderRadius: BorderRadius.xl,

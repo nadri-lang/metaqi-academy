@@ -818,6 +818,16 @@ class AppConfig(BaseModel):
     bazi_calculator_url: Optional[str] = None
     qimen_calculator_url: Optional[str] = None
 
+    # Social media - link/handle + a note on what content is posted there
+    social_facebook_url: Optional[str] = None
+    social_facebook_desc: Optional[str] = None
+    social_instagram_url: Optional[str] = None
+    social_instagram_desc: Optional[str] = None
+    social_tiktok_url: Optional[str] = None
+    social_tiktok_desc: Optional[str] = None
+    social_youtube_url: Optional[str] = None
+    social_youtube_desc: Optional[str] = None
+
     # Other configurable texts can be added here
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -831,6 +841,14 @@ class AppConfigUpdate(BaseModel):
     agenda_2027_description_en: Optional[str] = None
     bazi_calculator_url: Optional[str] = None
     qimen_calculator_url: Optional[str] = None
+    social_facebook_url: Optional[str] = None
+    social_facebook_desc: Optional[str] = None
+    social_instagram_url: Optional[str] = None
+    social_instagram_desc: Optional[str] = None
+    social_tiktok_url: Optional[str] = None
+    social_tiktok_desc: Optional[str] = None
+    social_youtube_url: Optional[str] = None
+    social_youtube_desc: Optional[str] = None
 
 # Personal Journal (premium) - external chart-calculator links + the user's own notes
 class UserJournal(BaseModel):
