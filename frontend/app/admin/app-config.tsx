@@ -183,7 +183,7 @@ export default function AppConfigAdminScreen() {
               autoCapitalize="none"
             />
 
-            <Text style={styles.label}>Enlace calculadora Qi Men</Text>
+            <Text style={styles.label}>Enlace calculadora Qimen</Text>
             <TextInput
               style={styles.input}
               value={qimenCalculatorUrl}

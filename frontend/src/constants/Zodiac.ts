@@ -55,3 +55,11 @@ export function composeAnimalLabel(animal?: string | null, element?: string | nu
   if (animalName && elementName) return `${animalName} de ${elementName}`;
   return animalName || '';
 }
+
+const YANG_ANIMALS: ZodiacAnimalKey[] = ['rat', 'tiger', 'dragon', 'horse', 'monkey', 'dog'];
+
+/** Fixed Yin/Yang polarity of each zodiac animal — does not vary by year or element. */
+export function animalPolarity(animal?: string | null): 'yang' | 'yin' | undefined {
+  if (!animal) return undefined;
+  return YANG_ANIMALS.includes(animal as ZodiacAnimalKey) ? 'yang' : 'yin';
+}

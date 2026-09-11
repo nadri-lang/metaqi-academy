@@ -187,12 +187,12 @@ export default function DailyEnergyDetailScreen() {
           </View>
         )}
 
-        {/* Direcciones Qi Men */}
+        {/* Direcciones Qimen */}
         {data.qimen_directions.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <MaterialCommunityIcons name="compass" size={22} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>Direcciones Qi Men</Text>
+              <Text style={styles.sectionTitle}>Direcciones Qimen</Text>
             </View>
             {data.qimen_directions.map((item, idx) => (
               <View key={idx} style={styles.detailItem}>

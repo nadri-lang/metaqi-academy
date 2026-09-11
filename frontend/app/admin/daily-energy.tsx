@@ -50,6 +50,10 @@ export default function AdminDailyEnergyScreen() {
   const [activationsImageUri, setActivationsImageUri] = useState('');
   const [activationsImageUrl, setActivationsImageUrl] = useState('');
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [mudraText, setMudraText] = useState('');
+  const [mudraImageUri, setMudraImageUri] = useState('');
+  const [mudraImageUrl, setMudraImageUrl] = useState('');
+  const [uploadingMudraMedia, setUploadingMudraMedia] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [existing, setExisting] = useState<any>(null);
@@ -101,6 +105,9 @@ export default function AdminDailyEnergyScreen() {
       setActivations(data.activations || '');
       setActivationsVideoUrl(data.activations_video_url || '');
       setActivationsImageUrl(data.activations_image_url || '');
+      setMudraText(data.mudra_text || '');
+      setMudraImageUrl(data.mudra_image_url || '');
+      setMudraImageUri('');
     } catch (error) {
       setExisting(null);
       setTitle('');
@@ -119,6 +126,9 @@ export default function AdminDailyEnergyScreen() {
       setActivationsVideoUrl('');
       setActivationsImageUri('');
       setActivationsImageUrl('');
+      setMudraText('');
+      setMudraImageUri('');
+      setMudraImageUrl('');
     }
   };
 
@@ -171,6 +181,65 @@ export default function AdminDailyEnergyScreen() {
 
     if (!result.canceled && result.assets[0]) {
       setActivationsImageUri(result.assets[0].uri);
+    }
+  };
+
+  const pickMudraImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos permiso para acceder a tu galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setMudraImageUri(result.assets[0].uri);
+    }
+  };
+
+  const uploadMudraMedia = async () => {
+    if (!existing) {
+      Alert.alert('Error', 'Primero debes guardar la Energía del Día antes de subir la imagen del Mudra');
+      return;
+    }
+
+    if (!mudraImageUri) {
+      Alert.alert('Info', 'No hay imagen del Mudra para subir');
+      return;
+    }
+
+    setUploadingMudraMedia(true);
+    try {
+      const formData = new FormData();
+      formData.append('date', date);
+
+      const filename = mudraImageUri.split('/').pop() || 'image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formData.append('mudra_image', {
+        uri: mudraImageUri,
+        name: filename,
+        type,
+      } as any);
+
+      const response = await api.post('/energy/daily/mudra-media', formData);
+
+      Alert.alert('Éxito', 'Imagen del Mudra guardada correctamente');
+
+      if (response.data.mudra_image_url) {
+        setMudraImageUrl(response.data.mudra_image_url);
+        setMudraImageUri('');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.detail || 'Error al subir la imagen del Mudra');
+    } finally {
+      setUploadingMudraMedia(false);
     }
   };
 
@@ -261,6 +330,7 @@ export default function AdminDailyEnergyScreen() {
         favorable_hours: favorableHours.split('\n').filter(r => r.trim()),
         travel_hours: travelHours.split('\n').filter(r => r.trim()),
         activations: activations.trim() || null,
+        mudra_text: mudraText.trim() || null,
       };
 
       await api.post('/energy/daily', payload);
@@ -507,7 +577,7 @@ export default function AdminDailyEnergyScreen() {
               textAlignVertical="top"
             />
 
-            <Text style={styles.label}>Direcciones Qi Men (una por línea)</Text>
+            <Text style={styles.label}>Direcciones Qimen (una por línea)</Text>
             <TextInput
               testID="input-qimen"
               style={[styles.input, styles.textArea]}
@@ -619,6 +689,68 @@ export default function AdminDailyEnergyScreen() {
                     <>
                       <MaterialCommunityIcons name="cloud-upload" size={20} color={Colors.white} />
                       <Text style={styles.uploadMediaButtonText}>Subir Imagen/Video</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Text style={styles.label}>🧘 Mudra del Día</Text>
+            <TextInput
+              testID="input-mudra-text"
+              style={[styles.input, styles.textArea]}
+              value={mudraText}
+              onChangeText={setMudraText}
+              placeholder="Describe el mudra del día y sus beneficios..."
+              placeholderTextColor={Colors.textLight}
+              multiline
+              numberOfLines={5}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.mediaSection}>
+              <Text style={styles.mediaSectionTitle}>🖐️ Imagen del Mudra</Text>
+              <Text style={styles.mediaSectionHelper}>
+                Añade una imagen que muestre la posición del mudra
+              </Text>
+
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={pickMudraImage}
+              >
+                <MaterialCommunityIcons name="image-plus" size={24} color={Colors.accent} />
+                <Text style={styles.imagePickerText}>Seleccionar Imagen</Text>
+              </TouchableOpacity>
+
+              {mudraImageUri ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: mudraImageUri }} style={styles.imagePreview} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => setMudraImageUri('')}
+                  >
+                    <MaterialCommunityIcons name="close-circle" size={24} color={Colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ) : mudraImageUrl ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: toAbsoluteMediaUrl(mudraImageUrl) }} style={styles.imagePreview} />
+                  <Text style={styles.helperTextGreen}>✓ Imagen ya subida</Text>
+                </View>
+              ) : null}
+
+              {mudraImageUri && (
+                <TouchableOpacity
+                  style={[styles.uploadMediaButton, uploadingMudraMedia && styles.saveButtonDisabled]}
+                  onPress={uploadMudraMedia}
+                  disabled={uploadingMudraMedia}
+                >
+                  {uploadingMudraMedia ? (
+                    <ActivityIndicator color={Colors.white} />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="cloud-upload" size={20} color={Colors.white} />
+                      <Text style={styles.uploadMediaButtonText}>Subir Imagen del Mudra</Text>
                     </>
                   )}
                 </TouchableOpacity>

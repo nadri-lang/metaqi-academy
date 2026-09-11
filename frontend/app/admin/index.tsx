@@ -76,7 +76,7 @@ const ADMIN_SECTIONS: AdminSection[] = [
   },
   {
     title: 'Conceptos Metafísica',
-    description: 'BaZi, Qi Men, Feng Shui...',
+    description: 'BaZi, Qimen, Feng Shui...',
     icon: 'book-open-variant',
     route: '/admin/concepts',
     testID: 'admin-concepts',

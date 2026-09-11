@@ -19,6 +19,8 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
+import ZodiacGlyph from '@/src/components/ZodiacGlyph';
+import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 
 interface MonthEnergy {
   id: string;
@@ -27,6 +29,8 @@ interface MonthEnergy {
   title_en?: string;
   content: string;
   content_en?: string;
+  animal_type?: ZodiacAnimalKey;
+  element?: ElementKey;
   bazi_influences?: string;
   qimen_strategies?: string;
   feng_shui?: string;
@@ -142,6 +146,26 @@ export default function MonthEnergyDetailScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />
         }
       >
+        {data.animal_type && data.element ? (
+          <View style={styles.card}>
+            <View style={styles.elementAnimalCol}>
+              <Text style={styles.elementAnimalText}>
+                {t('month.element_of_month')}: <Text style={styles.elementAnimalValue}>
+                  {t(`zodiac.elements.${data.element}`)} {t(`zodiac.${animalPolarity(data.animal_type)}`)}
+                </Text>
+              </Text>
+              <View style={styles.elementAnimalRow}>
+                <ZodiacGlyph animal={data.animal_type} size={16} color={Colors.accent} />
+                <Text style={styles.elementAnimalText}>
+                  {t('month.animal_of_month')}: <Text style={styles.elementAnimalValue}>
+                    {t(`zodiac.animals.${data.animal_type}`)}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
         <View style={styles.card}>
           <Text style={styles.description}>
             {data.content}
@@ -319,6 +343,23 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  elementAnimalCol: {
+    gap: Spacing.xs,
+  },
+  elementAnimalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  elementAnimalText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  elementAnimalValue: {
+    fontFamily: Typography.sansSemiBold,
+    color: Colors.accent,
   },
   sectionHeader: {
     flexDirection: 'row',

@@ -22,12 +22,15 @@ import api from '@/src/services/api';
 import * as ImagePicker from 'expo-image-picker';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import { confirmAsync } from '@/src/utils/confirmDialog';
+import { ZODIAC_ANIMALS, ELEMENTS, ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
 
 interface MonthEntry {
   id: string;
   month: string; // YYYY-MM
   title: string;
   content: string;
+  animal_type?: ZodiacAnimalKey;
+  element?: ElementKey;
   bazi_influences?: string;
   qimen_strategies?: string;
   feng_shui?: string;
@@ -67,6 +70,8 @@ export default function MonthEnergyAdminScreen() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [animalType, setAnimalType] = useState<ZodiacAnimalKey | ''>('');
+  const [element, setElement] = useState<ElementKey | ''>('');
   const [baziInfluences, setBaziInfluences] = useState('');
   const [qimenStrategies, setQimenStrategies] = useState('');
   const [fengShui, setFengShui] = useState('');
@@ -86,6 +91,8 @@ export default function MonthEnergyAdminScreen() {
     if (existing) {
       setTitle(existing.title);
       setContent(existing.content);
+      setAnimalType(existing.animal_type || '');
+      setElement(existing.element || '');
       setBaziInfluences(existing.bazi_influences || '');
       setQimenStrategies(existing.qimen_strategies || '');
       setFengShui(existing.feng_shui || '');
@@ -97,6 +104,8 @@ export default function MonthEnergyAdminScreen() {
     } else {
       setTitle('');
       setContent('');
+      setAnimalType('');
+      setElement('');
       setBaziInfluences('');
       setQimenStrategies('');
       setFengShui('');
@@ -237,6 +246,8 @@ export default function MonthEnergyAdminScreen() {
         month: selectedMonth,
         title: title.trim(),
         content: content.trim(),
+        animal_type: animalType || undefined,
+        element: element || undefined,
         bazi_influences: baziInfluences.trim() || undefined,
         qimen_strategies: qimenStrategies.trim() || undefined,
         feng_shui: fengShui.trim() || undefined,
@@ -383,6 +394,42 @@ export default function MonthEnergyAdminScreen() {
               />
             </View>
 
+            <View style={styles.field}>
+              <Text style={styles.label}>Animal del Mes</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipRow}>
+                  {ZODIAC_ANIMALS.map((a) => (
+                    <TouchableOpacity
+                      key={a.key}
+                      style={[styles.chip, animalType === a.key && styles.chipActive]}
+                      onPress={() => setAnimalType((prev) => (prev === a.key ? '' : a.key))}
+                    >
+                      <Text style={[styles.chipText, animalType === a.key && styles.chipTextActive]}>
+                        {a.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Elemento del Mes</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
+                {ELEMENTS.map((e) => (
+                  <TouchableOpacity
+                    key={e.key}
+                    style={[styles.chip, element === e.key && styles.chipActive]}
+                    onPress={() => setElement((prev) => (prev === e.key ? '' : e.key))}
+                  >
+                    <Text style={[styles.chipText, element === e.key && styles.chipTextActive]}>
+                      {e.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             <Text style={styles.sectionDivider}>Secciones detalladas (opcionales)</Text>
 
             <View style={styles.field}>
@@ -399,7 +446,7 @@ export default function MonthEnergyAdminScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Estrategias QiMen</Text>
+              <Text style={styles.label}>Estrategias Qimen</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={qimenStrategies}

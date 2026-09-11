@@ -41,8 +41,8 @@ async def seed_database():
         categories = [
             {
                 "id": str(uuid.uuid4()),
-                "name": "Qi Men Dun Jia",
-                "name_en": "Qi Men Dun Jia",
+                "name": "Qimen Dun Jia",
+                "name_en": "Qimen Dun Jia",
                 "name_zh": "奇门遁甲",
                 "slug": "qi-men",
                 "color": "#C8A24A",
@@ -207,11 +207,11 @@ async def seed_database():
             },
             {
                 "id": str(uuid.uuid4()),
-                "title": "Lectura Qi Men - Palacio de Vida",
-                "title_en": "Qi Men - Life Palace Reading",
+                "title": "Lectura Qimen - Palacio de Vida",
+                "title_en": "Qimen - Life Palace Reading",
                 "title_zh": "奇门遁甲命宫预测",
-                "description": "Consulta estratégica usando Qi Men Dun Jia para analizar tu Palacio de Vida y tomar decisiones importantes.",
-                "description_en": "Strategic consultation using Qi Men Dun Jia to analyze your Life Palace and make important decisions.",
+                "description": "Consulta estratégica usando Qimen Dun Jia para analizar tu Palacio de Vida y tomar decisiones importantes.",
+                "description_en": "Strategic consultation using Qimen Dun Jia to analyze your Life Palace and make important decisions.",
                 "description_zh": "使用奇门遁甲分析命宫并进行重要决策的战略咨询。",
                 "includes": [
                     "Análisis del Palacio de Vida",
@@ -285,8 +285,8 @@ async def seed_database():
                 "title": "Sobre Nosotros",
                 "title_en": "About Us",
                 "title_zh": "关于我们",
-                "content": "MetaQi Academy es la plataforma líder en educación de metafísica china. Ofrecemos contenido de alta calidad sobre Qi Men Dun Jia, BaZi, Feng Shui e I Ching.",
-                "content_en": "MetaQi Academy is the leading platform for Chinese metaphysics education. We offer high-quality content on Qi Men Dun Jia, BaZi, Feng Shui and I Ching.",
+                "content": "MetaQi Academy es la plataforma líder en educación de metafísica china. Ofrecemos contenido de alta calidad sobre Qimen Dun Jia, BaZi, Feng Shui e I Ching.",
+                "content_en": "MetaQi Academy is the leading platform for Chinese metaphysics education. We offer high-quality content on Qimen Dun Jia, BaZi, Feng Shui and I Ching.",
                 "content_zh": "MetaQi Academy是中国形而上学教育的领先平台。我们提供关于奇门遁甲、八字、风水和易经的高质量内容。",
                 "updated_at": datetime.utcnow()
             },
@@ -320,7 +320,7 @@ async def seed_database():
                 "title_zh": "隐私政策",
                 "content": (
                     "En MetaQi Academy recopilamos: datos de cuenta (nombre, email), "
-                    "datos de nacimiento que aportas voluntariamente para tus lecturas de BaZi y Qi Men Dun Jia, "
+                    "datos de nacimiento que aportas voluntariamente para tus lecturas de BaZi y Qimen Dun Jia, "
                     "tu historial de compras y suscripciones, y, solo si eliges ver un anuncio con recompensa, "
                     "datos publicitarios procesados por Google AdMob. No vendemos tus datos a terceros ni los "
                     "usamos con fines publicitarios fuera de esta app.\\n\\n"
@@ -334,7 +334,7 @@ async def seed_database():
                 ),
                 "content_en": (
                     "MetaQi Academy collects: account data (name, email), birth data you voluntarily provide "
-                    "for your BaZi and Qi Men Dun Jia readings, your purchase and subscription history, and, "
+                    "for your BaZi and Qimen Dun Jia readings, your purchase and subscription history, and, "
                     "only if you choose to watch a rewarded ad, advertising data processed by Google AdMob. "
                     "We never sell your data to third parties or use it for advertising outside this app.\\n\\n"
                     "We use your data to provide the service (calculating your readings, managing your account "

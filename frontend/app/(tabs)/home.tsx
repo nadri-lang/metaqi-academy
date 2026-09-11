@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import ZodiacEmblem from '@/src/components/ZodiacEmblem';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import HexagramBars from '@/src/components/HexagramBars';
-import { ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
+import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 import { formatWeekdayDate } from '@/src/utils/dateInput';
 
 interface DailyEnergy {
@@ -197,6 +197,10 @@ export default function HomeScreen() {
             <LinearGradient colors={Gradients.navy} style={styles.heroGradient}>
               <View style={styles.heroMainRow}>
                 <View style={styles.heroTextCol}>
+                  <View style={styles.heroLabelRow}>
+                    <Text style={styles.heroLabelText}>{t('home.daily_energy')}</Text>
+                    <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+                  </View>
                   <View style={styles.heroTopRow}>
                     <MaterialCommunityIcons name="calendar-blank-outline" size={16} color={Colors.textSecondary} />
                     <Text style={styles.heroDate}>
@@ -208,15 +212,27 @@ export default function HomeScreen() {
                   ) : (
                     <Text style={styles.heroTitle} numberOfLines={3}>{t('home.daily_energy_subtitle')}</Text>
                   )}
+                  {dailyEnergy?.animal_type && dailyEnergy?.element ? (
+                    <Text style={[styles.heroAnimalText, styles.heroElementText]}>
+                      {t('home.element_of_day')}: <Text style={styles.heroAnimalName}>
+                        {t(`zodiac.elements.${dailyEnergy.element}`)} {t(`zodiac.${animalPolarity(dailyEnergy.animal_type)}`)}
+                      </Text>
+                    </Text>
+                  ) : null}
                   {dailyEnergy?.animal ? (
                     <View style={styles.heroAnimalRow}>
                       {dailyEnergy.animal_type ? (
                         <ZodiacGlyph animal={dailyEnergy.animal_type} size={16} color={Colors.accent} />
                       ) : null}
                       <Text style={styles.heroAnimalText}>
-                        {t('home.animal_of_day')}: <Text style={styles.heroAnimalName}>{dailyEnergy.animal}</Text>
+                        {t('home.animal_of_day')}: <Text style={styles.heroAnimalName}>
+                          {dailyEnergy.animal_type ? t(`zodiac.animals.${dailyEnergy.animal_type}`) : dailyEnergy.animal}
+                        </Text>
                       </Text>
                     </View>
+                  ) : null}
+                  {dailyEnergy?.animal ? (
+                    <Text style={styles.heroAnimalNote}>{t('home.animal_element_note')}</Text>
                   ) : null}
                 </View>
                 {dailyEnergy?.animal_type ? (
@@ -254,6 +270,7 @@ export default function HomeScreen() {
                 <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
               </View>
               <Text style={styles.twinLabel}>{t('home.iching')}</Text>
+              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
               <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
             </TouchableOpacity>
 
@@ -296,7 +313,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 testID="subscription-activations"
                 style={styles.subscriptionItem}
-                onPress={() => router.push('/energy-detail')}
+                onPress={() => router.push('/activations-detail')}
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons name="white-balance-sunny" size={22} color={Colors.accent} />
@@ -471,6 +488,19 @@ const styles = StyleSheet.create({
   heroTextCol: {
     flex: 1,
   },
+  heroLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  heroLabelText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
   heroTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -498,11 +528,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
     lineHeight: 30,
   },
+  heroElementText: {
+    marginTop: Spacing.sm,
+  },
   heroAnimalRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   heroAnimalText: {
     fontFamily: Typography.sans,
@@ -512,6 +545,14 @@ const styles = StyleSheet.create({
   heroAnimalName: {
     fontFamily: Typography.sansSemiBold,
     color: Colors.accent,
+  },
+  heroAnimalNote: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    fontStyle: 'italic',
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    lineHeight: 15,
   },
   heroButton: {
     flexDirection: 'row',

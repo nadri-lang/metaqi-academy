@@ -152,7 +152,7 @@ export default function AdminConceptsScreen() {
               style={styles.input}
               value={title}
               onChangeText={setTitle}
-              placeholder="Qi Men Dun Jia"
+              placeholder="Qimen Dun Jia"
               placeholderTextColor={Colors.textLight}
             />
 

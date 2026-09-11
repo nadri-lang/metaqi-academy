@@ -19,12 +19,15 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import api from '@/src/services/api';
 import { confirmAsync } from '@/src/utils/confirmDialog';
+import { ZODIAC_ANIMALS, ELEMENTS, ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
 
 interface YearEntry {
   id: string;
   year: number;
   title: string;
   content: string;
+  animal_type?: ZodiacAnimalKey;
+  element?: ElementKey;
   video_url?: string;
 }
 
@@ -43,6 +46,8 @@ export default function YearEnergyAdminScreen() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [animalType, setAnimalType] = useState<ZodiacAnimalKey | ''>('');
+  const [element, setElement] = useState<ElementKey | ''>('');
   const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
@@ -54,10 +59,14 @@ export default function YearEnergyAdminScreen() {
     if (existing) {
       setTitle(existing.title);
       setContent(existing.content);
+      setAnimalType(existing.animal_type || '');
+      setElement(existing.element || '');
       setVideoUrl(existing.video_url || '');
     } else {
       setTitle('');
       setContent('');
+      setAnimalType('');
+      setElement('');
       setVideoUrl('');
     }
   }, [selectedYear, entries]);
@@ -104,6 +113,8 @@ export default function YearEnergyAdminScreen() {
         year: selectedYear,
         title: title.trim(),
         content: content.trim(),
+        animal_type: animalType || undefined,
+        element: element || undefined,
         video_url: videoUrl.trim() || undefined,
       });
       Alert.alert('Éxito', `Energía del año ${selectedYear} guardada correctamente`);
@@ -230,6 +241,42 @@ export default function YearEnergyAdminScreen() {
                 multiline
                 numberOfLines={8}
               />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Animal del Año</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipRow}>
+                  {ZODIAC_ANIMALS.map((a) => (
+                    <TouchableOpacity
+                      key={a.key}
+                      style={[styles.chip, animalType === a.key && styles.chipActive]}
+                      onPress={() => setAnimalType((prev) => (prev === a.key ? '' : a.key))}
+                    >
+                      <Text style={[styles.chipText, animalType === a.key && styles.chipTextActive]}>
+                        {a.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Elemento del Año</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
+                {ELEMENTS.map((e) => (
+                  <TouchableOpacity
+                    key={e.key}
+                    style={[styles.chip, element === e.key && styles.chipActive]}
+                    onPress={() => setElement((prev) => (prev === e.key ? '' : e.key))}
+                  >
+                    <Text style={[styles.chipText, element === e.key && styles.chipTextActive]}>
+                      {e.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             <View style={styles.field}>

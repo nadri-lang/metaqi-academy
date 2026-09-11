@@ -193,7 +193,7 @@ export default function MyJournalScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Qi Men Card */}
+            {/* Qimen Card */}
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <MaterialCommunityIcons name="compass-outline" size={24} color={Colors.accent} />

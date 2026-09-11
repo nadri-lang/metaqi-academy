@@ -462,7 +462,7 @@ async def request_subscription_cancellation(current_user: dict = Depends(get_cur
 
 @api_router.get("/journal/me")
 async def get_my_journal(current_user: dict = Depends(get_current_user)):
-    """Personal BaZi/Qi Men notebook: the user's own notes + the admin-set calculator links."""
+    """Personal BaZi/Qimen notebook: the user's own notes + the admin-set calculator links."""
     if not user_has_premium_access(current_user):
         raise HTTPException(status_code=403, detail="El diario personal es una función premium")
 
@@ -715,7 +715,7 @@ async def get_daily_energy(
     
     # Translate if not Spanish
     if lang != "es":
-        fields_to_translate = ["title", "content", "animal", "bazi_relationships"]
+        fields_to_translate = ["title", "content", "animal", "bazi_relationships", "mudra_text"]
         energy = await translate_dict(energy, lang, fields_to_translate)
         # Translate lists
         if "recommendations" in energy and energy["recommendations"]:
@@ -913,6 +913,82 @@ async def update_daily_energy_activations_media(
         "message": "Activaciones actualizadas correctamente",
         "activations_image_url": updated.get("activations_image_url"),
         "activations_video_url": updated.get("activations_video_url")
+    }
+
+
+@api_router.post("/energy/daily/mudra-media")
+async def update_daily_energy_mudra_media(
+    date: str = Form(...),
+    mudra_image: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_admin_user)
+):
+    """
+    Upload the image for the Mudra del Día. Only updates mudra_image_url.
+    Uses R2 object storage for image uploads.
+    """
+    existing = await db.daily_energy.find_one({"date": date})
+
+    if not existing:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No se encontró Energía del Día para la fecha {date}"
+        )
+
+    if not mudra_image:
+        raise HTTPException(status_code=400, detail="No hay imagen para subir")
+
+    allowed_types = ["image/jpeg", "image/png"]
+    content_type = mudra_image.content_type or ""
+
+    if content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tipo de archivo inválido. Solo se permiten imágenes JPEG/PNG. Recibido: {content_type}"
+        )
+
+    max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))  # 10MB
+    file_data = bytearray()
+
+    while chunk := await mudra_image.read(1024 * 1024):
+        file_data.extend(chunk)
+        if len(file_data) > max_upload_bytes:
+            raise HTTPException(status_code=413, detail="Imagen excede el límite de tamaño (10MB)")
+
+    if not file_data:
+        raise HTTPException(status_code=400, detail="Imagen vacía")
+
+    extension = Path(mudra_image.filename or "upload").suffix.lower()
+    if not extension:
+        extension = ".jpg"
+    storage_path = f"metaqi-academy/mudra/{date}/{uuid.uuid4().hex}{extension}"
+
+    try:
+        import asyncio
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as executor:
+            result = await loop.run_in_executor(
+                executor,
+                put_object,
+                storage_path,
+                bytes(file_data),
+                content_type
+            )
+        mudra_image_url = f"/api/storage/objects/{storage_path}"
+    except Exception as e:
+        logger.error(f"Storage upload failed: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Error al subir imagen: {str(e)}"
+        )
+
+    await db.daily_energy.update_one(
+        {"date": date},
+        {"$set": {"mudra_image_url": mudra_image_url}}
+    )
+
+    return {
+        "message": "Imagen del Mudra actualizada correctamente",
+        "mudra_image_url": mudra_image_url,
     }
 
 
@@ -1696,7 +1772,7 @@ async def update_concept(
     concept_data: ConceptCreate,
     current_user: dict = Depends(get_current_admin_user)
 ):
-    """Update an existing concept (BaZi, Qi Men, TongShu, etc.)"""
+    """Update an existing concept (BaZi, Qimen, TongShu, etc.)"""
     # Find the existing concept
     existing = await db.concepts.find_one({"id": concept_id})
     if not existing:

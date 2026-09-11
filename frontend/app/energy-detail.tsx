@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -22,11 +21,8 @@ import api from '@/src/services/api';
 import FavoriteButton from '@/src/components/FavoriteButton';
 import ZodiacEmblem from '@/src/components/ZodiacEmblem';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
-import { ZodiacAnimalKey, ElementKey } from '@/src/constants/Zodiac';
+import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
-import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
-// TEMP: AdMob disabled for Expo Go testing (needs a dev build).
-// import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
 interface DailyEnergy {
   id: string;
@@ -45,17 +41,11 @@ interface DailyEnergy {
   qimen_directions: string[];
   favorable_hours: string[];
   travel_hours: string[];
-  activations?: string;
-  activations_en?: string;
-  activations_fr?: string;
-  activations_de?: string;
-  activations_ro?: string;
-  activations_image_url?: string;
-  activations_video_url?: string;
-  activations_locked?: boolean;
+  mudra_text?: string;
+  mudra_image_url?: string;
 }
 
-type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | 'activations' | null;
+type ModalType = 'hours' | 'travel' | 'activities' | 'avoid' | 'bazi' | 'fengshui' | 'qimen' | 'mudra' | null;
 
 export default function EnergyDetailScreen() {
   const router = useRouter();
@@ -117,7 +107,7 @@ export default function EnergyDetailScreen() {
   const buttons = [
     { id: 'hours', label: t('daily.favorable_hours'), icon: 'clock-outline', color: Colors.accent },
     { id: 'travel', label: t('daily.travel'), icon: 'airplane', color: Colors.primary },
-    { id: 'activations', label: t('common.activations'), icon: 'star-outline', color: Colors.accent },
+    { id: 'mudra', label: t('daily.mudra'), icon: 'hand-back-right-outline', color: Colors.accent },
     { id: 'activities', label: t('daily.activities'), icon: 'check-circle-outline', color: Colors.jade },
     { id: 'avoid', label: t('daily.to_avoid'), icon: 'close-circle-outline', color: Colors.error },
     { id: 'bazi', label: t('daily.bazi'), icon: 'yin-yang', color: Colors.accent },
@@ -173,77 +163,32 @@ export default function EnergyDetailScreen() {
           </View>
         );
 
-      case 'activations':
-        // Get translated activations based on language
-        const getActivationsText = () => {
-          if (language === 'en' && data.activations_en) return data.activations_en;
-          if (language === 'fr' && data.activations_fr) return data.activations_fr;
-          if (language === 'de' && data.activations_de) return data.activations_de;
-          if (language === 'ro' && data.activations_ro) return data.activations_ro;
-          return data.activations || '';
-        };
-
+      case 'mudra':
         return (
           <View>
             <View style={styles.modalHeader}>
-              <MaterialCommunityIcons name="star-outline" size={28} color={Colors.accent} />
+              <MaterialCommunityIcons name="hand-back-right-outline" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>
-                {t('common.activations')}
+                {t('daily.mudra')}
               </Text>
             </View>
 
-            {data.activations_locked ? (
-              <View style={styles.lockedContainer}>
-                <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
-                <Text style={styles.lockedText}>
-                  {t('ads.activations_locked').replace('{price}', SUBSCRIPTION_MONTHLY_PRICE)}
-                </Text>
-                {/* TEMP: <RewardedAccessButton onUnlocked={load} /> disabled for Expo Go testing */}
-              </View>
+            {data.mudra_text ? (
+              <Text style={styles.modalParagraphText}>{data.mudra_text}</Text>
             ) : (
-              <>
-                <View style={styles.freeBanner}>
-                  <MaterialCommunityIcons name="gift-outline" size={24} color={Colors.accent} />
-                  <Text style={styles.freeBannerText}>{t('home.included_in_subscription')}</Text>
-                </View>
-                {getActivationsText() ? (
-                  <Text style={styles.modalParagraphText}>{getActivationsText()}</Text>
-                ) : (
-                  <Text style={styles.modalEmptyText}>
-                    {t('common.no_info_available')}
-                  </Text>
-                )}
+              <Text style={styles.modalEmptyText}>
+                {t('common.no_info_available')}
+              </Text>
+            )}
 
-                {/* Activations Image */}
-                {data.activations_image_url && (
-                  <View style={styles.activationsImageContainer}>
-                    <Image
-                      source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }}
-                      style={styles.activationsImage}
-                      resizeMode="cover"
-                    />
-                  </View>
-                )}
-
-                {/* Activations Video Link */}
-                {data.activations_video_url && (
-                  <TouchableOpacity
-                    style={styles.videoLinkButton}
-                    onPress={() => {
-                      if (data.activations_video_url) {
-                        Linking.openURL(data.activations_video_url).catch(err =>
-                          console.error('Error opening video URL:', err)
-                        );
-                      }
-                    }}
-                  >
-                    <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
-                    <Text style={styles.videoLinkText}>
-                      {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : language === 'pt' ? 'Ver Vídeo' : 'Vizionează Video'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </>
+            {data.mudra_image_url && (
+              <View style={styles.activationsImageContainer}>
+                <Image
+                  source={{ uri: toAbsoluteMediaUrl(data.mudra_image_url) }}
+                  style={styles.activationsImage}
+                  resizeMode="cover"
+                />
+              </View>
             )}
           </View>
         );
@@ -300,6 +245,7 @@ export default function EnergyDetailScreen() {
               <Text style={styles.modalTitle}>{t('daily.bazi')}</Text>
             </View>
             <Text style={styles.modalSubtitle}>{t('daily.bazi_relationships')}</Text>
+            <Text style={styles.modalTikTokNote}>{t('daily.bazi_tiktok_note')}</Text>
             {data.bazi_relationships ? (
               <Text style={styles.modalDescription}>{data.bazi_relationships}</Text>
             ) : (
@@ -435,6 +381,13 @@ export default function EnergyDetailScreen() {
                 </Text>
               </View>
               <Text style={styles.dayTitle} numberOfLines={3}>{data.title}</Text>
+              {data.animal_type && data.element ? (
+                <Text style={[styles.animalRowText, styles.elementRowText]}>
+                  {t('home.element_of_day')}: <Text style={styles.animalRowName}>
+                    {t(`zodiac.elements.${data.element}`)} {t(`zodiac.${animalPolarity(data.animal_type)}`)}
+                  </Text>
+                </Text>
+              ) : null}
               {data.animal ? (
                 <View style={styles.animalRow}>
                   {data.animal_type ? (
@@ -443,7 +396,9 @@ export default function EnergyDetailScreen() {
                     <MaterialCommunityIcons name="paw" size={16} color={Colors.accent} />
                   )}
                   <Text style={styles.animalRowText}>
-                    {t('home.animal_of_day')}: <Text style={styles.animalRowName}>{data.animal}</Text>
+                    {t('home.animal_of_day')}: <Text style={styles.animalRowName}>
+                      {data.animal_type ? t(`zodiac.animals.${data.animal_type}`) : data.animal}
+                    </Text>
                   </Text>
                 </View>
               ) : null}
@@ -489,11 +444,6 @@ export default function EnergyDetailScreen() {
               >
                 <View style={[styles.gridButtonIconContainer, { backgroundColor: btn.color + '20' }]}>
                   <MaterialCommunityIcons name={btn.icon as any} size={26} color={btn.color} />
-                  {btn.id === 'activations' && data?.activations_locked && (
-                    <View style={styles.gridButtonLockBadge}>
-                      <MaterialCommunityIcons name="lock" size={11} color={Colors.white} />
-                    </View>
-                  )}
                 </View>
                 <Text style={styles.gridButtonLabel}>{btn.label}</Text>
               </TouchableOpacity>
@@ -644,6 +594,9 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
+  elementRowText: {
+    marginBottom: Spacing.xs,
+  },
   animalRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -742,46 +695,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xs,
   },
-  gridButtonLockBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.textSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.card,
-  },
-  freeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.accent + '20',
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  freeBannerText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.accent,
-    flex: 1,
-  },
-  lockedContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  lockedText: {
-    fontFamily: Typography.sans,
-    fontSize: Typography.sm,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xs,
-  },
   gridButtonLabel: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.xs,
@@ -873,6 +786,14 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
   },
+  modalTikTokNote: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    fontStyle: 'italic',
+    color: Colors.textLight,
+    marginBottom: Spacing.md,
+    lineHeight: 16,
+  },
   modalListItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -929,21 +850,5 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: BorderRadius.md,
-  },
-  videoLinkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.error,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.md,
-  },
-  videoLinkText: {
-    fontFamily: Typography.sansSemiBold,
-    fontSize: Typography.base,
-    color: Colors.white,
   },
 });

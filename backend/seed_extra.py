@@ -35,11 +35,11 @@ async def seed_extra():
             {
                 "id": str(uuid.uuid4()),
                 "slug": "qi-men",
-                "title": "¿Qué es Qi Men Dun Jia?",
-                "title_en": "What is Qi Men Dun Jia?",
+                "title": "¿Qué es Qimen Dun Jia?",
+                "title_en": "What is Qimen Dun Jia?",
                 "title_zh": "什么是奇门遁甲？",
                 "short_description": "El arte estratégico usado por generales chinos. Toma decisiones importantes con la máxima precisión energética.",
-                "full_description": "Qi Men Dun Jia (奇门遁甲) es el sistema chino de estrategia y predicción más sofisticado. Utilizado por generales y emperadores, permite conocer el momento óptimo y la dirección favorable para cualquier acción importante.",
+                "full_description": "Qimen Dun Jia (奇门遁甲) es el sistema chino de estrategia y predicción más sofisticado. Utilizado por generales y emperadores, permite conocer el momento óptimo y la dirección favorable para cualquier acción importante.",
                 "icon": "compass",
                 "color": "#C8A24A",
                 "order": 2
@@ -75,7 +75,7 @@ async def seed_extra():
                 "title_en": "What are Activations?",
                 "title_zh": "什么是激活？",
                 "short_description": "Técnicas específicas para potenciar áreas de tu vida: amor, dinero, salud, éxito profesional.",
-                "full_description": "Las activaciones son técnicas de Feng Shui y Qi Men que potencian sectores energéticos específicos de tu espacio en momentos precisos, para atraer resultados concretos en áreas como amor, riqueza o carrera.",
+                "full_description": "Las activaciones son técnicas de Feng Shui y Qimen que potencian sectores energéticos específicos de tu espacio en momentos precisos, para atraer resultados concretos en áreas como amor, riqueza o carrera.",
                 "icon": "flash",
                 "color": "#C8A24A",
                 "order": 5

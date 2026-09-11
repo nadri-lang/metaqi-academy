@@ -171,6 +171,8 @@ class DailyEnergy(BaseModel):
     activations_image_url: Optional[str] = None  # Image URL for activations (JPEG/PNG)
     activations_video_url: Optional[str] = None  # Video URL for activations (YouTube/Vimeo)
     activations_locked: bool = False  # True when the caller has no premium/temp access - activations fields are blanked
+    mudra_text: Optional[str] = None  # Mudra del Día explanation text
+    mudra_image_url: Optional[str] = None  # Image URL for the mudra (JPEG/PNG)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DailyEnergyCreate(BaseModel):
@@ -194,6 +196,8 @@ class DailyEnergyCreate(BaseModel):
     activations: Optional[str] = None  # Daily activations text
     activations_image_url: Optional[str] = None  # Image URL for activations
     activations_video_url: Optional[str] = None  # Video URL for activations
+    mudra_text: Optional[str] = None  # Mudra del Día explanation text
+    mudra_image_url: Optional[str] = None  # Image URL for the mudra
 
     @validator('date')
     def validate_date_format(cls, v):
@@ -515,9 +519,11 @@ class MonthEnergy(BaseModel):
     title_en: Optional[str] = None
     content: str  # General description of the month's energy
     content_en: Optional[str] = None
+    animal_type: Optional[str] = None  # structured key: rat/ox/tiger/.../pig - month's zodiac animal
+    element: Optional[str] = None  # structured key: wood/fire/earth/metal/water - month's element
     bazi_influences: Optional[str] = None  # Influencias BaZi
     bazi_influences_en: Optional[str] = None
-    qimen_strategies: Optional[str] = None  # Estrategias QiMen
+    qimen_strategies: Optional[str] = None  # Estrategias Qimen
     qimen_strategies_en: Optional[str] = None
     feng_shui: Optional[str] = None  # Feng Shui del mes
     feng_shui_en: Optional[str] = None
@@ -534,6 +540,8 @@ class MonthEnergyCreate(BaseModel):
     title_en: Optional[str] = None
     content: str
     content_en: Optional[str] = None
+    animal_type: Optional[str] = None
+    element: Optional[str] = None
     bazi_influences: Optional[str] = None
     bazi_influences_en: Optional[str] = None
     qimen_strategies: Optional[str] = None
@@ -556,6 +564,8 @@ class YearEnergy(BaseModel):
     content: str  # Short description of year trends
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
+    animal_type: Optional[str] = None  # structured key: rat/ox/tiger/.../pig - year's zodiac animal
+    element: Optional[str] = None  # structured key: wood/fire/earth/metal/water - year's element
     video_url: Optional[str] = None  # YouTube link
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -567,6 +577,8 @@ class YearEnergyCreate(BaseModel):
     content: str
     content_en: Optional[str] = None
     content_zh: Optional[str] = None
+    animal_type: Optional[str] = None
+    element: Optional[str] = None
     video_url: Optional[str] = None
 
 # Newborn Vocation Daily (Free general content)
@@ -595,7 +607,7 @@ class NewbornVocationCreate(BaseModel):
     def validate_date_format(cls, v):
         return validate_iso_date(v)
 
-# Concept Cards (Home intro - What is BaZi, Qi Men, etc)
+# Concept Cards (Home intro - What is BaZi, Qimen, etc)
 class Concept(BaseModel):
     id: str
     slug: str  # bazi, qi-men, feng-shui, tongshu, activations, remedies
@@ -799,8 +811,8 @@ class AppConfig(BaseModel):
     # Wedding Agenda 2027 - Promotional Texts
     agenda_2027_title_es: str = "AGENDA DE BODAS 2027"
     agenda_2027_title_en: str = "WEDDING AGENDA 2027"
-    agenda_2027_description_es: str = "Se muestran solo los mejores días para bodas, ceremonias y pedidas de mano, evaluados según Feng Shui, BaZi y Qi Men Dun Jia."
-    agenda_2027_description_en: str = "Only the best days for weddings, ceremonies and marriage proposals are shown, evaluated according to Feng Shui, BaZi and Qi Men Dun Jia."
+    agenda_2027_description_es: str = "Se muestran solo los mejores días para bodas, ceremonias y pedidas de mano, evaluados según Feng Shui, BaZi y Qimen Dun Jia."
+    agenda_2027_description_en: str = "Only the best days for weddings, ceremonies and marriage proposals are shown, evaluated according to Feng Shui, BaZi and Qimen Dun Jia."
 
     # Personal journal - external calculator links (admin-configured, same for everyone)
     bazi_calculator_url: Optional[str] = None
