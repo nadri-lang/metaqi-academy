@@ -1,25 +1,22 @@
-import smtplib
 import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import httpx
 from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
+RESEND_API_URL = "https://api.resend.com/emails"
+
 class EmailService:
     def __init__(self):
-        self.smtp_host = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-        self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        self.smtp_user = os.getenv('SMTP_USER', '')
-        self.smtp_password = os.getenv('SMTP_PASSWORD', '')
-        self.from_email = os.getenv('SMTP_FROM_EMAIL', 'noreply@metaqi.com')
+        self.api_key = os.getenv('RESEND_API_KEY', '')
+        self.from_email = os.getenv('RESEND_FROM_EMAIL', 'noreply@metaqi.com')
         self.from_name = os.getenv('SMTP_FROM_NAME', 'MetaQi Academy')
-        self.enabled = bool(self.smtp_user and self.smtp_password)
-        
+        self.enabled = bool(self.api_key)
+
         if not self.enabled:
-            logger.warning("Email service not configured - SMTP credentials missing")
-    
+            logger.warning("Email service not configured - RESEND_API_KEY missing")
+
     async def send_email(
         self,
         to_email: str,
@@ -27,40 +24,44 @@ class EmailService:
         html_content: str,
         plain_content: Optional[str] = None
     ) -> bool:
-        """Send an email via SMTP"""
+        """Send an email via Resend"""
         if not self.enabled:
             logger.error(f"Cannot send email to {to_email} - Email service not configured")
             return False
-        
+
+        payload = {
+            "from": f"{self.from_name} <{self.from_email}>",
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content,
+        }
+        if plain_content:
+            payload["text"] = plain_content
+
         try:
-            # Create message
-            message = MIMEMultipart('alternative')
-            message['Subject'] = subject
-            message['From'] = f"{self.from_name} <{self.from_email}>"
-            message['To'] = to_email
-            
-            # Add plain text part if provided
-            if plain_content:
-                part1 = MIMEText(plain_content, 'plain', 'utf-8')
-                message.attach(part1)
-            
-            # Add HTML part
-            part2 = MIMEText(html_content, 'html', 'utf-8')
-            message.attach(part2)
-            
-            # Send email
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.smtp_user, self.smtp_password)
-                server.send_message(message)
-            
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    RESEND_API_URL,
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+
+            if response.status_code >= 400:
+                logger.error(
+                    f"Failed to send email to {to_email}: {response.status_code} {response.text}"
+                )
+                return False
+
             logger.info(f"Email sent successfully to {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
-    
+
     async def send_password_reset_email(
         self,
         to_email: str,
@@ -71,7 +72,7 @@ class EmailService:
         """Send password reset email with token link"""
         frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:8081')
         reset_link = f"{frontend_url}/reset-password?token={reset_token}"
-        
+
         # Spanish content
         if language == 'es':
             subject = "Restablece tu contraseña - MetaQi Academy"
@@ -125,16 +126,16 @@ class EmailService:
             """
             plain_content = f"""
             Hola {user_name},
-            
+
             Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
-            
+
             Para crear una nueva contraseña, visita el siguiente enlace:
             {reset_link}
-            
+
             Este enlace expirará en 1 hora.
-            
+
             Si no solicitaste este cambio, puedes ignorar este correo.
-            
+
             ---
             MetaQi Academy
             """
@@ -191,20 +192,20 @@ class EmailService:
             """
             plain_content = f"""
             Hi {user_name},
-            
+
             We received a request to reset your account password.
-            
+
             To create a new password, visit this link:
             {reset_link}
-            
+
             This link will expire in 1 hour.
-            
+
             If you didn't request this change, you can safely ignore this email.
-            
+
             ---
             MetaQi Academy
             """
-        
+
         return await self.send_email(to_email, subject, html_content, plain_content)
 
 # Singleton instance
