@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "MetaQi Academy",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,6 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/monochrome-icon.png",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
@@ -45,6 +46,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1f533315-f0c4-49e5-8548-3166d338c05c"
     },
     "extra": {
       "router": {},
