@@ -192,8 +192,6 @@ export default {
     benefit_progress_desc: 'Accesează ghidurile și conținutul achiziționat',
     benefit_services: 'Servicii Personalizate',
     benefit_services_desc: 'Solicită lecturi BaZi, Qimen, ritualuri',
-    benefit_premium: 'Conținut Premium',
-    benefit_premium_desc: 'Acces la agende și ghiduri exclusive',
     faq: 'Întrebări Frecvente',
     contact: 'Contact',
     privacy_policy: 'Politica de confidențialitate',

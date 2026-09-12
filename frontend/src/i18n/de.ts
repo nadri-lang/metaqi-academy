@@ -192,8 +192,6 @@ export default {
     benefit_progress_desc: 'Zugriff auf Ihre gekauften Anleitungen und Inhalte',
     benefit_services: 'Personalisierte Dienstleistungen',
     benefit_services_desc: 'BaZi, Qimen Lesungen, Rituale anfragen',
-    benefit_premium: 'Premium-Inhalte',
-    benefit_premium_desc: 'Zugriff auf exklusive Kalender und Anleitungen',
     faq: 'FAQ',
     contact: 'Kontakt',
     privacy_policy: 'Datenschutzerklärung',

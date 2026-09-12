@@ -219,14 +219,6 @@ export default function ProfileScreen() {
                 <Text style={styles.benefitDesc}>{t('profile.benefit_services_desc')}</Text>
               </View>
             </View>
-
-            <View style={styles.benefitItem}>
-              <MaterialCommunityIcons name="star" size={20} color={Colors.accent} />
-              <View style={styles.benefitTextContainer}>
-                <Text style={styles.benefitLabel}>{t('profile.benefit_premium')}</Text>
-                <Text style={styles.benefitDesc}>{t('profile.benefit_premium_desc')}</Text>
-              </View>
-            </View>
           </View>
 
           {/* Info Section */}

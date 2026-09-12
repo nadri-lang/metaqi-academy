@@ -192,8 +192,6 @@ export default {
     benefit_progress_desc: 'Accede a tus guías y contenido comprado',
     benefit_services: 'Servicios Personalizados',
     benefit_services_desc: 'Solicita lecturas BaZi, Qimen, rituales',
-    benefit_premium: 'Contenido Premium',
-    benefit_premium_desc: 'Accede a agendas y guías exclusivas',
     faq: 'Preguntas Frecuentes',
     contact: 'Contacto',
     privacy_policy: 'Política de Privacidad',
