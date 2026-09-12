@@ -333,9 +333,7 @@ export default {
     gua_number_desc: 'Descoperă Numărul tău Personal Gua și învață să folosești direcțiile tale favorabile pentru a potenția sănătatea, relațiile, prosperitatea și succesul.',
     iching_basic_title: 'Ghid de Bază I Ching – Oracolul Înțelepciunii',
     iching_basic_desc: 'Învață să consulți și să interpretezi I Ching pentru a înțelege situațiile din viața ta, să iei decizii mai bune și să găsești orientarea potrivită în fiecare moment.',
-    whatsapp_message: 'Bună, sunt interesat de acest ghid: {course}. Puteți trimite programa, vă rog? Aș dori să știu conținutul înainte de înscriere. Mulțumesc mult.',
-    payment_notice: 'Odată confirmată plata, ghidul va fi activat în secțiunea "Achizițiile Mele" cu acces la videoul ghidului.',
-    request_info_whatsapp: 'Solicită Informații / Cumpără prin WhatsApp',
+    buy_coming_soon: 'În curând! Vei putea cumpăra direct din aplicație.',
   },
   agendas: {
     label: 'Planifică',

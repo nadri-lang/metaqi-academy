@@ -333,9 +333,7 @@ export default {
     gua_number_desc: 'Découvrez votre Numéro Personnel Gua et apprenez à utiliser vos directions favorables pour améliorer la santé, les relations, la prospérité et le succès.',
     iching_basic_title: 'Guide de Base I Ching – L\'Oracle de la Sagesse',
     iching_basic_desc: 'Apprenez à consulter et interpréter le I Ching pour comprendre les situations de votre vie, prendre de meilleures décisions et trouver l\'orientation appropriée à chaque moment.',
-    whatsapp_message: 'Bonjour, je suis intéressé par ce guide: {course}. Pourriez-vous m\'envoyer le programme, s\'il vous plaît? J\'aimerais connaître le contenu avant de m\'inscrire. Merci beaucoup.',
-    payment_notice: 'Une fois le paiement confirmé, le guide sera activé dans votre section "Mes Achats" avec accès à la vidéo du guide.',
-    request_info_whatsapp: 'Demander des Informations / Acheter via WhatsApp',
+    buy_coming_soon: 'Bientôt disponible ! Tu pourras acheter directement depuis l\'application.',
   },
   agendas: {
     label: 'Planifier',

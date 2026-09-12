@@ -333,9 +333,7 @@ export default {
     gua_number_desc: 'Descobre o teu Número Pessoal Gua e aprende a usar as tuas direções favoráveis para potenciar a saúde, as relações, a prosperidade e o sucesso.',
     iching_basic_title: 'Guia Básica I Ching – O Oráculo da Sabedoria',
     iching_basic_desc: 'Aprende a consultar e interpretar o I Ching para compreender as situações da tua vida, tomar melhores decisões e encontrar a orientação mais adequada em cada momento.',
-    whatsapp_message: 'Olá, interessa-me esta guia: {course}. Podem enviar-me o programa, por favor? Gostaria de conhecer os conteúdos antes de me inscrever. Muito obrigado(a).',
-    payment_notice: 'Assim que o pagamento for confirmado, a guia será ativada na tua secção "As Minhas Compras" com acesso ao vídeo da guia.',
-    request_info_whatsapp: 'Solicitar Informação / Comprar por WhatsApp',
+    buy_coming_soon: 'Muito em breve! Vais poder comprar diretamente a partir da app.',
   },
   agendas: {
     label: 'Planeia',

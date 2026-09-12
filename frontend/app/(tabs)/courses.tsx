@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -16,7 +16,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLanguage } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
 import { BaziPillarsIcon, FiveElementsIcon, GuaIcon } from '@/src/components/CourseIcons';
-import api from '@/src/services/api';
 
 interface Course {
   id: string;
@@ -88,25 +87,11 @@ export default function CoursesScreen() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const isAdmin = user?.role === 'admin';
 
-  const handleWhatsAppContact = (courseTitleKey: string) => {
-    const courseTitle = t(courseTitleKey);
-    const message = t('courses.whatsapp_message').replace('{course}', courseTitle);
-
-    // Best-effort: let the admin see this interest in "Solicitudes Pendientes"
-    // right away. These are the static catalog entries, not real backend
-    // Service records, so they're tagged with a synthetic id + type:'guide'.
-    if (user) {
-      api.post('/service-requests', {
-        service_id: `guide-${selectedCourse?.id ?? ''}`,
-        form_data: { source: 'whatsapp_button', type: 'guide', guide_title: courseTitle },
-      }).catch((error) => {
-        console.error('Error recording guide request:', error);
-      });
-    }
-
-    // Get WhatsApp from app config (hardcoded for now, can be loaded from API)
-    const whatsapp = '34640510085';
-    Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
+  const handleBuyCourse = (courseTitleKey: string) => {
+    // No in-app checkout yet - external WhatsApp payment for this kind of
+    // in-app digital content isn't Play Billing compliant (see the Wedding
+    // Agenda 2027 screen, fixed the same way).
+    Alert.alert(t(courseTitleKey), t('courses.buy_coming_soon'));
   };
 
   return (
@@ -203,26 +188,17 @@ export default function CoursesScreen() {
                     
                     <Text style={styles.modalDescription}>{t(selectedCourse.descriptionKey)}</Text>
 
-                    {/* Notice */}
-                    <View style={styles.noticeCard}>
-                      <MaterialCommunityIcons name="information" size={24} color={Colors.accent} />
-                      <Text style={styles.noticeText}>
-                        {t('courses.payment_notice')}
-                      </Text>
-                    </View>
-
-                    {/* WhatsApp Contact Button */}
+                    {/* Buy Button */}
                     <TouchableOpacity
                       style={styles.whatsappButton}
                       onPress={() => {
-                        handleWhatsAppContact(selectedCourse.titleKey);
-                        setSelectedCourse(null);
+                        handleBuyCourse(selectedCourse.titleKey);
                       }}
                       activeOpacity={0.85}
                     >
-                      <MaterialCommunityIcons name="whatsapp" size={24} color={Colors.white} />
+                      <MaterialCommunityIcons name="star" size={24} color={Colors.white} />
                       <Text style={styles.whatsappButtonText}>
-                        {t('courses.request_info_whatsapp')}
+                        {t('courses.buy_coming_soon')}
                       </Text>
                     </TouchableOpacity>
 
@@ -403,23 +379,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 26,
     marginBottom: Spacing.lg,
-  },
-  noticeCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.accent + '10',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.accent + '30',
-    padding: Spacing.md,
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  noticeText: {
-    flex: 1,
-    fontFamily: Typography.sans,
-    fontSize: Typography.sm,
-    color: Colors.textPrimary,
-    lineHeight: 20,
   },
   whatsappButton: {
     flexDirection: 'row',

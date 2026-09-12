@@ -333,9 +333,7 @@ export default {
     gua_number_desc: 'Entdecken Sie Ihre persönliche Gua-Nummer und lernen Sie, Ihre günstigen Richtungen zu nutzen, um Gesundheit, Beziehungen, Wohlstand und Erfolg zu verbessern.',
     iching_basic_title: 'Basis-Anleitung I Ging – Das Orakel der Weisheit',
     iching_basic_desc: 'Lernen Sie, das I Ging zu konsultieren und zu interpretieren, um die Situationen Ihres Lebens zu verstehen, bessere Entscheidungen zu treffen und die passende Orientierung in jedem Moment zu finden.',
-    whatsapp_message: 'Hallo, ich interessiere mich für diese Anleitung: {course}. Könnten Sie mir das Programm zusenden? Ich möchte den Inhalt vor der Anmeldung kennen. Vielen Dank.',
-    payment_notice: 'Sobald die Zahlung bestätigt ist, wird die Anleitung in Ihrem Bereich "Meine Käufe" mit Zugriff auf das Anleitungsvideo aktiviert.',
-    request_info_whatsapp: 'Informationen Anfordern / Über WhatsApp Kaufen',
+    buy_coming_soon: 'Bald verfügbar! Du wirst direkt in der App kaufen können.',
   },
   agendas: {
     label: 'Planen',

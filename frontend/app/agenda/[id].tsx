@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -89,12 +89,10 @@ export default function AgendaDetailScreen() {
       router.push('/(auth)/login');
       return;
     }
-    // There's no in-app checkout yet (same as guides/services) - purchases
-    // are arranged over WhatsApp and activated manually once paid.
-    if (!agenda) return;
-    const message = `Hola, me interesa comprar la agenda: ${agenda.title}. ¿Podríais enviarme la información de pago, por favor? Muchas gracias.`;
-    const whatsapp = '34640510085';
-    Linking.openURL(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`);
+    // No in-app checkout yet - external WhatsApp payment for this kind of
+    // in-app digital content isn't Play Billing compliant (see the Wedding
+    // Agenda 2027 screen, fixed the same way).
+    Alert.alert('Agenda Premium', '¡Muy pronto! Podrás comprar directamente desde la app.');
   };
 
   if (loading) {
@@ -243,9 +241,9 @@ export default function AgendaDetailScreen() {
             style={styles.purchaseButton}
             onPress={handlePurchase}
           >
-            <MaterialCommunityIcons name="whatsapp" size={20} color={Colors.primary} />
+            <MaterialCommunityIcons name="star" size={20} color={Colors.primary} />
             <Text style={styles.purchaseText}>
-              Comprar por €{agenda.price.toFixed(0)} (WhatsApp)
+              Comprar por €{agenda.price.toFixed(0)}
             </Text>
           </TouchableOpacity>
         </View>

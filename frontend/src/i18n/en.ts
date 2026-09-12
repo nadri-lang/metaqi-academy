@@ -333,9 +333,7 @@ export default {
     gua_number_desc: 'Discover your Personal Gua Number and learn to use your favorable directions to enhance health, relationships, prosperity and success.',
     iching_basic_title: 'Basic I Ching Guide – The Oracle of Wisdom',
     iching_basic_desc: 'Learn to consult and interpret the I Ching to understand your life situations, make better decisions and find the most appropriate guidance at each moment.',
-    whatsapp_message: 'Hello, I\'m interested in this guide: {course}. Could you send me the syllabus, please? I would like to know the contents before enrolling. Thank you very much.',
-    payment_notice: 'Once payment is confirmed, the guide will be activated in your "My Purchases" section with access to the guide video.',
-    request_info_whatsapp: 'Request Information / Buy via WhatsApp',
+    buy_coming_soon: 'Coming soon! You will be able to buy directly from the app.',
   },
   agendas: {
     label: 'Plan',
