@@ -29,6 +29,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,6 +99,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const deleteAccount = async () => {
+    try {
+      await api.delete('/auth/account');
+    } catch (error: any) {
+      throw new Error(error.response?.data?.detail || 'No se pudo eliminar la cuenta');
+    }
+    await storage.secureRemove('auth_token');
+    setUser(null);
+  };
+
   const refreshUser = async () => {
     try {
       const response = await api.get('/auth/me');
@@ -108,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, refreshUser, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

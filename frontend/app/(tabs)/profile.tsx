@@ -30,10 +30,11 @@ interface SocialLinks {
 }
 
 export default function ProfileScreen() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, deleteAccount } = useAuth();
   const { t, language } = useLanguage();
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [contactModalVisible, setContactModalVisible] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
@@ -49,6 +50,24 @@ export default function ProfileScreen() {
     const confirmed = await confirmAsync(t('common.logout'), t('profile.logout_confirm'), t('common.logout'));
     if (!confirmed) return;
     await logout();
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = await confirmAsync(
+      t('profile.delete_account_confirm_title'),
+      t('profile.delete_account_confirm_message'),
+      t('profile.delete_account_button'),
+    );
+    if (!confirmed) return;
+
+    setDeletingAccount(true);
+    try {
+      await deleteAccount();
+    } catch (error: any) {
+      Alert.alert(t('common.error'), error.message || t('profile.delete_account_error'));
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const openInApp = (url?: string, title?: string) => {
@@ -435,6 +454,17 @@ export default function ProfileScreen() {
           <MaterialCommunityIcons name="logout" size={20} color={Colors.error} />
           <Text style={styles.logoutText}>{t('common.logout')}</Text>
         </TouchableOpacity>
+
+        {user.role !== 'admin' && user.role !== 'editor' && (
+          <TouchableOpacity
+            testID="delete-account-btn"
+            style={[styles.deleteAccountButton, deletingAccount && styles.saveButtonDisabled]}
+            onPress={handleDeleteAccount}
+            disabled={deletingAccount}
+          >
+            <Text style={styles.deleteAccountText}>{t('profile.delete_account_button')}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       {contactModal}
     </View>
@@ -747,6 +777,17 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.error,
+  },
+  deleteAccountButton: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  deleteAccountText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textLight,
+    textDecorationLine: 'underline',
   },
   adminButton: {
     borderRadius: BorderRadius.xl,

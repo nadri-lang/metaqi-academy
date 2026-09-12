@@ -458,6 +458,38 @@ async def request_subscription_cancellation(current_user: dict = Depends(get_cur
     return UserResponse(**updated)
 
 
+@api_router.delete("/auth/account")
+async def delete_own_account(current_user: dict = Depends(get_current_user)):
+    """
+    Self-service account deletion (Google Play "account and data deletion"
+    requirement). Removes the user and everything tied to their user_id.
+    Admin/editor accounts are blocked here since there's no public registration -
+    losing the only admin account this way would lock out the CMS entirely;
+    those are removed via /admin/users/{id} by another admin instead.
+    """
+    if current_user.get("role") in ("admin", "editor"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Las cuentas de administrador no se pueden eliminar desde la app"
+        )
+
+    user_id = current_user["id"]
+    existing = await db.users.find_one({"id": user_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    for collection in [
+        db.favorites, db.course_progress, db.service_requests,
+        db.payments, db.purchases, db.bazi_reports, db.user_content,
+        db.user_sessions, db.user_journals, db.password_reset_tokens,
+    ]:
+        await collection.delete_many({"user_id": user_id})
+
+    await db.users.delete_one({"id": user_id})
+
+    return {"success": True, "message": "Cuenta eliminada correctamente"}
+
+
 # ============= PERSONAL JOURNAL ENDPOINTS (premium) =============
 
 @api_router.get("/journal/me")
@@ -3123,7 +3155,7 @@ async def delete_user_admin(
     for collection in [
         db.favorites, db.course_progress, db.service_requests,
         db.payments, db.purchases, db.bazi_reports, db.user_content,
-        db.user_sessions,
+        db.user_sessions, db.user_journals, db.password_reset_tokens,
     ]:
         await collection.delete_many({"user_id": user_id})
 
