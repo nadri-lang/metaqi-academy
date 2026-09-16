@@ -30,6 +30,7 @@ interface VocationData {
   talents: string[];
   vocations: string[];
   challenges: string[];
+  recommendations: string;
   created_at?: string;
 }
 
@@ -45,6 +46,7 @@ export default function AdminNewbornVocationScreen() {
   const [talents, setTalents] = useState('');
   const [vocations, setVocations] = useState('');
   const [challenges, setChallenges] = useState('');
+  const [recommendations, setRecommendations] = useState('');
   const [loading, setLoading] = useState(false);
   const [scheduledVocations, setScheduledVocations] = useState<VocationData[]>([]);
   const [loadingList, setLoadingList] = useState(false);
@@ -84,6 +86,7 @@ export default function AdminNewbornVocationScreen() {
     setTalents(vocation.talents?.join('\n') || '');
     setVocations(vocation.vocations?.join('\n') || '');
     setChallenges(vocation.challenges?.join('\n') || '');
+    setRecommendations(vocation.recommendations || '');
     setShowEditor(true);
   };
 
@@ -95,6 +98,7 @@ export default function AdminNewbornVocationScreen() {
     setTalents('');
     setVocations('');
     setChallenges('');
+    setRecommendations('');
     setShowEditor(true);
   };
 
@@ -107,6 +111,7 @@ export default function AdminNewbornVocationScreen() {
     setTalents('');
     setVocations('');
     setChallenges('');
+    setRecommendations('');
   };
 
   const handleDeleteVocation = async (vocation: VocationData) => {
@@ -149,6 +154,7 @@ export default function AdminNewbornVocationScreen() {
         talents: talents.split('\n').filter(t => t.trim()),
         vocations: vocations.split('\n').filter(v => v.trim()),
         challenges: challenges.split('\n').filter(c => c.trim()),
+        recommendations: recommendations.trim(),
       };
 
       // Tell the server whether this is meant to land on a new date or to
@@ -420,6 +426,23 @@ export default function AdminNewbornVocationScreen() {
                     value={challenges}
                     onChangeText={setChallenges}
                     placeholder="Timidez inicial&#10;Hipersensibilidad"
+                    placeholderTextColor={Colors.textLight}
+                    multiline
+                    textAlignVertical="top"
+                  />
+
+                  <Text style={styles.label}>Recomendaciones</Text>
+                  <Text style={styles.helperText}>
+                    Antes de este texto, la app siempre muestra un párrafo fijo explicando
+                    que estas actividades son para corregir áreas de mejora, no para
+                    potenciar talentos. Escribe aquí solo las actividades concretas.
+                  </Text>
+                  <TextInput
+                    testID="input-recommendations"
+                    style={[styles.input, styles.textArea]}
+                    value={recommendations}
+                    onChangeText={setRecommendations}
+                    placeholder="Actividades en equipo para trabajar la timidez&#10;Rutinas de lectura en voz alta..."
                     placeholderTextColor={Colors.textLight}
                     multiline
                     textAlignVertical="top"

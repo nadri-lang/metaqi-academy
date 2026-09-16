@@ -187,7 +187,13 @@ def compute_bazi_chart(
         adjusted_dt = _apply_true_solar_time(birth_dt, longitude)
         solar_time_adjusted = adjusted_dt != birth_dt
 
-    lunar = cnlunar.Lunar(adjusted_dt, godType="8char")
+    # year8Char="beginningOfSpring": BaZi's year pillar rolls over at Li Chun
+    # (立春, the "start of spring" solar term), not at Chinese New Year (the
+    # lunar calendar's civil year boundary, which cnlunar defaults to). The
+    # two disagree for the ~2-5 week window between Li Chun and the
+    # following lunar new year - e.g. births in early/mid February can fall
+    # on either side of Li Chun while still being in the "old" lunar year.
+    lunar = cnlunar.Lunar(adjusted_dt, godType="8char", year8Char="beginningOfSpring")
 
     year_pillar = _pillar_info(lunar.year8Char)
     month_pillar = _pillar_info(lunar.month8Char)

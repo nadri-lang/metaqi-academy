@@ -635,6 +635,7 @@ class NewbornVocation(BaseModel):
     talents: List[str] = []  # Spanish (default)
     vocations: List[str] = []  # Spanish (default)
     challenges: List[str] = []  # Spanish (default)
+    recommendations: str = ""  # Spanish (default) - free text, admin-authored, shown after the fixed intro
     translations: Optional[Dict[str, Dict[str, Any]]] = {}  # {'en': {'title': '...', 'content': '...', 'talents': [...], ...}}
     content_locked: bool = False  # True when the caller has no premium/temp access - content/talents/vocations are blanked
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -646,6 +647,7 @@ class NewbornVocationCreate(BaseModel):
     talents: List[str] = []
     vocations: List[str] = []
     challenges: List[str] = []
+    recommendations: str = ""
     translations: Optional[Dict[str, Dict[str, Any]]] = {}
     
     @validator('date')

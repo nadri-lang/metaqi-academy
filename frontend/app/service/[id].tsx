@@ -134,6 +134,24 @@ export default function ServiceDetailScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Calculator hint + concept explanation, for the Qimen consulting service */}
+        {service.title.toLowerCase().includes('qimen') && (
+          <View style={styles.introCard}>
+            <Text style={styles.introText}>
+              {t('qimen.calculator_hint_prefix')}
+              <Text
+                testID="qimen-calculator-link"
+                style={styles.introLink}
+                onPress={() => router.push('/calculator/qimen')}
+              >
+                {t('qimen.calculator_hint_link')}
+              </Text>
+              .
+            </Text>
+            <Text style={styles.introDescription}>{t('qimen.description_qimen')}</Text>
+          </View>
+        )}
+
         {/* Service Icon */}
         <View style={styles.iconContainer}>
           <LinearGradient colors={Gradients.navy} style={styles.iconGradient}>
@@ -248,6 +266,33 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.lg,
     alignItems: 'center',
+  },
+  introCard: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    padding: Spacing.lg,
+    width: '100%',
+    marginBottom: Spacing.lg,
+  },
+  introText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: Spacing.sm,
+  },
+  introLink: {
+    fontFamily: Typography.sansSemiBold,
+    color: Colors.accent,
+    textDecorationLine: 'underline',
+  },
+  introDescription: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textPrimary,
+    lineHeight: 22,
   },
   iconContainer: {
     marginBottom: Spacing.lg,

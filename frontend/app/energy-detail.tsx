@@ -253,6 +253,18 @@ export default function EnergyDetailScreen() {
                 {t('common.no_info_available')}
               </Text>
             )}
+            <TouchableOpacity
+              testID="bazi-learn-more-link"
+              style={styles.modalLearnMoreLink}
+              onPress={() => {
+                setActiveModal(null);
+                router.push('/concept/bazi');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_bazi')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
+            </TouchableOpacity>
           </View>
         );
 
@@ -299,6 +311,18 @@ export default function EnergyDetailScreen() {
                 {t('common.no_info_available')}
               </Text>
             )}
+            <TouchableOpacity
+              testID="qimen-learn-more-link"
+              style={styles.modalLearnMoreLink}
+              onPress={() => {
+                setActiveModal(null);
+                router.push('/concept/qi-men');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_strategies')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
+            </TouchableOpacity>
           </View>
         );
 
@@ -820,6 +844,22 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: Spacing.lg,
+  },
+  modalLearnMoreLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.cardBorder,
+  },
+  modalLearnMoreLinkText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    textDecorationLine: 'underline',
   },
   modalParagraphText: {
     fontFamily: Typography.sans,

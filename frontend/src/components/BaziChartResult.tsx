@@ -49,8 +49,6 @@ function PillarCard({ label, pillar }: { label: string; pillar: Pillar }) {
   return (
     <View style={styles.pillarCard}>
       <Text style={styles.pillarLabel}>{label}</Text>
-      <Text style={styles.pillarChars}>{pillar.stem.char}{pillar.branch.char}</Text>
-      <Text style={styles.pillarPinyin}>{pillar.stem.pinyin} {pillar.branch.pinyin}</Text>
       <View style={styles.pillarTagsRow}>
         <View style={[styles.elementDot, { backgroundColor: elementColor(pillar.stem.element) }]} />
         <Text style={styles.pillarTagText}>{t(`zodiac.elements.${pillar.stem.element}`)}</Text>
@@ -67,20 +65,16 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
   const { t } = useLanguage();
   const { day_master, pillars, five_elements, da_yun, solar_time_adjusted, adjusted_birth_datetime } = data;
 
-  const startAgeLabel = da_yun.start_age_months > 0
-    ? `${da_yun.start_age_years} ${t('calculator.years_label')}, ${da_yun.start_age_months} ${t('calculator.months_label')}`
-    : `${da_yun.start_age_years} ${t('calculator.years_label')}`;
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('calculator.result_title')}</Text>
 
       <View style={styles.dayMasterCard}>
-        <Text style={styles.dayMasterChar}>{day_master.char}</Text>
+        <View style={[styles.elementDot, { width: 16, height: 16, borderRadius: 8, backgroundColor: elementColor(day_master.element) }]} />
         <View>
           <Text style={styles.dayMasterLabel}>{t('calculator.day_master_label')}</Text>
           <Text style={styles.dayMasterSub}>
-            {day_master.pinyin} · {t(`zodiac.elements.${day_master.element}`)} · {t(`zodiac.${day_master.yin_yang}`)}
+            {t(`zodiac.elements.${day_master.element}`)} · {t(`zodiac.${day_master.yin_yang}`)}
           </Text>
         </View>
       </View>
@@ -110,16 +104,16 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
       </View>
 
       <Text style={styles.sectionTitle}>{t('calculator.da_yun_title')}</Text>
-      <Text style={styles.daYunMeta}>
-        {t(da_yun.direction === 'forward' ? 'calculator.da_yun_direction_forward' : 'calculator.da_yun_direction_backward')}
-        {' · '}{t('calculator.da_yun_starts_label')} {startAgeLabel}
-      </Text>
+      <Text style={styles.daYunIntro}>{t('calculator.da_yun_intro')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daYunScroll}>
         {da_yun.periods.map((period, idx) => (
           <View key={idx} style={styles.daYunCard}>
             <Text style={styles.daYunAge}>{period.start_age}–{period.end_age}</Text>
-            <Text style={styles.daYunChars}>{period.pillar.stem.char}{period.pillar.branch.char}</Text>
-            <View style={[styles.elementDot, { backgroundColor: elementColor(period.pillar.stem.element) }]} />
+            <View style={styles.pillarTagsRow}>
+              <View style={[styles.elementDot, { backgroundColor: elementColor(period.pillar.stem.element) }]} />
+              <Text style={styles.daYunTagText}>{t(`zodiac.elements.${period.pillar.stem.element}`)}</Text>
+            </View>
+            <Text style={styles.daYunTagText}>{t(`zodiac.animals.${period.pillar.branch.animal}`)}</Text>
           </View>
         ))}
       </ScrollView>
@@ -153,11 +147,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.accent + '40',
     padding: Spacing.md,
     marginBottom: Spacing.md,
-  },
-  dayMasterChar: {
-    fontFamily: Typography.serifBold,
-    fontSize: 40,
-    color: Colors.accent,
   },
   dayMasterLabel: {
     fontFamily: Typography.sansSemiBold,
@@ -197,17 +186,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.textLight,
     marginBottom: 4,
-  },
-  pillarChars: {
-    fontFamily: Typography.serifBold,
-    fontSize: 22,
-    color: Colors.accent,
-  },
-  pillarPinyin: {
-    fontFamily: Typography.sans,
-    fontSize: 10,
-    color: Colors.textSecondary,
-    marginBottom: 6,
   },
   pillarTagsRow: {
     flexDirection: 'row',
@@ -250,10 +228,11 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
   },
-  daYunMeta: {
+  daYunIntro: {
     fontFamily: Typography.sans,
     fontSize: Typography.xs,
     color: Colors.textSecondary,
+    lineHeight: 18,
     marginBottom: Spacing.sm,
   },
   daYunScroll: {
@@ -275,9 +254,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.textLight,
   },
-  daYunChars: {
-    fontFamily: Typography.serifBold,
-    fontSize: 18,
-    color: Colors.accent,
+  daYunTagText: {
+    fontFamily: Typography.sans,
+    fontSize: 10,
+    color: Colors.textSecondary,
   },
 });

@@ -2104,6 +2104,7 @@ def _apply_newborn_vocation_gate(vocation: dict, has_access: bool) -> dict:
         vocation["talents"] = []
         vocation["vocations"] = []
         vocation["challenges"] = []
+        vocation["recommendations"] = ""
         vocation["content_locked"] = True
     return vocation
 
@@ -2157,7 +2158,7 @@ async def get_today_newborn_vocation(
     has_access = user_has_premium_access(current_user) if current_user else False
 
     if lang != "es":
-        fields = ["title", "content"] if has_access else ["title"]
+        fields = ["title", "content", "recommendations"] if has_access else ["title"]
         vocation = await translate_dict(vocation, lang, fields)
         if has_access:
             for field in ("talents", "vocations", "challenges"):
@@ -2213,7 +2214,7 @@ async def get_newborn_vocation_by_date(
     has_access = user_has_premium_access(current_user) if current_user else False
 
     if lang != "es":
-        fields = ["title", "content"] if has_access else ["title"]
+        fields = ["title", "content", "recommendations"] if has_access else ["title"]
         vocation = await translate_dict(vocation, lang, fields)
         if has_access:
             for field in ("talents", "vocations", "challenges"):
@@ -2290,7 +2291,7 @@ async def get_recent_newborn_vocations(lang: str = "es", client_date: Optional[s
     result = []
     for v in vocations:
         if lang != "es":
-            v = await translate_dict(v, lang, ["title", "content"])
+            v = await translate_dict(v, lang, ["title", "content", "recommendations"])
             for field in ("talents", "vocations", "challenges"):
                 if v.get(field):
                     v[field] = [await translate_dict({"text": item}, lang, ["text"]) for item in v[field]]

@@ -390,7 +390,7 @@ export default function HomeScreen() {
               <View style={styles.twinIconContainer}>
                 <MaterialCommunityIcons name="calendar-outline" size={24} color={Colors.accent} />
               </View>
-              <Text style={styles.twinLabel}>{t('home.month_energy')}</Text>
+              <Text style={[styles.twinLabel, styles.twinLabelCompact]} numberOfLines={2}>{t('home.month_energy')}</Text>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
             </TouchableOpacity>
 
@@ -403,7 +403,7 @@ export default function HomeScreen() {
               <View style={styles.twinIconContainer}>
                 <MaterialCommunityIcons name="shimmer" size={24} color={Colors.accent} />
               </View>
-              <Text style={styles.twinLabel}>{t('home.year_energy')}</Text>
+              <Text style={[styles.twinLabel, styles.twinLabelCompact]} numberOfLines={2}>{t('home.year_energy')}</Text>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
             </TouchableOpacity>
           </View>
@@ -785,6 +785,10 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textPrimary,
     lineHeight: 20,
+  },
+  twinLabelCompact: {
+    fontSize: Typography.sm,
+    lineHeight: 17,
   },
   twinBadge: {
     fontFamily: Typography.sansSemiBold,

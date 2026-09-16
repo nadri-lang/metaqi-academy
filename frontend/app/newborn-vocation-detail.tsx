@@ -30,6 +30,7 @@ interface NewbornVocation {
   content_en?: string;
   talents: string[];
   vocations: string[];
+  recommendations?: string;
   content_locked?: boolean;
 }
 
@@ -380,6 +381,18 @@ export default function NewbornVocationDetailScreen() {
           </View>
         )}
 
+        {/* Recomendaciones */}
+        {data.recommendations && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <MaterialCommunityIcons name="clipboard-check-outline" size={22} color={Colors.accent} />
+              <Text style={styles.sectionTitle}>{t('home.recommendations_title')}</Text>
+            </View>
+            <Text style={styles.recommendationsIntro}>{t('home.recommendations_intro')}</Text>
+            <Text style={styles.description}>{data.recommendations}</Text>
+          </View>
+        )}
+
         {/* Available dates indicator */}
         {availableDates.length > 0 && (
           <View style={styles.datesIndicator}>
@@ -611,6 +624,14 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xs,
+  },
+  recommendationsIntro: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    fontStyle: 'italic',
+    color: Colors.textLight,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
   },
   listItem: {
     flexDirection: 'row',
