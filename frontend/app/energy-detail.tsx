@@ -244,18 +244,9 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="yin-yang" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>{t('daily.bazi')}</Text>
             </View>
-            <Text style={styles.modalSubtitle}>{t('daily.bazi_relationships')}</Text>
-            <Text style={styles.modalTikTokNote}>{t('daily.bazi_tiktok_note')}</Text>
-            {data.bazi_relationships ? (
-              <Text style={styles.modalDescription}>{data.bazi_relationships}</Text>
-            ) : (
-              <Text style={styles.modalEmptyText}>
-                {t('common.no_info_available')}
-              </Text>
-            )}
             <TouchableOpacity
               testID="bazi-learn-more-link"
-              style={styles.modalLearnMoreLink}
+              style={styles.modalLearnMoreLinkTop}
               onPress={() => {
                 setActiveModal(null);
                 router.push('/concept/bazi');
@@ -265,6 +256,15 @@ export default function EnergyDetailScreen() {
               <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_bazi')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
             </TouchableOpacity>
+            <Text style={styles.modalSubtitle}>{t('daily.bazi_relationships')}</Text>
+            <Text style={styles.modalTikTokNote}>{t('daily.bazi_tiktok_note')}</Text>
+            {data.bazi_relationships ? (
+              <Text style={styles.modalDescription}>{data.bazi_relationships}</Text>
+            ) : (
+              <Text style={styles.modalEmptyText}>
+                {t('common.no_info_available')}
+              </Text>
+            )}
           </View>
         );
 
@@ -298,6 +298,18 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="compass-outline" size={28} color={Colors.accent} />
               <Text style={styles.modalTitle}>{t('daily.qimen')}</Text>
             </View>
+            <TouchableOpacity
+              testID="qimen-learn-more-link"
+              style={styles.modalLearnMoreLinkTop}
+              onPress={() => {
+                setActiveModal(null);
+                router.push('/concept/qi-men');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_strategies')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
+            </TouchableOpacity>
             <Text style={styles.modalSubtitle}>{t('daily.qimen_directions')}</Text>
             {data.qimen_directions && data.qimen_directions.length > 0 ? (
               data.qimen_directions.map((item, idx) => (
@@ -311,18 +323,6 @@ export default function EnergyDetailScreen() {
                 {t('common.no_info_available')}
               </Text>
             )}
-            <TouchableOpacity
-              testID="qimen-learn-more-link"
-              style={styles.modalLearnMoreLink}
-              onPress={() => {
-                setActiveModal(null);
-                router.push('/concept/qi-men');
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_strategies')}</Text>
-              <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
-            </TouchableOpacity>
           </View>
         );
 
@@ -845,15 +845,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.lg,
   },
-  modalLearnMoreLink: {
+  // Positioned right under the modal title (instead of at the bottom, where
+  // it used to sit close to the phone's gesture nav bar and was hard to tap).
+  modalLearnMoreLinkTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    alignSelf: 'flex-start',
     gap: 2,
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.cardBorder,
+    marginBottom: Spacing.md,
   },
   modalLearnMoreLinkText: {
     fontFamily: Typography.sansSemiBold,

@@ -21,7 +21,6 @@ import api from '@/src/services/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import ZodiacEmblem from '@/src/components/ZodiacEmblem';
-import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import HexagramBars from '@/src/components/HexagramBars';
 import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 import { formatWeekdayDate } from '@/src/utils/dateInput';
@@ -302,8 +301,8 @@ export default function HomeScreen() {
             activeOpacity={0.9}
           >
             <LinearGradient colors={Gradients.navy} style={styles.heroGradient}>
-              <View style={styles.heroMainRow}>
-                <View style={styles.heroTextCol}>
+              <View style={styles.heroTopSection}>
+                <View style={styles.heroTopTextCol}>
                   <View style={styles.heroLabelRow}>
                     <Text style={styles.heroLabelText}>{t('home.daily_energy')}</Text>
                     <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
@@ -314,48 +313,43 @@ export default function HomeScreen() {
                       {dailyEnergy ? formatWeekdayDate(dailyEnergy.date) : ''}
                     </Text>
                   </View>
-                  {dailyEnergy ? (
-                    <Text style={styles.heroTitle} numberOfLines={3}>{dailyEnergy.title}</Text>
-                  ) : (
-                    <Text style={styles.heroTitle} numberOfLines={3}>{t('home.daily_energy_subtitle')}</Text>
-                  )}
-                  {dailyEnergy?.animal_type && dailyEnergy?.element ? (
-                    <Text style={[styles.heroAnimalText, styles.heroElementText]}>
-                      {t('home.element_of_day')}: <Text style={styles.heroAnimalName}>
-                        {t(`zodiac.elements.${dailyEnergy.element}`)} {t(`zodiac.${animalPolarity(dailyEnergy.animal_type)}`)}
-                      </Text>
-                    </Text>
-                  ) : null}
-                  {dailyEnergy?.animal ? (
-                    <View style={styles.heroAnimalRow}>
-                      {dailyEnergy.animal_type ? (
-                        <ZodiacGlyph animal={dailyEnergy.animal_type} size={16} color={Colors.accent} />
-                      ) : null}
-                      <Text style={styles.heroAnimalText}>
-                        {t('home.animal_of_day')}: <Text style={styles.heroAnimalName}>
-                          {dailyEnergy.animal_type ? t(`zodiac.animals.${dailyEnergy.animal_type}`) : dailyEnergy.animal}
-                        </Text>
-                      </Text>
-                    </View>
-                  ) : null}
-                  {dailyEnergy?.animal ? (
-                    <Text style={styles.heroAnimalNote}>{t('home.animal_element_note')}</Text>
-                  ) : null}
                 </View>
                 {dailyEnergy?.animal_type ? (
                   <ZodiacEmblem
                     animal={dailyEnergy.animal_type}
                     element={dailyEnergy.element}
-                    size={84}
+                    size={56}
                     ringColor={Colors.accent}
                     backgroundColor={Colors.primary}
                   />
                 ) : (
                   <View style={styles.heroIconRing}>
-                    <MaterialCommunityIcons name="white-balance-sunny" size={26} color={Colors.accent} />
+                    <MaterialCommunityIcons name="white-balance-sunny" size={22} color={Colors.accent} />
                   </View>
                 )}
               </View>
+              {dailyEnergy ? (
+                <Text style={styles.heroTitle} numberOfLines={2}>{dailyEnergy.title}</Text>
+              ) : (
+                <Text style={styles.heroTitle} numberOfLines={2}>{t('home.daily_energy_subtitle')}</Text>
+              )}
+              {dailyEnergy?.animal_type && dailyEnergy?.element ? (
+                <Text style={[styles.heroAnimalText, styles.heroElementText]}>
+                  {t('home.element_of_day')}: <Text style={styles.heroAnimalName}>
+                    {t(`zodiac.elements.${dailyEnergy.element}`)} {t(`zodiac.${animalPolarity(dailyEnergy.animal_type)}`)}
+                  </Text>
+                  {dailyEnergy?.animal ? (
+                    <>
+                      {'  ·  '}{t('home.animal_of_day')}: <Text style={styles.heroAnimalName}>
+                        {dailyEnergy.animal_type ? t(`zodiac.animals.${dailyEnergy.animal_type}`) : dailyEnergy.animal}
+                      </Text>
+                    </>
+                  ) : null}
+                </Text>
+              ) : null}
+              {dailyEnergy?.animal ? (
+                <Text style={styles.heroAnimalNote}>{t('home.animal_element_note')}</Text>
+              ) : null}
               <View style={styles.heroButton}>
                 <Text style={styles.heroButtonText}>{t('home.view_details')}</Text>
                 <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.primary} />
@@ -364,59 +358,65 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* IChing / Energía del Mes / Energía del Año - fila de 3 */}
+        {/* IChing / Energía del Mes / Energía del Año - stack vertical */}
         <View style={styles.section}>
-          <View style={styles.twinRow}>
+          <View style={styles.twinStack}>
             <TouchableOpacity
               testID="iching-button"
-              style={styles.twinCard}
+              style={styles.twinRowCard}
               onPress={() => router.push('/iching')}
               activeOpacity={0.85}
             >
               <View style={styles.twinIconContainer}>
                 <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
               </View>
-              <Text style={styles.twinLabel}>{t('home.iching')}</Text>
+              <View style={styles.twinRowTextCol}>
+                <Text style={styles.twinLabel}>{t('home.iching')}</Text>
+                <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
+              </View>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
-              <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               testID="month-energy-button"
-              style={styles.twinCard}
+              style={styles.twinRowCard}
               onPress={() => router.push('/month-energy-detail')}
               activeOpacity={0.85}
             >
               <View style={styles.twinIconContainer}>
                 <MaterialCommunityIcons name="calendar-outline" size={24} color={Colors.accent} />
               </View>
-              <Text style={[styles.twinLabel, styles.twinLabelCompact]} numberOfLines={2}>{t('home.month_energy')}</Text>
+              <View style={styles.twinRowTextCol}>
+                <Text style={styles.twinLabel}>{t('home.month_energy')}</Text>
+              </View>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               testID="year-energy-button"
-              style={styles.twinCard}
+              style={styles.twinRowCard}
               onPress={() => router.push('/year-energy-detail')}
               activeOpacity={0.85}
             >
               <View style={styles.twinIconContainer}>
                 <MaterialCommunityIcons name="shimmer" size={24} color={Colors.accent} />
               </View>
-              <Text style={[styles.twinLabel, styles.twinLabelCompact]} numberOfLines={2}>{t('home.year_energy')}</Text>
+              <View style={styles.twinRowTextCol}>
+                <Text style={styles.twinLabel}>{t('home.year_energy')}</Text>
+              </View>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Banner de suscripción - accesos premium agrupados */}
+        {/* Banner de suscripción - accesos premium agrupados, stack vertical */}
         <View style={styles.section}>
           <View style={styles.subscriptionBanner}>
             <View style={styles.subscriptionHeader}>
               <MaterialCommunityIcons name="crown-outline" size={16} color={Colors.accent} />
               <Text style={styles.subscriptionTitle}>{t('home.subscription_title')}</Text>
             </View>
-            <View style={styles.subscriptionRow}>
+            <View style={styles.subscriptionStack}>
               <TouchableOpacity
                 testID="subscription-activations"
                 style={styles.subscriptionItem}
@@ -424,7 +424,8 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons name="white-balance-sunny" size={22} color={Colors.accent} />
-                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.daily_activations')}</Text>
+                <Text style={styles.subscriptionItemText}>{t('home.daily_activations')}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.accent} />
               </TouchableOpacity>
               <View style={styles.subscriptionDivider} />
               <TouchableOpacity
@@ -434,7 +435,8 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons name="star-outline" size={22} color={Colors.accent} />
-                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.baby_talent')}</Text>
+                <Text style={styles.subscriptionItemText}>{t('home.baby_talent')}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.accent} />
               </TouchableOpacity>
               <View style={styles.subscriptionDivider} />
               <TouchableOpacity
@@ -444,7 +446,8 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons name="ring" size={22} color={Colors.accent} />
-                <Text style={styles.subscriptionItemText} numberOfLines={2}>{t('home.wedding_agenda')}</Text>
+                <Text style={styles.subscriptionItemText}>{t('home.wedding_agenda')}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.accent} />
               </TouchableOpacity>
             </View>
           </View>
@@ -667,13 +670,14 @@ const styles = StyleSheet.create({
     borderColor: Colors.accent + '30',
     borderRadius: BorderRadius.xl,
   },
-  heroMainRow: {
+  heroTopSection: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: Spacing.md,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  heroTextCol: {
+  heroTopTextCol: {
     flex: 1,
   },
   heroLabelRow: {
@@ -719,12 +723,6 @@ const styles = StyleSheet.create({
   heroElementText: {
     marginTop: Spacing.sm,
   },
-  heroAnimalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: Spacing.xs,
-  },
   heroAnimalText: {
     fontFamily: Typography.sans,
     fontSize: Typography.sm,
@@ -751,26 +749,26 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
     gap: 2,
+    marginTop: Spacing.md,
   },
   heroButtonText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
     color: Colors.primary,
   },
-  // Energía del Mes / Año - fila de 2
-  twinRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+  // IChing / Energía del Mes / Energía del Año - stack vertical, una fila por botón
+  twinStack: {
+    gap: Spacing.sm,
   },
-  twinCard: {
-    flex: 1,
+  twinRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.card,
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
     padding: Spacing.md,
-    alignItems: 'flex-start',
-    gap: Spacing.xs,
+    gap: Spacing.md,
   },
   twinIconContainer: {
     width: 40,
@@ -780,15 +778,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  twinRowTextCol: {
+    flex: 1,
+    gap: 2,
+  },
   twinLabel: {
     fontFamily: Typography.serifBold,
     fontSize: Typography.base,
     color: Colors.textPrimary,
     lineHeight: 20,
-  },
-  twinLabelCompact: {
-    fontSize: Typography.sm,
-    lineHeight: 17,
   },
   twinBadge: {
     fontFamily: Typography.sansSemiBold,
@@ -828,28 +826,24 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     letterSpacing: 0.5,
   },
-  subscriptionRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  subscriptionStack: {
+    gap: 2,
   },
   subscriptionItem: {
-    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    paddingHorizontal: 4,
+    gap: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   subscriptionItemText: {
+    flex: 1,
     fontFamily: Typography.sansMedium,
-    fontSize: 11,
+    fontSize: Typography.sm,
     color: Colors.white,
-    textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 18,
   },
   subscriptionDivider: {
-    width: 1,
-    alignSelf: 'stretch',
+    height: 1,
     backgroundColor: Colors.accent + '25',
-    marginTop: 6,
   },
-  // Card
 });

@@ -35,7 +35,18 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
+    // The instance-wide default header below is 'Content-Type': 'application/json'.
+    // Axios only sends a FormData body as real multipart data when the
+    // Content-Type header does NOT already say "application/json" - otherwise
+    // it silently JSON-stringifies the FormData instead, dropping the file
+    // and making uploads (image pickers, etc.) fail with no visible error.
+    // Deleting it here lets React Native's native networking layer set the
+    // correct multipart Content-Type (with boundary) itself.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      config.headers.delete('Content-Type');
+    }
+
     // Add language parameter to GET requests
     const savedLanguage = await storage.getItem('app_language', null);
     const currentLang = savedLanguage || Localization.locale?.split('-')[0] || 'es';

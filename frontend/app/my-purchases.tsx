@@ -345,7 +345,7 @@ export default function MyPurchasesScreen() {
                           style={styles.videoButton}
                           onPress={() => handleOpenVideo(purchase.video_url!)}
                         >
-                          <MaterialCommunityIcons name="play-circle" size={20} color={Colors.white} />
+                          <MaterialCommunityIcons name="play-circle" size={20} color={Colors.primary} />
                           <Text style={styles.videoButtonText}>
                             {t('common.watch')}
                           </Text>
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   videoButtonText: {
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.sm,
-    color: Colors.white,
+    color: Colors.primary,
   },
   pendingBadge: {
     backgroundColor: Colors.textLight + '30',
