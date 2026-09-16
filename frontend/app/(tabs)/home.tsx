@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Share,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -52,6 +53,7 @@ export default function HomeScreen() {
   const [newbornVocation, setNewbornVocation] = useState<NewbornVocation | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [calculatorMenuVisible, setCalculatorMenuVisible] = useState(false);
   const [socialLinks, setSocialLinks] = useState<{
     social_facebook_url?: string;
     social_instagram_url?: string;
@@ -205,6 +207,19 @@ export default function HomeScreen() {
             <View style={styles.brandDivider} />
           </View>
 
+          <TouchableOpacity
+            testID="calculator-button"
+            style={styles.calculatorCard}
+            onPress={() => setCalculatorMenuVisible(true)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.calculatorIconContainer}>
+              <MaterialCommunityIcons name="calculator-variant" size={20} color={Colors.accent} />
+            </View>
+            <Text style={styles.calculatorCardText}>{t('home.calculator')}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.accent} />
+          </TouchableOpacity>
+
           <View style={styles.languageRow} testID="language-selector">
             {languages.map((lang) => {
               const active = lang.code === language;
@@ -225,6 +240,58 @@ export default function HomeScreen() {
             })}
           </View>
         </LinearGradient>
+
+        <Modal
+          visible={calculatorMenuVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setCalculatorMenuVisible(false)}
+        >
+          <View style={styles.calculatorModalOverlay}>
+            <View style={styles.calculatorModalContainer}>
+              <View style={styles.calculatorModalHeader}>
+                <Text style={styles.calculatorModalTitle}>{t('calculator.menu_title')}</Text>
+                <TouchableOpacity testID="calculator-menu-close" onPress={() => setCalculatorMenuVisible(false)}>
+                  <MaterialCommunityIcons name="close" size={24} color={Colors.accent} />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                testID="calculator-menu-bazi"
+                style={styles.calculatorModalOption}
+                onPress={() => {
+                  setCalculatorMenuVisible(false);
+                  router.push('/calculator/bazi');
+                }}
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="yin-yang" size={22} color={Colors.accent} />
+                <View style={styles.calculatorModalOptionTextCol}>
+                  <Text style={styles.calculatorModalOptionLabel}>{t('calculator.bazi_option')}</Text>
+                  <Text style={styles.calculatorModalOptionSubtitle}>{t('calculator.bazi_option_subtitle')}</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.calculatorModalDivider} />
+
+              <TouchableOpacity
+                testID="calculator-menu-qimen"
+                style={styles.calculatorModalOption}
+                onPress={() => {
+                  setCalculatorMenuVisible(false);
+                  router.push('/calculator/qimen');
+                }}
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="compass-outline" size={22} color={Colors.accent} />
+                <View style={styles.calculatorModalOptionTextCol}>
+                  <Text style={styles.calculatorModalOptionLabel}>{t('calculator.qimen_option')}</Text>
+                  <Text style={styles.calculatorModalOptionSubtitle}>{t('calculator.qimen_option_subtitle')}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Hero - Energía del Día */}
         <View style={styles.section}>
@@ -468,22 +535,98 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent + '60',
     marginTop: Spacing.md,
   },
-  // Language pills
+  // Calculator button + menu (BaZi / Qimen)
+  calculatorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.calculatorBg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  calculatorIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: Colors.accent + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calculatorCardText: {
+    flex: 1,
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.accent,
+  },
+  calculatorModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  calculatorModalContainer: {
+    backgroundColor: Colors.calculatorBg,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  calculatorModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  calculatorModalTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.lg,
+    color: Colors.accent,
+  },
+  calculatorModalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.md,
+  },
+  calculatorModalOptionTextCol: {
+    flex: 1,
+  },
+  calculatorModalOptionLabel: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.base,
+    color: Colors.accent,
+  },
+  calculatorModalOptionSubtitle: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.accent,
+    opacity: 0.7,
+    marginTop: 2,
+  },
+  calculatorModalDivider: {
+    height: 1,
+    backgroundColor: Colors.accent + '25',
+  },
+  // Language pills - all 6 flags fit on a single non-wrapping row, even on
+  // narrow phones (~320px), by keeping each pill compact.
   languageRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
+    flexWrap: 'nowrap',
+    gap: 3,
     marginTop: Spacing.lg,
   },
   languagePill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primaryLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
     borderRadius: BorderRadius.full,
-    gap: 4,
+    gap: 2,
     borderWidth: 1,
     borderColor: 'transparent',
   },
@@ -492,11 +635,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.accent,
   },
   languagePillFlag: {
-    fontSize: 14,
+    fontSize: 12,
   },
   languagePillText: {
     fontFamily: Typography.sansSemiBold,
-    fontSize: 11,
+    fontSize: 9,
     color: Colors.white,
     opacity: 0.7,
   },

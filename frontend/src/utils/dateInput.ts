@@ -83,6 +83,23 @@ export function formatWeekdayDate(value: string, locale = 'es-ES'): string {
   return `${capWeekday}, ${dd}/${mm}/${yyyy}`;
 }
 
+/** Normalise arbitrary typed text into as much of HH:MM as is available. */
+export function formatTimeInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 4); // HHMM
+  const hour = digits.slice(0, 2);
+  const minute = digits.slice(2, 4);
+  let formatted = hour;
+  if (minute) formatted += `:${minute}`;
+  return formatted;
+}
+
+/** True only for a well-formed 24h HH:MM time. */
+export function isValidTime(value: string): boolean {
+  if (!/^\d{2}:\d{2}$/.test(value)) return false;
+  const [hour, minute] = value.split(':').map(Number);
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+}
+
 /** "29 AGO 2026" style label for confirmation prompts. Falls back to the raw string. */
 export function describeDate(value: string, locale = 'es-ES'): string {
   if (!isValidISODate(value)) return value;

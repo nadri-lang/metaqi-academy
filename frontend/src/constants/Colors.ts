@@ -27,6 +27,9 @@ export const Colors = {
   // Reserved ONLY for a real PayPal payment button. Google Play
   // Billing / subscription buttons must use `accent` (gold), not this.
   paypalBlue: '#0070BA',
+  // Near-black background for the BaZi/Qimen calculator button and its menu,
+  // deliberately darker than the standard `card`/`background` navy.
+  calculatorBg: '#0D0F1A',
 };
 
 export const Gradients = {

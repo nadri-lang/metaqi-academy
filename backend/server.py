@@ -39,6 +39,7 @@ from models import (
     WeddingAgendaQuarter, WeddingAgendaQuarterCreate,
     WeddingAgendaIntro, WeddingAgendaIntroCreate,
     IChingCastRequest, IChingInterpretRequest,
+    BaziCalculateRequest,
     FAQCategory, FAQCategoryCreate, FAQItem, FAQItemCreate,
     AppConfig, AppConfigUpdate,
     Purchase, PurchaseCreate, PurchaseUpdate,
@@ -64,6 +65,7 @@ from analytics_service import AnalyticsService
 from storage_service import init_storage, put_object
 from iching_data import cast_iching, hexagram_lookup, format_interpretation_context
 from iching_interpretation_service import interpret_iching, InterpretationError
+from bazi_service import compute_bazi_chart
 from concurrent.futures import ThreadPoolExecutor
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_auth_request
@@ -2545,6 +2547,21 @@ async def upsert_wedding_agenda_2027_quarter(
         await db.wedding_agenda_quarters.insert_one(doc)
 
     return WeddingAgendaQuarter(**doc)
+
+# ============= CALCULATOR (BaZi Four Pillars) =============
+
+@api_router.post("/calculator/bazi")
+async def post_calculate_bazi(request: BaziCalculateRequest):
+    """
+    Public: compute the Four Pillars (BaZi) chart from birth date/time/sex.
+    Pure deterministic astronomical calculation - no persistence, no AI.
+    Saving birth_date/birth_time/sex to the user's profile (if logged in) is
+    a separate call from the client, via the existing PATCH /auth/me.
+    """
+    try:
+        return compute_bazi_chart(request.birth_date, request.birth_time, request.sex, request.longitude)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # ============= I CHING (coin oracle) =============
 

@@ -24,6 +24,18 @@ def validate_iso_date(value: str) -> str:
         raise ValueError(f'La fecha {value} no existe en el calendario.')
     return value
 
+def validate_hhmm_time(value: str) -> str:
+    """Accept only a 24h HH:MM time, used for BaZi/Qimen calculator birth times."""
+    if not re.match(r'^([01]\d|2[0-3]):[0-5]\d$', value):
+        raise ValueError('Formato de hora inválido. Usa HH:MM (24h), ej: 08:30 o 21:05.')
+    return value
+
+def validate_sex(value: str) -> str:
+    """"M" or "F" only, used for BaZi Da Yun (luck pillar) direction."""
+    if value not in ("M", "F"):
+        raise ValueError('El sexo debe ser "M" o "F".')
+    return value
+
 class UserRole(str, Enum):
     ADMIN = "admin"
     EDITOR = "editor"
@@ -69,11 +81,26 @@ class User(UserBase):
     push_token: Optional[str] = None  # Expo push token
     notifications_enabled: bool = False
     privacy_policy_accepted_at: Optional[datetime] = None
+    birth_date: Optional[str] = None  # YYYY-MM-DD, used for the BaZi/Qimen calculators
+    birth_time: Optional[str] = None  # HH:MM (24h)
+    sex: Optional[str] = None  # "M" or "F", used for BaZi Da Yun (luck pillar) direction
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_login: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+    @validator('birth_date')
+    def validate_birth_date_format(cls, v):
+        return v if v is None else validate_iso_date(v)
+
+    @validator('birth_time')
+    def validate_birth_time_format(cls, v):
+        return v if v is None else validate_hhmm_time(v)
+
+    @validator('sex')
+    def validate_sex_value(cls, v):
+        return v if v is None else validate_sex(v)
 
 class UserResponse(UserBase):
     id: str
@@ -86,6 +113,9 @@ class UserResponse(UserBase):
     push_token: Optional[str] = None
     notifications_enabled: bool = False
     privacy_policy_accepted_at: Optional[datetime] = None
+    birth_date: Optional[str] = None
+    birth_time: Optional[str] = None
+    sex: Optional[str] = None
     created_at: datetime
     last_login: Optional[datetime]
 
@@ -97,6 +127,21 @@ class UserProfileUpdate(BaseModel):
     notifications_enabled: Optional[bool] = None
     privacy_policy_accepted_at: Optional[datetime] = None
     language: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_time: Optional[str] = None
+    sex: Optional[str] = None
+
+    @validator('birth_date')
+    def validate_birth_date_format(cls, v):
+        return v if v is None else validate_iso_date(v)
+
+    @validator('birth_time')
+    def validate_birth_time_format(cls, v):
+        return v if v is None else validate_hhmm_time(v)
+
+    @validator('sex')
+    def validate_sex_value(cls, v):
+        return v if v is None else validate_sex(v)
 
 class Token(BaseModel):
     access_token: str
@@ -694,6 +739,25 @@ class IChingInterpretRequest(BaseModel):
     result_number: Optional[int] = None
     question: Optional[str] = None
     lang: str = "es"
+
+# BaZi calculator
+class BaziCalculateRequest(BaseModel):
+    birth_date: str  # YYYY-MM-DD
+    birth_time: str  # HH:MM (24h)
+    sex: str  # "M" or "F"
+    longitude: Optional[float] = None  # optional true-solar-time correction
+
+    @validator('birth_date')
+    def validate_birth_date_format(cls, v):
+        return validate_iso_date(v)
+
+    @validator('birth_time')
+    def validate_birth_time_format(cls, v):
+        return validate_hhmm_time(v)
+
+    @validator('sex')
+    def validate_sex_value(cls, v):
+        return validate_sex(v)
 
 # FAQ - Frequently Asked Questions
 class FAQItem(BaseModel):

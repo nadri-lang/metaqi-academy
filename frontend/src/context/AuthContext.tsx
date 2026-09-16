@@ -17,6 +17,9 @@ interface User {
   push_token: string | null;
   notifications_enabled: boolean;
   privacy_policy_accepted_at: string | null;
+  birth_date: string | null;
+  birth_time: string | null;
+  sex: string | null;
   created_at: string;
   last_login: string | null;
 }
