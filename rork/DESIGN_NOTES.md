@@ -52,12 +52,19 @@ Brand header, language pills, hero card for Energía del Día (with date line,
 "Animal del día" line, and the zodiac emblem via `ZodiacEmblem`/`ZodiacGlyph`),
 3-card row (IChing / Energía del Mes / Año), subscription banner.
 
-### Energía del Día detail — not yet redesigned to match `energia zilei.jpeg`
-Mockup: same date/animal header repeated, then a 2x4 grid of icon buttons
-(Horas Favorables, Viajes, Activaciones, Actividades, A Evitar, Relaciones
-BaZi, Sectores Feng Shui, Direcciones Qi Men), then a highlighted
-"Activaciones del Día" card with image + "Ver Video" button + save/premium
-row at the bottom. Queued next.
+### Energía del Día detail — redesigned 2026-09-09 to match `energia zilei.jpeg`
+`app/energy-detail.tsx`: plain navy header (back + title, like `iching.tsx`)
+replaces the old gold gradient banner. New unified date card (calendar date,
+day title, "Animal del Día: X" row with `ZodiacGlyph`, `ZodiacEmblem` badge
+on the right reusing the Home hero's component, "solo disponible hoy" note)
+replaces the old separate animal-pill + gold header combo. Same 2x4 icon
+grid kept (already close to the mockup) but the active/open category now
+gets a gold highlighted border. Footer row added below the grid: "Guardar
+en favoritos" (icon + label) on the left, green "Este contenido solo existe
+hoy" pill on the right. Kept the existing bottom-sheet modal per category
+(hours/travel/activations/etc.) rather than inlining an inline
+Activaciones card on the page — lower risk, same 8 content types still work
+unchanged. Not yet tested live in the app (needs a run/screenshot pass).
 
 ### Servicios — mockup uses ornate per-service circular icons (calligraphy
 seal style, e.g. red 囍 for weddings) plus a green "Solicitar por WhatsApp"
