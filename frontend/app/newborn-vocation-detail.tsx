@@ -242,39 +242,40 @@ export default function NewbornVocationDetailScreen() {
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
-            {/* Botón Volver */}
-            <TouchableOpacity
-              testID="back-button"
-              style={styles.backButton}
-              onPress={() => router.back()}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
-              <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
-            </TouchableOpacity>
-            
+            {/* Botón Volver + favoritos */}
+            <View style={styles.headerTopRow}>
+              <TouchableOpacity
+                testID="back-button"
+                style={styles.backButton}
+                onPress={() => router.back()}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
+                <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
+              </TouchableOpacity>
+              <FavoriteButton
+                itemType="newborn_vocation"
+                itemId={data.date}
+                size={24}
+                color={Colors.white}
+              />
+            </View>
+
             {/* SIMPLIFIED HEADER - Title and date on separate full-width row */}
             <View style={styles.simplifiedHeader}>
               <Text style={styles.simplifiedTitle}>
                 {t('newborn_vocation.header_title').replace('{date}', (data.date || currentDate).split('-').reverse().join('/'))}
               </Text>
-              
-              {/* Row with badge and favorite button */}
-              <View style={styles.badgeRow}>
-                {isToday && (
+
+              {isToday && (
+                <View style={styles.badgeRow}>
                   <View style={styles.todayBadge}>
                     <Text style={styles.todayBadgeText}>
                       {t('common.today')}
                     </Text>
                   </View>
-                )}
-                <FavoriteButton 
-                  itemType="newborn_vocation" 
-                  itemId={data.date} 
-                  size={24} 
-                  color={Colors.white}
-                />
-              </View>
+                </View>
+              )}
             </View>
 
             {/* Navigation Arrows */}
@@ -456,11 +457,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    marginBottom: Spacing.md,
     alignSelf: 'flex-start',
   },
   backButtonTextWhite: {
@@ -485,7 +491,7 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginTop: Spacing.sm,
   },
   iconRow: {

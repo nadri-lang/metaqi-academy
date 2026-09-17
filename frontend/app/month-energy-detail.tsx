@@ -170,11 +170,7 @@ export default function MonthEnergyDetailScreen() {
           </View>
         ) : null}
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.sectionButtonsRow}
-        >
+        <View style={styles.sectionButtonsRow}>
           <TouchableOpacity
             style={[styles.sectionButton, activeSection === 'dynamics' && styles.sectionButtonActive]}
             onPress={() => setActiveSection('dynamics')}
@@ -237,7 +233,7 @@ export default function MonthEnergyDetailScreen() {
               </Text>
             </TouchableOpacity>
           )}
-        </ScrollView>
+        </View>
 
         {activeSection === 'dynamics' && (
           <View style={styles.card}>
@@ -414,19 +410,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionButtonsRow: {
-    flexDirection: 'row',
     gap: Spacing.sm,
-    paddingBottom: Spacing.md,
+    marginBottom: Spacing.md,
   },
   sectionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: Spacing.sm,
+    width: '100%',
     backgroundColor: Colors.card,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
   },
   sectionButtonActive: {

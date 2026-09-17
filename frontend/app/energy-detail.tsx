@@ -382,7 +382,7 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t('daily.title')}</Text>
-            <View style={{ width: 40 }} />
+            <FavoriteButton itemType="daily_energy" itemId={data.date} size={22} color={Colors.white} />
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -475,12 +475,8 @@ export default function EnergyDetailScreen() {
           })}
         </View>
 
-        {/* Footer: save to favorites + "content only today" */}
+        {/* Footer: "content only today" */}
         <View style={styles.footerRow}>
-          <View style={styles.favoriteRow}>
-            <FavoriteButton itemType="daily_energy" itemId={data.date} size={20} color={Colors.accent} />
-            <Text style={styles.favoriteRowText}>{t('home.save_favorite')}</Text>
-          </View>
           <View style={styles.onlyTodayPill}>
             <MaterialCommunityIcons name="check-circle" size={14} color={Colors.success} />
             <Text style={styles.onlyTodayPillText}>{t('daily.content_only_today')}</Text>
@@ -729,18 +725,8 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginTop: Spacing.md,
-  },
-  favoriteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  favoriteRowText: {
-    fontFamily: Typography.sansMedium,
-    fontSize: Typography.sm,
-    color: Colors.accent,
   },
   onlyTodayPill: {
     flexDirection: 'row',

@@ -23,6 +23,7 @@ from cnlunar.config import (
     the10HeavenlyStems5ElementsList,
     the12EarthlyBranches,
     the12EarthlyBranches5ElementsList,
+    the60HeavenlyEarth,
     SOLAR_TERMS_NAME_LIST,
 )
 from cnlunar.solar24 import getTheYearAllSolarTermsList
@@ -74,6 +75,35 @@ def _pillar_info(two_char: str) -> Dict[str, Any]:
     """`two_char` is one of cnlunar's `*8Char` strings, e.g. '丙寅' (stem+branch)."""
     stem, branch = two_char[0], two_char[1]
     return {"stem": _stem_info(stem), "branch": _branch_info(branch)}
+
+
+def _day_and_hour_pillars(lunar: "cnlunar.Lunar", dt: datetime) -> tuple:
+    """
+    cnlunar's day8Char/twohour8Char roll over to the next day for any birth
+    at 23:00-23:59 ("early Zi" convention: baseNum += 1 in its get_day8Char
+    when twohourNum == 12). Confirmed against joeyyap.com and a certified
+    Master Paola (Joey Yap school) calculation for 1970-12-31 23:54: that
+    school's Day Pillar only changes at 00:00, never at 23:00 - so cnlunar's
+    built-in shift must be neutralized here for the hour==23 case.
+
+    Returns (day8Char, twohour8Char) using the midnight-only boundary.
+    """
+    if dt.hour != 23:
+        return lunar.day8Char, lunar.twohour8Char
+
+    # Recompute day8Char with a same-calendar-day hour that doesn't trigger
+    # cnlunar's early-Zi shift (year8Char/month8Char never depend on hour,
+    # so only day8Char needs redoing).
+    unshifted = cnlunar.Lunar(dt.replace(hour=22, minute=0), godType="8char", year8Char="beginningOfSpring")
+    day8char = unshifted.day8Char
+
+    # The Zi-hour stem is a fixed function of the day stem (五鼠遁, "Five
+    # Rats Escape"): hour-cycle-index = (day-cycle-index * 12) mod 60, which
+    # always lands on the Zi branch. Tie it to the unshifted day above,
+    # not to cnlunar's (also shifted) twohour8Char.
+    day_index = the60HeavenlyEarth.index(day8char)
+    hour8char = the60HeavenlyEarth[(day_index * 12) % 60]
+    return day8char, hour8char
 
 
 def _apply_true_solar_time(dt: datetime, longitude: float) -> datetime:
@@ -195,10 +225,12 @@ def compute_bazi_chart(
     # on either side of Li Chun while still being in the "old" lunar year.
     lunar = cnlunar.Lunar(adjusted_dt, godType="8char", year8Char="beginningOfSpring")
 
+    day8char, hour8char = _day_and_hour_pillars(lunar, adjusted_dt)
+
     year_pillar = _pillar_info(lunar.year8Char)
     month_pillar = _pillar_info(lunar.month8Char)
-    day_pillar = _pillar_info(lunar.day8Char)
-    hour_pillar = _pillar_info(lunar.twohour8Char)
+    day_pillar = _pillar_info(day8char)
+    hour_pillar = _pillar_info(hour8char)
 
     element_count = {"wood": 0, "fire": 0, "earth": 0, "metal": 0, "water": 0}
     for pillar in (year_pillar, month_pillar, day_pillar, hour_pillar):
