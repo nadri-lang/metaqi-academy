@@ -44,6 +44,27 @@ _ANIMAL_BY_BRANCH_INDEX = [
 _STEM_PINYIN = ["jiǎ", "yǐ", "bǐng", "dīng", "wù", "jǐ", "gēng", "xīn", "rén", "guǐ"]
 _BRANCH_PINYIN = ["zǐ", "chǒu", "yín", "mǎo", "chén", "sì", "wǔ", "wèi", "shēn", "yǒu", "xū", "hài"]
 
+# 地支藏干 (hidden/"buried" stems within each branch) - every branch carries
+# 1-3 extra stems beyond its own surface element, and a five-element tally
+# that skips these is incomplete (e.g. 丑/Ox reads as pure Earth on the
+# surface but also hides Water and Metal). Indexed the same way as
+# the12EarthlyBranches (子丑寅卯辰巳午未申酉戌亥). Each hidden stem counts
+# equally toward the tally, same weight as a visible stem/branch.
+_HIDDEN_STEMS_BY_BRANCH_INDEX = [
+    ["癸"],              # 子 rat
+    ["己", "癸", "辛"],   # 丑 ox
+    ["甲", "丙", "戊"],   # 寅 tiger
+    ["乙"],              # 卯 rabbit
+    ["戊", "乙", "癸"],   # 辰 dragon
+    ["丙", "戊", "庚"],   # 巳 snake
+    ["丁", "己"],         # 午 horse
+    ["己", "丁", "乙"],   # 未 goat
+    ["庚", "壬", "戊"],   # 申 monkey
+    ["辛"],              # 酉 rooster
+    ["戊", "辛", "丁"],   # 戌 dog
+    ["壬", "甲"],         # 亥 pig
+]
+
 # The 60-entry sexagenary (Jiazi) cycle, generated the same way the
 # stem/branch pairing itself is defined: position i pairs stem (i % 10)
 # with branch (i % 12), repeating every lcm(10, 12) = 60 steps.
@@ -75,6 +96,12 @@ def _pillar_info(two_char: str) -> Dict[str, Any]:
     """`two_char` is one of cnlunar's `*8Char` strings, e.g. '丙寅' (stem+branch)."""
     stem, branch = two_char[0], two_char[1]
     return {"stem": _stem_info(stem), "branch": _branch_info(branch)}
+
+
+def _hidden_stem_elements(branch: str) -> List[str]:
+    """The element of each 藏干 (hidden stem) buried inside this branch."""
+    i = the12EarthlyBranches.index(branch)
+    return [_stem_info(stem)["element"] for stem in _HIDDEN_STEMS_BY_BRANCH_INDEX[i]]
 
 
 def _day_and_hour_pillars(lunar: "cnlunar.Lunar", dt: datetime) -> tuple:
@@ -236,6 +263,8 @@ def compute_bazi_chart(
     for pillar in (year_pillar, month_pillar, day_pillar, hour_pillar):
         element_count[pillar["stem"]["element"]] += 1
         element_count[pillar["branch"]["element"]] += 1
+        for hidden_element in _hidden_stem_elements(pillar["branch"]["char"]):
+            element_count[hidden_element] += 1
 
     da_yun = _compute_da_yun(
         adjusted_dt, sex,
