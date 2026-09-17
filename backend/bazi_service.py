@@ -163,6 +163,28 @@ def _year_jie_terms(year: int) -> List[Dict[str, Any]]:
     return terms
 
 
+def _year8char_by_li_chun(birth_date: date) -> str:
+    """
+    cnlunar's own year8Char='beginningOfSpring' mode has a real bug: for
+    roughly the last two weeks of December, its internal nextSolarNum wraps
+    to 0 (pointing past this Gregorian year's own last solar term) without
+    the same year-rollover patch get_month8Char applies ("if nextNum == 0
+    and self.date.month == 12: nextNum = 24") - so getBeginningOfSpringX
+    misreads "before next Li Chun" as also meaning "before this year's Li
+    Chun" and rolls the BaZi year back by one. E.g. 1970-12-31 comes out as
+    the 己酉 (Rooster) year - 1969's year - instead of 1970's 庚戌 (Dog).
+    Confirmed by hand-tracing cnlunar 0.2.4's own get_month8Char vs
+    getBeginningOfSpringX for this exact date.
+
+    Compute the Li-Chun-based BaZi year ourselves instead of trusting
+    cnlunar for this one field: it's the Gregorian year Y such that
+    LiChun(Y) <= birth_date < LiChun(Y+1).
+    """
+    li_chun_this_year = next(t["date"] for t in _year_jie_terms(birth_date.year) if t["name"] == "立春")
+    bazi_year = birth_date.year if birth_date >= li_chun_this_year else birth_date.year - 1
+    return the60HeavenlyEarth[(bazi_year - 4) % 60]
+
+
 def _compute_da_yun(birth_dt: datetime, sex: str, year_stem_yin_yang: str, month_pillar: str) -> Dict[str, Any]:
     """
     The Da Yun (大运, 10-year luck pillar) sequence: 8 pillars of 10 years
@@ -250,11 +272,16 @@ def compute_bazi_chart(
     # two disagree for the ~2-5 week window between Li Chun and the
     # following lunar new year - e.g. births in early/mid February can fall
     # on either side of Li Chun while still being in the "old" lunar year.
+    # month/day/hour still come from cnlunar's own Lunar object below - only
+    # the year is recomputed independently, since cnlunar's own
+    # "beginningOfSpring" year has a late-December bug (see
+    # _year8char_by_li_chun).
     lunar = cnlunar.Lunar(adjusted_dt, godType="8char", year8Char="beginningOfSpring")
 
     day8char, hour8char = _day_and_hour_pillars(lunar, adjusted_dt)
+    year8char = _year8char_by_li_chun(adjusted_dt.date())
 
-    year_pillar = _pillar_info(lunar.year8Char)
+    year_pillar = _pillar_info(year8char)
     month_pillar = _pillar_info(lunar.month8Char)
     day_pillar = _pillar_info(day8char)
     hour_pillar = _pillar_info(hour8char)
