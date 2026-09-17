@@ -27,8 +27,11 @@ interface AgendaMonth {
   year: number;
   title: string;
   content: string;
+  love_activations?: string;
   content_locked?: boolean;
 }
+
+type AgendaSection = 'favorable_days' | 'love_activations';
 
 export default function AgendaMonthlyFreeScreen() {
   const router = useRouter();
@@ -36,6 +39,7 @@ export default function AgendaMonthlyFreeScreen() {
   const [data, setData] = useState<AgendaMonth | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeSection, setActiveSection] = useState<AgendaSection>('favorable_days');
 
   useEffect(() => {
     loadData();
@@ -128,6 +132,7 @@ export default function AgendaMonthlyFreeScreen() {
 
             <View style={styles.contentCard}>
               <Text style={styles.contentTitle}>{data.title}</Text>
+
               {data.content_locked ? (
                 <View style={styles.lockedContainer}>
                   <MaterialCommunityIcons name="lock-outline" size={32} color={Colors.textLight} />
@@ -137,7 +142,39 @@ export default function AgendaMonthlyFreeScreen() {
                   {/* TEMP: <RewardedAccessButton onUnlocked={loadData} /> disabled for Expo Go testing */}
                 </View>
               ) : (
-                <Text style={styles.contentText}>{data.content}</Text>
+                <>
+                  <View style={styles.sectionButtonsRow}>
+                    <TouchableOpacity
+                      style={[styles.sectionButton, activeSection === 'favorable_days' && styles.sectionButtonActive]}
+                      onPress={() => setActiveSection('favorable_days')}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons name="calendar-star" size={18} color={activeSection === 'favorable_days' ? Colors.primary : Colors.accent} />
+                      <Text style={[styles.sectionButtonText, activeSection === 'favorable_days' && styles.sectionButtonTextActive]}>
+                        {t('agendas.favorable_days_button')}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.sectionButton, activeSection === 'love_activations' && styles.sectionButtonActive]}
+                      onPress={() => setActiveSection('love_activations')}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons name="heart-outline" size={18} color={activeSection === 'love_activations' ? Colors.primary : Colors.accent} />
+                      <Text style={[styles.sectionButtonText, activeSection === 'love_activations' && styles.sectionButtonTextActive]}>
+                        {t('agendas.love_activations_button')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {activeSection === 'favorable_days' ? (
+                    <Text style={styles.contentText}>{data.content}</Text>
+                  ) : (
+                    <Text style={styles.contentText}>
+                      {data.love_activations || t('agendas.love_activations_empty')}
+                    </Text>
+                  )}
+                </>
               )}
             </View>
 
@@ -269,6 +306,37 @@ const styles = StyleSheet.create({
     fontSize: Typography.base,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  sectionButtonsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  sectionButtonActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  sectionButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+    textAlign: 'center',
+  },
+  sectionButtonTextActive: {
+    color: Colors.primary,
   },
   lockedContainer: {
     alignItems: 'center',

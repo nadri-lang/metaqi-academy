@@ -685,7 +685,8 @@ class AgendaMonth(BaseModel):
     month: int  # 1-12
     year: int
     title: str  # e.g. "Enero 2027"
-    content: str  # Main content for the month
+    content: str  # Main content for the month - "Agenda de Días Favorables"
+    love_activations: str = ""  # "Activaciones para el Amor" section
     events: List[Dict[str, Any]] = []  # List of events/dates with details
     order: int = 0
     is_free: bool = True  # True = gratis (HOME), False = pago (SERVICIOS)
@@ -697,6 +698,7 @@ class AgendaMonthCreate(BaseModel):
     year: int
     title: str
     content: str
+    love_activations: str = ""
     events: List[Dict[str, Any]] = []
     order: int = 0
     is_free: bool = True  # True = gratis, False = pago

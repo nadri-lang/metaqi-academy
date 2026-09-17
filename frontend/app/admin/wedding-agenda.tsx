@@ -26,6 +26,7 @@ interface AgendaEntry {
   year: number;
   title: string;
   content: string;
+  love_activations?: string;
   is_free: boolean;
 }
 
@@ -45,6 +46,7 @@ export default function WeddingAgendaAdminScreen() {
   const [year, setYear] = useState('');
   const [titleEs, setTitleEs] = useState('');
   const [contentEs, setContentEs] = useState('');
+  const [loveActivationsEs, setLoveActivationsEs] = useState('');
   const [isFree, setIsFree] = useState(true);  // TRUE = Gratis (HOME), FALSE = Pago (SERVICIOS)
 
   useEffect(() => {
@@ -71,10 +73,12 @@ export default function WeddingAgendaAdminScreen() {
     if (existingEntry) {
       setTitleEs(existingEntry.title);
       setContentEs(existingEntry.content);
+      setLoveActivationsEs(existingEntry.love_activations || '');
       setIsFree(existingEntry.is_free);
     } else if (month && year) {
       setTitleEs('');
       setContentEs('');
+      setLoveActivationsEs('');
       setIsFree(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,6 +103,7 @@ export default function WeddingAgendaAdminScreen() {
         year: parseInt(year, 10),
         title: titleEs,
         content: contentEs,
+        love_activations: loveActivationsEs,
         is_free: isFree,
       };
 
@@ -137,6 +142,7 @@ export default function WeddingAgendaAdminScreen() {
       setYear('');
       setTitleEs('');
       setContentEs('');
+      setLoveActivationsEs('');
       loadEntries();
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.detail || 'Error al eliminar');
@@ -268,12 +274,25 @@ export default function WeddingAgendaAdminScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Contenido *</Text>
+            <Text style={styles.label}>Contenido - Agenda de Días Favorables *</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={contentEs}
               onChangeText={setContentEs}
               placeholder="Describe los días más auspiciosos..."
+              placeholderTextColor={Colors.textLight}
+              multiline
+              numberOfLines={6}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Activaciones para el Amor</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={loveActivationsEs}
+              onChangeText={setLoveActivationsEs}
+              placeholder="Describe las activaciones para el amor de este mes..."
               placeholderTextColor={Colors.textLight}
               multiline
               numberOfLines={6}

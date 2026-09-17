@@ -48,14 +48,14 @@ function PillarCard({ label, pillar }: { label: string; pillar: Pillar }) {
   const { t } = useLanguage();
   return (
     <View style={styles.pillarCard}>
-      <Text style={styles.pillarLabel}>{label}</Text>
+      <Text style={styles.pillarLabel} android_hyphenationFrequency="none">{label}</Text>
       <View style={styles.pillarTagsRow}>
         <View style={[styles.elementDot, { backgroundColor: elementColor(pillar.stem.element) }]} />
-        <Text style={styles.pillarTagText}>{t(`zodiac.elements.${pillar.stem.element}`)}</Text>
+        <Text style={styles.pillarTagText} android_hyphenationFrequency="none">{t(`zodiac.elements.${pillar.stem.element}`)}</Text>
       </View>
       <View style={styles.pillarTagsRow}>
         <View style={[styles.elementDot, { backgroundColor: elementColor(pillar.branch.element) }]} />
-        <Text style={styles.pillarTagText}>{t(`zodiac.animals.${pillar.branch.animal}`)}</Text>
+        <Text style={styles.pillarTagText} android_hyphenationFrequency="none">{t(`zodiac.animals.${pillar.branch.animal}`)}</Text>
       </View>
     </View>
   );
@@ -72,8 +72,8 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
       <View style={styles.dayMasterCard}>
         <View style={[styles.elementDot, { width: 16, height: 16, borderRadius: 8, backgroundColor: elementColor(day_master.element) }]} />
         <View>
-          <Text style={styles.dayMasterLabel}>{t('calculator.day_master_label')}</Text>
-          <Text style={styles.dayMasterSub}>
+          <Text style={styles.dayMasterLabel} android_hyphenationFrequency="none">{t('calculator.day_master_label')}</Text>
+          <Text style={styles.dayMasterSub} android_hyphenationFrequency="none">
             {t(`zodiac.elements.${day_master.element}`)} · {t(`zodiac.${day_master.yin_yang}`)}
           </Text>
         </View>
@@ -97,7 +97,7 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
         {ELEMENT_ORDER.map((key) => (
           <View key={key} style={styles.elementChip}>
             <MaterialCommunityIcons name={elementIcon(key) as any} size={16} color={elementColor(key)} />
-            <Text style={styles.elementChipLabel}>{t(`zodiac.elements.${key}`)}</Text>
+            <Text style={styles.elementChipLabel} android_hyphenationFrequency="none">{t(`zodiac.elements.${key}`)}</Text>
             <Text style={[styles.elementChipCount, { color: elementColor(key) }]}>{five_elements[key]}</Text>
           </View>
         ))}
@@ -105,15 +105,19 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
 
       <Text style={styles.sectionTitle}>{t('calculator.da_yun_title')}</Text>
       <Text style={styles.daYunIntro}>{t('calculator.da_yun_intro')}</Text>
+      <View style={styles.daYunScrollHintRow}>
+        <MaterialCommunityIcons name="gesture-swipe-horizontal" size={14} color={Colors.textLight} />
+        <Text style={styles.daYunScrollHint}>{t('calculator.da_yun_scroll_hint')}</Text>
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daYunScroll}>
         {da_yun.periods.map((period, idx) => (
           <View key={idx} style={styles.daYunCard}>
-            <Text style={styles.daYunAge}>{period.start_age}–{period.end_age}</Text>
+            <Text style={styles.daYunAge} android_hyphenationFrequency="none">{period.start_age}–{period.end_age}</Text>
             <View style={styles.pillarTagsRow}>
               <View style={[styles.elementDot, { backgroundColor: elementColor(period.pillar.stem.element) }]} />
-              <Text style={styles.daYunTagText}>{t(`zodiac.elements.${period.pillar.stem.element}`)}</Text>
+              <Text style={styles.daYunTagText} android_hyphenationFrequency="none">{t(`zodiac.elements.${period.pillar.stem.element}`)}</Text>
             </View>
-            <Text style={styles.daYunTagText}>{t(`zodiac.animals.${period.pillar.branch.animal}`)}</Text>
+            <Text style={styles.daYunTagText} android_hyphenationFrequency="none">{t(`zodiac.animals.${period.pillar.branch.animal}`)}</Text>
           </View>
         ))}
       </ScrollView>
@@ -234,6 +238,18 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 18,
     marginBottom: Spacing.sm,
+  },
+  daYunScrollHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: Spacing.xs,
+  },
+  daYunScrollHint: {
+    fontFamily: Typography.sans,
+    fontSize: 10,
+    color: Colors.textLight,
+    fontStyle: 'italic',
   },
   daYunScroll: {
     gap: Spacing.sm,

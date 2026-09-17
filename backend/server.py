@@ -840,6 +840,13 @@ async def create_daily_energy(
         # Update existing entry
         energy_dict["id"] = existing["id"]
         energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        # activations_image_url/activations_video_url/mudra_image_url are only
+        # ever written by their own dedicated upload endpoints below - this
+        # form never collects them, so they always come through as None here.
+        # Blindly $set-ing energy_dict would silently erase whatever image/
+        # video was already uploaded every time the admin re-saves the text.
+        for media_field in ("activations_image_url", "activations_video_url", "mudra_image_url"):
+            energy_dict[media_field] = existing.get(media_field)
         await db.daily_energy.update_one(
             {"date": energy_data.date},
             {"$set": energy_dict}
@@ -1895,6 +1902,14 @@ async def create_month_energy(
         # Update existing entry
         energy_dict["id"] = existing["id"]
         energy_dict["created_at"] = existing.get("created_at", datetime.utcnow())
+        # activations_image_url/activations_video_url are only ever written by
+        # their own dedicated upload endpoint below - this form never collects
+        # them, so they always come through as None here. Blindly $set-ing
+        # energy_dict would silently erase whatever image/video was already
+        # uploaded every time the admin re-saves the text (see the identical
+        # bug fixed in create_daily_energy for Mudra/Activaciones del Día).
+        for media_field in ("activations_image_url", "activations_video_url"):
+            energy_dict[media_field] = existing.get(media_field)
         await db.month_energy.update_one(
             {"month": normalized_month},
             {"$set": energy_dict}
@@ -2409,7 +2424,7 @@ async def get_agenda_months(
     # needs it for the always-visible current-month preview.
     if lang != "es":
         skip_content = has_access is False and is_free is True
-        fields = ["title"] if skip_content else ["title", "content"]
+        fields = ["title"] if skip_content else ["title", "content", "love_activations"]
         months = await translate_list_of_dicts(months, lang, fields)
 
     if has_access is False:
@@ -2420,6 +2435,7 @@ async def get_agenda_months(
             )
             if not is_current_month_preview:
                 m["content"] = ""
+                m["love_activations"] = ""
                 m["events"] = []
                 m["content_locked"] = True
 

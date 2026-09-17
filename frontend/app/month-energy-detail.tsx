@@ -40,12 +40,15 @@ interface MonthEnergy {
   is_free: boolean;
 }
 
+type MonthSection = 'dynamics' | 'bazi' | 'qimen' | 'feng_shui' | 'activations';
+
 export default function MonthEnergyDetailScreen() {
   const router = useRouter();
   const { t, language } = useLanguage();
   const [data, setData] = useState<MonthEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeSection, setActiveSection] = useState<MonthSection | null>(null);
 
   useEffect(() => {
     load();
@@ -61,6 +64,7 @@ export default function MonthEnergyDetailScreen() {
         // Si por alguna razón devuelve un objeto único
         setData(response.data);
       }
+      setActiveSection('dynamics');
     } catch (error) {
       console.error('Error loading month energy:', error);
     } finally {
@@ -166,13 +170,84 @@ export default function MonthEnergyDetailScreen() {
           </View>
         ) : null}
 
-        <View style={styles.card}>
-          <Text style={styles.description}>
-            {data.content}
-          </Text>
-        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.sectionButtonsRow}
+        >
+          <TouchableOpacity
+            style={[styles.sectionButton, activeSection === 'dynamics' && styles.sectionButtonActive]}
+            onPress={() => setActiveSection('dynamics')}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="chart-line" size={18} color={activeSection === 'dynamics' ? Colors.primary : Colors.accent} />
+            <Text style={[styles.sectionButtonText, activeSection === 'dynamics' && styles.sectionButtonTextActive]}>
+              {t('month.section_dynamics')}
+            </Text>
+          </TouchableOpacity>
 
-        {!!data.bazi_influences && (
+          {!!data.bazi_influences && (
+            <TouchableOpacity
+              style={[styles.sectionButton, activeSection === 'bazi' && styles.sectionButtonActive]}
+              onPress={() => setActiveSection('bazi')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="yin-yang" size={18} color={activeSection === 'bazi' ? Colors.primary : Colors.accent} />
+              <Text style={[styles.sectionButtonText, activeSection === 'bazi' && styles.sectionButtonTextActive]}>
+                {t('month.section_bazi')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {!!data.qimen_strategies && (
+            <TouchableOpacity
+              style={[styles.sectionButton, activeSection === 'qimen' && styles.sectionButtonActive]}
+              onPress={() => setActiveSection('qimen')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="compass-outline" size={18} color={activeSection === 'qimen' ? Colors.primary : Colors.accent} />
+              <Text style={[styles.sectionButtonText, activeSection === 'qimen' && styles.sectionButtonTextActive]}>
+                {t('month.section_qimen')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {!!data.feng_shui && (
+            <TouchableOpacity
+              style={[styles.sectionButton, activeSection === 'feng_shui' && styles.sectionButtonActive]}
+              onPress={() => setActiveSection('feng_shui')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="home-outline" size={18} color={activeSection === 'feng_shui' ? Colors.primary : Colors.accent} />
+              <Text style={[styles.sectionButtonText, activeSection === 'feng_shui' && styles.sectionButtonTextActive]}>
+                {t('month.section_feng_shui')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {(!!data.activations || !!data.activations_image_url || !!data.activations_video_url) && (
+            <TouchableOpacity
+              style={[styles.sectionButton, activeSection === 'activations' && styles.sectionButtonActive]}
+              onPress={() => setActiveSection('activations')}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="calendar-check-outline" size={18} color={activeSection === 'activations' ? Colors.primary : Colors.accent} />
+              <Text style={[styles.sectionButtonText, activeSection === 'activations' && styles.sectionButtonTextActive]}>
+                {t('month.section_activations')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+
+        {activeSection === 'dynamics' && (
+          <View style={styles.card}>
+            <Text style={styles.description}>
+              {data.content}
+            </Text>
+          </View>
+        )}
+
+        {activeSection === 'bazi' && !!data.bazi_influences && (
           <View style={styles.card}>
             <View style={styles.sectionHeader}>
               <MaterialCommunityIcons name="yin-yang" size={20} color={Colors.accent} />
@@ -182,7 +257,7 @@ export default function MonthEnergyDetailScreen() {
           </View>
         )}
 
-        {!!data.qimen_strategies && (
+        {activeSection === 'qimen' && !!data.qimen_strategies && (
           <View style={styles.card}>
             <View style={styles.sectionHeader}>
               <MaterialCommunityIcons name="compass-outline" size={20} color={Colors.accent} />
@@ -192,7 +267,7 @@ export default function MonthEnergyDetailScreen() {
           </View>
         )}
 
-        {!!data.feng_shui && (
+        {activeSection === 'feng_shui' && !!data.feng_shui && (
           <View style={styles.card}>
             <View style={styles.sectionHeader}>
               <MaterialCommunityIcons name="home-outline" size={20} color={Colors.accent} />
@@ -202,7 +277,7 @@ export default function MonthEnergyDetailScreen() {
           </View>
         )}
 
-        {(!!data.activations || !!data.activations_image_url || !!data.activations_video_url) && (
+        {activeSection === 'activations' && (!!data.activations || !!data.activations_image_url || !!data.activations_video_url) && (
           <View style={styles.card}>
             <View style={styles.sectionHeader}>
               <MaterialCommunityIcons name="calendar-check-outline" size={20} color={Colors.accent} />
@@ -337,6 +412,34 @@ const styles = StyleSheet.create({
     borderColor: Colors.cardBorder,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
+  },
+  sectionButtonsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  sectionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  sectionButtonActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  sectionButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.sm,
+    color: Colors.accent,
+  },
+  sectionButtonTextActive: {
+    color: Colors.primary,
   },
   description: {
     fontFamily: Typography.sans,
