@@ -408,6 +408,8 @@ export default {
     type_baby_vocation: 'Vocația Bebelușului',
     type_agenda: 'Agendă',
     type_concept: 'Concept',
+    type_month_energy: 'Energia Lunii',
+    type_wedding_agenda: 'Agenda de Nunți',
   },
   purchases: {
     title: 'Achizițiile Mele',

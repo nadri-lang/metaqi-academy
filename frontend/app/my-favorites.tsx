@@ -60,7 +60,9 @@ export default function MyFavoritesScreen() {
   const handleNavigate = (fav: Favorite) => {
     switch (fav.item_type) {
       case 'daily_energy':
-        router.push('/energy-detail');
+        // item_id is the saved date (YYYY-MM-DD) - without it, the screen
+        // would just show "today", which may no longer be the saved day.
+        router.push({ pathname: '/energy-detail', params: { date: fav.item_id } });
         break;
       case 'newborn_vocation':
         router.push('/newborn-vocation-detail');
@@ -70,6 +72,12 @@ export default function MyFavoritesScreen() {
         break;
       case 'concept':
         router.push(`/concept/${fav.item_id}`);
+        break;
+      case 'month_energy':
+        router.push('/month-energy-detail');
+        break;
+      case 'wedding_agenda':
+        router.push('/agenda-monthly-free');
         break;
     }
   };
@@ -84,6 +92,10 @@ export default function MyFavoritesScreen() {
         return 'calendar';
       case 'concept':
         return 'book-open-variant';
+      case 'month_energy':
+        return 'calendar-month-outline';
+      case 'wedding_agenda':
+        return 'heart-outline';
       default:
         return 'heart';
     }
@@ -99,6 +111,10 @@ export default function MyFavoritesScreen() {
         return t('favorites.type_agenda');
       case 'concept':
         return t('favorites.type_concept');
+      case 'month_energy':
+        return t('favorites.type_month_energy');
+      case 'wedding_agenda':
+        return t('favorites.type_wedding_agenda');
       default:
         return type;
     }

@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import { SUBSCRIPTION_MONTHLY_PRICE } from '@/src/constants/Subscription';
+import FavoriteButton from '@/src/components/FavoriteButton';
 // TEMP: AdMob disabled for Expo Go testing (needs a dev build) - see RewardedAccessButton.
 // import { RewardedAccessButton } from '@/src/components/RewardedAccessButton';
 
@@ -77,15 +78,25 @@ export default function AgendaMonthlyFreeScreen() {
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
-            <TouchableOpacity
-              testID="back-button"
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
-              <Text style={styles.backButtonText}>{t('common.back')}</Text>
-            </TouchableOpacity>
-            
+            <View style={styles.headerTopRow}>
+              <TouchableOpacity
+                testID="back-button"
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
+                <Text style={styles.backButtonText}>{t('common.back')}</Text>
+              </TouchableOpacity>
+              {data && (
+                <FavoriteButton
+                  itemType="wedding_agenda"
+                  itemId={`${data.year}-${String(data.month).padStart(2, '0')}`}
+                  size={22}
+                  color={Colors.white}
+                />
+              )}
+            </View>
+
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons name="calendar-outline" size={32} color={Colors.accent} />
@@ -223,11 +234,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    marginBottom: Spacing.md,
     alignSelf: 'flex-start',
   },
   backButtonText: {

@@ -408,6 +408,8 @@ export default {
     type_baby_vocation: 'Vocation du Bébé',
     type_agenda: 'Agenda',
     type_concept: 'Concept',
+    type_month_energy: 'Énergie du Mois',
+    type_wedding_agenda: 'Agenda de Mariage',
   },
   purchases: {
     title: 'Mes Achats',

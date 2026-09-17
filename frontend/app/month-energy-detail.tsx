@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   Linking,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -21,6 +22,7 @@ import api from '@/src/services/api';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
+import FavoriteButton from '@/src/components/FavoriteButton';
 
 interface MonthEnergy {
   id: string;
@@ -64,7 +66,7 @@ export default function MonthEnergyDetailScreen() {
         // Si por alguna razón devuelve un objeto único
         setData(response.data);
       }
-      setActiveSection('dynamics');
+      setActiveSection(null);
     } catch (error) {
       console.error('Error loading month energy:', error);
     } finally {
@@ -116,17 +118,19 @@ export default function MonthEnergyDetailScreen() {
       <LinearGradient colors={Gradients.navy} style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
-            {/* Botón Volver */}
-            <TouchableOpacity
-              testID="back-button"
-              style={styles.backButton}
-              onPress={() => router.back()}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
-              <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
-            </TouchableOpacity>
-            
+            <View style={styles.headerTopRow}>
+              <TouchableOpacity
+                testID="back-button"
+                style={styles.backButton}
+                onPress={() => router.back()}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
+                <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
+              </TouchableOpacity>
+              <FavoriteButton itemType="month_energy" itemId={data.month} size={22} color={Colors.white} />
+            </View>
+
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons name="calendar" size={28} color={Colors.accent} />
@@ -235,86 +239,108 @@ export default function MonthEnergyDetailScreen() {
           )}
         </View>
 
-        {activeSection === 'dynamics' && (
-          <View style={styles.card}>
-            <Text style={styles.description}>
-              {data.content}
-            </Text>
-          </View>
-        )}
-
-        {activeSection === 'bazi' && !!data.bazi_influences && (
-          <View style={styles.card}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="yin-yang" size={20} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>{t('month.section_bazi')}</Text>
-            </View>
-            <Text style={styles.description}>{data.bazi_influences}</Text>
-          </View>
-        )}
-
-        {activeSection === 'qimen' && !!data.qimen_strategies && (
-          <View style={styles.card}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="compass-outline" size={20} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>{t('month.section_qimen')}</Text>
-            </View>
-            <Text style={styles.description}>{data.qimen_strategies}</Text>
-          </View>
-        )}
-
-        {activeSection === 'feng_shui' && !!data.feng_shui && (
-          <View style={styles.card}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="home-outline" size={20} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>{t('month.section_feng_shui')}</Text>
-            </View>
-            <Text style={styles.description}>{data.feng_shui}</Text>
-          </View>
-        )}
-
-        {activeSection === 'activations' && (!!data.activations || !!data.activations_image_url || !!data.activations_video_url) && (
-          <View style={styles.card}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="calendar-check-outline" size={20} color={Colors.accent} />
-              <Text style={styles.sectionTitle}>{t('month.section_activations')}</Text>
-            </View>
-            {!!data.activations && (
-              <Text style={styles.description}>{data.activations}</Text>
-            )}
-
-            {data.activations_image_url && (
-              <View style={styles.activationsImageContainer}>
-                <Image
-                  source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }}
-                  style={styles.activationsImage}
-                  resizeMode="cover"
-                />
-              </View>
-            )}
-
-            {data.activations_video_url && (
-              <TouchableOpacity
-                style={styles.videoLinkButton}
-                onPress={() => {
-                  if (data.activations_video_url) {
-                    Linking.openURL(data.activations_video_url).catch(err =>
-                      console.error('Error opening video URL:', err)
-                    );
-                  }
-                }}
-              >
-                <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
-                <Text style={styles.videoLinkText}>
-                  {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : language === 'pt' ? 'Ver Vídeo' : 'Vizionează Video'}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+
+      <Modal
+        visible={activeSection !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setActiveSection(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <SafeAreaView edges={['bottom']}>
+              <View style={styles.modalTopBar}>
+                <TouchableOpacity
+                  testID="modal-back-button"
+                  style={styles.modalBackArrow}
+                  onPress={() => setActiveSection(null)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="arrow-left" size={22} color={Colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.modalScrollContent}
+              >
+                {activeSection === 'dynamics' && (
+                  <>
+                    <Text style={styles.modalTitle}>{t('month.section_dynamics')}</Text>
+                    <Text style={styles.description}>{data.content}</Text>
+                  </>
+                )}
+
+                {activeSection === 'bazi' && (
+                  <>
+                    <Text style={styles.modalTitle}>{t('month.section_bazi')}</Text>
+                    <Text style={styles.description}>{data.bazi_influences}</Text>
+                  </>
+                )}
+
+                {activeSection === 'qimen' && (
+                  <>
+                    <Text style={styles.modalTitle}>{t('month.section_qimen')}</Text>
+                    <Text style={styles.description}>{data.qimen_strategies}</Text>
+                  </>
+                )}
+
+                {activeSection === 'feng_shui' && (
+                  <>
+                    <Text style={styles.modalTitle}>{t('month.section_feng_shui')}</Text>
+                    <Text style={styles.description}>{data.feng_shui}</Text>
+                  </>
+                )}
+
+                {activeSection === 'activations' && (
+                  <>
+                    <Text style={styles.modalTitle}>{t('month.section_activations')}</Text>
+                    {!!data.activations && (
+                      <Text style={styles.description}>{data.activations}</Text>
+                    )}
+
+                    {data.activations_image_url && (
+                      <View style={styles.activationsImageContainer}>
+                        <Image
+                          source={{ uri: toAbsoluteMediaUrl(data.activations_image_url) }}
+                          style={styles.activationsImage}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    )}
+
+                    {data.activations_video_url && (
+                      <TouchableOpacity
+                        style={styles.videoLinkButton}
+                        onPress={() => {
+                          if (data.activations_video_url) {
+                            Linking.openURL(data.activations_video_url).catch(err =>
+                              console.error('Error opening video URL:', err)
+                            );
+                          }
+                        }}
+                      >
+                        <MaterialCommunityIcons name="play-circle" size={24} color={Colors.white} />
+                        <Text style={styles.videoLinkText}>
+                          {language === 'es' ? 'Ver Video' : language === 'en' ? 'Watch Video' : language === 'fr' ? 'Voir la Vidéo' : language === 'de' ? 'Video Ansehen' : language === 'pt' ? 'Ver Vídeo' : 'Vizionează Video'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setActiveSection(null)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.closeButtonText}>{t('daily.close')}</Text>
+              </TouchableOpacity>
+            </SafeAreaView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -350,11 +376,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    marginBottom: Spacing.md,
     alignSelf: 'flex-start',
   },
   backButtonTextWhite: {
@@ -499,5 +530,51 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansSemiBold,
     fontSize: Typography.base,
     color: Colors.white,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    maxHeight: '80%',
+    minHeight: 300,
+  },
+  modalScrollContent: {
+    padding: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  modalTopBar: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  modalBackArrow: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.xl,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  closeButton: {
+    backgroundColor: Colors.accent,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.primary,
   },
 });
