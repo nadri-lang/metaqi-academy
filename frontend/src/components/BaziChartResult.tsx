@@ -44,6 +44,17 @@ export interface BaziChartData {
 
 const ELEMENT_ORDER: ElementKey[] = ['wood', 'fire', 'earth', 'metal', 'water'];
 
+/** Whole years elapsed since `birthDate` (ISO yyyy-mm-dd), as of today. */
+function computeCurrentAge(birthDate: string): number {
+  const [by, bm, bd] = birthDate.split('-').map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - by;
+  const beforeBirthdayThisYear =
+    today.getMonth() + 1 < bm || (today.getMonth() + 1 === bm && today.getDate() < bd);
+  if (beforeBirthdayThisYear) age -= 1;
+  return age;
+}
+
 function PillarCard({ label, pillar }: { label: string; pillar: Pillar }) {
   const { t } = useLanguage();
   return (
@@ -61,9 +72,10 @@ function PillarCard({ label, pillar }: { label: string; pillar: Pillar }) {
   );
 }
 
-export default function BaziChartResult({ data }: { data: BaziChartData }) {
+export default function BaziChartResult({ data, birthDate }: { data: BaziChartData; birthDate?: string }) {
   const { t } = useLanguage();
   const { day_master, pillars, five_elements, da_yun, solar_time_adjusted, adjusted_birth_datetime } = data;
+  const currentAge = birthDate ? computeCurrentAge(birthDate) : null;
 
   return (
     <View style={styles.container}>
@@ -110,16 +122,19 @@ export default function BaziChartResult({ data }: { data: BaziChartData }) {
         <Text style={styles.daYunScrollHint}>{t('calculator.da_yun_scroll_hint')}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daYunScroll}>
-        {da_yun.periods.map((period, idx) => (
-          <View key={idx} style={styles.daYunCard}>
-            <Text style={styles.daYunAge} android_hyphenationFrequency="none">{period.start_age}–{period.end_age}</Text>
-            <View style={styles.pillarTagsRow}>
-              <View style={[styles.elementDot, { backgroundColor: elementColor(period.pillar.stem.element) }]} />
-              <Text style={styles.daYunTagText} android_hyphenationFrequency="none">{t(`zodiac.elements.${period.pillar.stem.element}`)}</Text>
+        {da_yun.periods.map((period, idx) => {
+          const isCurrent = currentAge !== null && currentAge >= period.start_age && currentAge <= period.end_age;
+          return (
+            <View key={idx} style={[styles.daYunCard, isCurrent && styles.daYunCardCurrent]}>
+              <Text style={[styles.daYunAge, isCurrent && styles.daYunTextCurrent]} android_hyphenationFrequency="none">{period.start_age}–{period.end_age}</Text>
+              <View style={styles.pillarTagsRow}>
+                <View style={[styles.elementDot, { backgroundColor: isCurrent ? Colors.primary : elementColor(period.pillar.stem.element) }]} />
+                <Text style={[styles.daYunTagText, isCurrent && styles.daYunTextCurrent]} android_hyphenationFrequency="none">{t(`zodiac.elements.${period.pillar.stem.element}`)}</Text>
+              </View>
+              <Text style={[styles.daYunTagText, isCurrent && styles.daYunTextCurrent]} android_hyphenationFrequency="none">{t(`zodiac.animals.${period.pillar.branch.animal}`)}</Text>
             </View>
-            <Text style={styles.daYunTagText} android_hyphenationFrequency="none">{t(`zodiac.animals.${period.pillar.branch.animal}`)}</Text>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -274,5 +289,12 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans,
     fontSize: 10,
     color: Colors.textSecondary,
+  },
+  daYunCardCurrent: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accentDark,
+  },
+  daYunTextCurrent: {
+    color: Colors.primary,
   },
 });

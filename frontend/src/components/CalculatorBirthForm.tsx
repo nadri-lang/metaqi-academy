@@ -178,7 +178,7 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
         )}
       </TouchableOpacity>
 
-      {result && <BaziChartResult data={result} />}
+      {result && <BaziChartResult data={result} birthDate={birthDate} />}
     </View>
   );
 }
