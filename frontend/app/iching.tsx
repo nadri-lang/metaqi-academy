@@ -48,15 +48,7 @@ export default function IChingScreen() {
   const [interpreting, setInterpreting] = useState(false);
   const [interpretError, setInterpretError] = useState('');
 
-  const handleCast = async () => {
-    const parts = digitsInput.trim().split(/\s+/).filter(Boolean);
-    const values = parts.map((p) => parseInt(p, 10));
-
-    if (values.length !== 6 || values.some((v) => isNaN(v) || ![6, 7, 8, 9].includes(v))) {
-      setError(t('iching.error_invalid_digits'));
-      return;
-    }
-
+  const castValues = async (values: number[]) => {
     setError('');
     setInterpretation('');
     setInterpretError('');
@@ -69,6 +61,24 @@ export default function IChingScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCast = async () => {
+    const parts = digitsInput.trim().split(/\s+/).filter(Boolean);
+    const values = parts.map((p) => parseInt(p, 10));
+
+    if (values.length !== 6 || values.some((v) => isNaN(v) || ![6, 7, 8, 9].includes(v))) {
+      setError(t('iching.error_invalid_digits'));
+      return;
+    }
+
+    await castValues(values);
+  };
+
+  const handleRandomCast = async () => {
+    const values = Array.from({ length: 6 }, () => [6, 7, 8, 9][Math.floor(Math.random() * 4)]);
+    setDigitsInput(values.join(' '));
+    await castValues(values);
   };
 
   const handleFullInterpretation = async () => {
@@ -155,6 +165,27 @@ export default function IChingScreen() {
               </TouchableOpacity>
             </View>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </View>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('iching.or_divider')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>{t('iching.random_method_title')}</Text>
+            <Text style={[styles.instructionsText, { marginBottom: Spacing.md }]}>{t('iching.random_method_desc')}</Text>
+            <TouchableOpacity style={styles.randomButton} onPress={handleRandomCast} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={Colors.primary} size="small" />
+              ) : (
+                <>
+                  <MaterialCommunityIcons name="dice-multiple-outline" size={20} color={Colors.primary} />
+                  <Text style={styles.randomButtonText}>{t('iching.random_generate_button')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           {reading && (
@@ -331,6 +362,37 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.error,
     marginTop: Spacing.sm,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.cardBorder,
+  },
+  dividerText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.xs,
+    color: Colors.textLight,
+    letterSpacing: 1,
+  },
+  randomButton: {
+    flexDirection: 'row',
+    backgroundColor: Colors.accent,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  randomButtonText: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: Typography.base,
+    color: Colors.primary,
   },
   resultCard: {
     backgroundColor: Colors.card,

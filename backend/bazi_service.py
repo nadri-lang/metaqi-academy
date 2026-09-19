@@ -219,6 +219,17 @@ def _compute_da_yun(birth_dt: datetime, sex: str, year_stem_yin_yang: str, month
     start_age_years = total_months // 12
     start_age_months = total_months % 12
 
+    # The pillar age brackets themselves are conventionally labelled with the
+    # start age rounded to the nearest whole year (round-half-up: a remainder
+    # of 6+ months rounds up), not the floor - this is the convention used by
+    # standard BaZi references (e.g. Joey Yap's Luck Pillars), and matters
+    # because it shifts which bracket a person's current age falls into.
+    # Confirmed against a Joey Yap reading for 1969-09-28 21:30 (M): exact
+    # start age 6y8m floors to 6 (bracket 56-65 at the person's current age),
+    # but rounds to 7 (bracket 46-55... i.e. 47-56), which is what Joey Yap
+    # shows - so the floor was the bug, not the rounded value.
+    rounded_start_age = (total_months + 6) // 12
+
     month_index = _JIAZI_60.index((month_pillar[0], month_pillar[1]))
     step = 1 if forward else -1
 
@@ -226,8 +237,8 @@ def _compute_da_yun(birth_dt: datetime, sex: str, year_stem_yin_yang: str, month
     for k in range(1, 9):
         stem, branch = _JIAZI_60[(month_index + step * k) % 60]
         periods.append({
-            "start_age": start_age_years + (k - 1) * 10,
-            "end_age": start_age_years + k * 10 - 1,
+            "start_age": rounded_start_age + (k - 1) * 10,
+            "end_age": rounded_start_age + k * 10 - 1,
             "pillar": {"stem": _stem_info(stem), "branch": _branch_info(branch)},
         })
 
