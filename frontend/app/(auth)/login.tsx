@@ -40,7 +40,7 @@ export default function LoginScreen() {
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  });
+  }, { path: 'login' });
 
   useEffect(() => {
     if (response?.type === 'success' && response.params.id_token) {
