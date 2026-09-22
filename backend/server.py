@@ -294,14 +294,20 @@ async def reset_password(request: ResetPasswordRequest):
 
 # ============= GOOGLE AUTH ENDPOINTS =============
 
-# Valid audiences for Google id_tokens - one client id per platform (web/Android/iOS),
-# since expo-auth-session issues a token whose "aud" is whichever client id it used.
+# Valid audiences for Google id_tokens - since expo-auth-session issues a
+# token whose "aud" is whichever client id it used. Each env var may hold
+# several comma-separated client ids - needed for GOOGLE_ANDROID_CLIENT_ID
+# in particular, since internal/preview EAS builds and the Play Store
+# production build are signed with different certificates and therefore
+# use two different Android OAuth clients (see eas.json).
 GOOGLE_CLIENT_IDS = {
-    cid for cid in [
+    cid.strip()
+    for var in (
         os.environ.get("GOOGLE_WEB_CLIENT_ID"),
         os.environ.get("GOOGLE_ANDROID_CLIENT_ID"),
         os.environ.get("GOOGLE_IOS_CLIENT_ID"),
-    ] if cid
+    ) if var
+    for cid in var.split(",") if cid.strip()
 }
 
 @api_router.post("/auth/google", response_model=GoogleAuthResponse)
