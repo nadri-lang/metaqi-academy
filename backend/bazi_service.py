@@ -252,14 +252,27 @@ def _compute_da_yun(birth_dt: datetime, sex: str, year_stem_yin_yang: str, month
 
 def compute_bazi_chart(
     birth_date: str,
-    birth_time: str,
+    birth_time: Optional[str],
     sex: str,
     longitude: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """Compute the Four Pillars chart. Raises ValueError on invalid input."""
+    """
+    Compute the Four Pillars chart. Raises ValueError on invalid input.
+
+    `birth_time` may be None/empty when the birth hour isn't known. The Hour
+    Pillar is then omitted from the result (and from the five-element tally)
+    since it's the only pillar that depends on it. Year/Month/Day pillars,
+    the Day Master and the Da Yun sequence are unaffected - Da Yun's start
+    age comes from `birth_dt.date()` alone (see `_compute_da_yun`), and noon
+    is used as a neutral placeholder hour below purely so the midnight-only
+    day rollover (`_day_and_hour_pillars`) and the true-solar-time shift
+    can't accidentally cross a day boundary.
+    """
     validate_iso_date(birth_date)
-    validate_hhmm_time(birth_time)
     validate_sex(sex)
+    time_known = bool(birth_time)
+    if time_known:
+        validate_hhmm_time(birth_time)
 
     year = int(birth_date[:4])
     if year < MIN_YEAR or year > MAX_YEAR:
@@ -268,12 +281,15 @@ def compute_bazi_chart(
     if longitude is not None and (longitude < -180 or longitude > 180):
         raise ValueError("La longitud debe estar entre -180 y 180.")
 
-    hour, minute = (int(p) for p in birth_time.split(":"))
+    if time_known:
+        hour, minute = (int(p) for p in birth_time.split(":"))
+    else:
+        hour, minute = 12, 0
     birth_dt = datetime(year, int(birth_date[5:7]), int(birth_date[8:10]), hour, minute)
 
     solar_time_adjusted = False
     adjusted_dt = birth_dt
-    if longitude is not None:
+    if longitude is not None and time_known:
         adjusted_dt = _apply_true_solar_time(birth_dt, longitude)
         solar_time_adjusted = adjusted_dt != birth_dt
 
@@ -295,10 +311,12 @@ def compute_bazi_chart(
     year_pillar = _pillar_info(year8char)
     month_pillar = _pillar_info(lunar.month8Char)
     day_pillar = _pillar_info(day8char)
-    hour_pillar = _pillar_info(hour8char)
+    hour_pillar = _pillar_info(hour8char) if time_known else None
 
     element_count = {"wood": 0, "fire": 0, "earth": 0, "metal": 0, "water": 0}
     for pillar in (year_pillar, month_pillar, day_pillar, hour_pillar):
+        if pillar is None:
+            continue
         element_count[pillar["stem"]["element"]] += 1
         element_count[pillar["branch"]["element"]] += 1
         for hidden_element in _hidden_stem_elements(pillar["branch"]["char"]):
@@ -322,4 +340,5 @@ def compute_bazi_chart(
         "da_yun": da_yun,
         "solar_time_adjusted": solar_time_adjusted,
         "adjusted_birth_datetime": adjusted_dt.isoformat() if solar_time_adjusted else None,
+        "time_known": time_known,
     }

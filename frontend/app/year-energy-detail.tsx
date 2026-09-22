@@ -18,6 +18,7 @@ import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
+import { useInterstitialAd } from '@/src/hooks/use-interstitial-ad';
 
 interface YearEnergy {
   id: string;
@@ -37,9 +38,11 @@ export default function YearEnergyDetailScreen() {
   const [data, setData] = useState<YearEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { showBeforeConsultation } = useInterstitialAd();
 
   useEffect(() => {
-    load();
+    showBeforeConsultation(load);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const load = async () => {
@@ -149,7 +152,7 @@ export default function YearEnergyDetailScreen() {
                 </Text>
               </Text>
               <View style={styles.elementAnimalRow}>
-                <ZodiacGlyph animal={data.animal_type} size={16} color={Colors.accent} />
+                <ZodiacGlyph animal={data.animal_type} size={16} />
                 <Text style={styles.elementAnimalText}>
                   {t('year.animal_of_year')}: <Text style={styles.elementAnimalValue}>
                     {t(`zodiac.animals.${data.animal_type}`)}

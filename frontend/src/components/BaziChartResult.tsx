@@ -30,7 +30,7 @@ interface DaYunPeriod {
 
 export interface BaziChartData {
   day_master: StemInfo;
-  pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar };
+  pillars: { year: Pillar; month: Pillar; day: Pillar; hour: Pillar | null };
   five_elements: Record<ElementKey, number>;
   da_yun: {
     direction: 'forward' | 'backward';
@@ -40,6 +40,7 @@ export interface BaziChartData {
   };
   solar_time_adjusted: boolean;
   adjusted_birth_datetime: string | null;
+  time_known: boolean;
 }
 
 const ELEMENT_ORDER: ElementKey[] = ['wood', 'fire', 'earth', 'metal', 'water'];
@@ -55,8 +56,16 @@ function computeCurrentAge(birthDate: string): number {
   return age;
 }
 
-function PillarCard({ label, pillar }: { label: string; pillar: Pillar }) {
+function PillarCard({ label, pillar }: { label: string; pillar: Pillar | null }) {
   const { t } = useLanguage();
+  if (!pillar) {
+    return (
+      <View style={styles.pillarCard}>
+        <Text style={styles.pillarLabel} android_hyphenationFrequency="none">{label}</Text>
+        <Text style={styles.pillarUnknownText} android_hyphenationFrequency="none">{t('calculator.pillar_unknown')}</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.pillarCard}>
       <Text style={styles.pillarLabel} android_hyphenationFrequency="none">{label}</Text>
@@ -103,6 +112,10 @@ export default function BaziChartResult({ data, birthDate }: { data: BaziChartDa
         <PillarCard label={t('calculator.pillar_day')} pillar={pillars.day} />
         <PillarCard label={t('calculator.pillar_hour')} pillar={pillars.hour} />
       </View>
+
+      {!data.time_known && (
+        <Text style={styles.solarNote}>{t('calculator.time_unknown_result_note')}</Text>
+      )}
 
       <Text style={styles.sectionTitle}>{t('calculator.five_elements_title')}</Text>
       <View style={styles.elementsRow}>
@@ -216,6 +229,13 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans,
     fontSize: 10,
     color: Colors.textSecondary,
+  },
+  pillarUnknownText: {
+    fontFamily: Typography.sans,
+    fontSize: 10,
+    color: Colors.textLight,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   elementDot: {
     width: 8,

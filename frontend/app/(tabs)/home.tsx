@@ -373,6 +373,7 @@ export default function HomeScreen() {
               <View style={styles.twinRowTextCol}>
                 <Text style={styles.twinLabel}>{t('home.iching')}</Text>
                 <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
+                <Text style={styles.twinExplainer}>{t('home.iching_explainer')}</Text>
               </View>
               <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
             </TouchableOpacity>
@@ -805,6 +806,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.accent,
     letterSpacing: 0.5,
+  },
+  twinExplainer: {
+    fontFamily: Typography.sans,
+    fontSize: 11,
+    color: Colors.textSecondary,
+    lineHeight: 14,
+    marginTop: 2,
   },
   // Subscription banner
   subscriptionBanner: {

@@ -648,6 +648,9 @@ export default function AdminBaziReportsScreen() {
                         style={styles.textArea}
                         value={reportContent}
                         onChangeText={setReportContent}
+                        autoCorrect={false}
+                        autoComplete="off"
+                        spellCheck={false}
                         placeholder="Escribe aquí el análisis personalizado de la Carta Natal BaZi del usuario...
 
 Incluye:

@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { useLanguage } from '@/src/context/LanguageContext';
 import api from '@/src/services/api';
 import HexagramBars from '@/src/components/HexagramBars';
+import { useInterstitialAd } from '@/src/hooks/use-interstitial-ad';
 
 interface HexagramReading {
   number: number;
@@ -39,6 +40,7 @@ interface HexagramReading {
 export default function IChingScreen() {
   const router = useRouter();
   const { language, t } = useLanguage();
+  const { showBeforeConsultation } = useInterstitialAd();
   const [question, setQuestion] = useState('');
   const [digitsInput, setDigitsInput] = useState('');
   const [reading, setReading] = useState<HexagramReading | null>(null);
@@ -63,7 +65,7 @@ export default function IChingScreen() {
     }
   };
 
-  const handleCast = async () => {
+  const handleCast = () => {
     const parts = digitsInput.trim().split(/\s+/).filter(Boolean);
     const values = parts.map((p) => parseInt(p, 10));
 
@@ -72,13 +74,13 @@ export default function IChingScreen() {
       return;
     }
 
-    await castValues(values);
+    showBeforeConsultation(() => castValues(values));
   };
 
-  const handleRandomCast = async () => {
+  const handleRandomCast = () => {
     const values = Array.from({ length: 6 }, () => [6, 7, 8, 9][Math.floor(Math.random() * 4)]);
     setDigitsInput(values.join(' '));
-    await castValues(values);
+    showBeforeConsultation(() => castValues(values));
   };
 
   const handleFullInterpretation = async () => {

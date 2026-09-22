@@ -4,6 +4,7 @@ import { Colors } from '@/src/constants/Colors';
 import { Typography, Spacing, BorderRadius } from '@/src/constants/Typography';
 import { useLanguage } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
+import { useInterstitialAd } from '@/src/hooks/use-interstitial-ad';
 import api from '@/src/services/api';
 import { formatDateInput, isValidISODate, formatTimeInput, isValidTime } from '@/src/utils/dateInput';
 import BaziChartResult, { BaziChartData } from '@/src/components/BaziChartResult';
@@ -17,8 +18,10 @@ interface CalculatorBirthFormProps {
 export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthFormProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { showBeforeConsultation } = useInterstitialAd();
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('');
+  const [timeUnknown, setTimeUnknown] = useState(false);
   const [sex, setSex] = useState<Sex | null>(null);
   const [longitude, setLongitude] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
     if (user?.sex && !sex) setSex(user.sex as Sex);
   }, [user]);
 
-  const handleCalculate = async () => {
+  const handleCalculate = () => {
     if (!birthDate) {
       Alert.alert(t('common.error'), t('calculator.error_missing_date'));
       return;
@@ -42,13 +45,15 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
       Alert.alert(t('common.error'), t('calculator.error_invalid_date'));
       return;
     }
-    if (!birthTime) {
-      Alert.alert(t('common.error'), t('calculator.error_missing_time'));
-      return;
-    }
-    if (!isValidTime(birthTime)) {
-      Alert.alert(t('common.error'), t('calculator.error_invalid_time'));
-      return;
+    if (!timeUnknown) {
+      if (!birthTime) {
+        Alert.alert(t('common.error'), t('calculator.error_missing_time'));
+        return;
+      }
+      if (!isValidTime(birthTime)) {
+        Alert.alert(t('common.error'), t('calculator.error_invalid_time'));
+        return;
+      }
     }
     if (!sex) {
       Alert.alert(t('common.error'), t('calculator.error_missing_sex'));
@@ -68,13 +73,17 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
       return;
     }
 
+    showBeforeConsultation(() => runCalculate(lon));
+  };
+
+  const runCalculate = async (lon: number | undefined) => {
     setError('');
     setResult(null);
     setLoading(true);
     try {
       const response = await api.post('/calculator/bazi', {
         birth_date: birthDate,
-        birth_time: birthTime,
+        birth_time: timeUnknown ? null : birthTime,
         sex,
         longitude: lon ?? null,
       });
@@ -82,7 +91,7 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
 
       // Persist to the profile for next time - best-effort, guests (no
       // session) simply get a 401 here which we ignore.
-      if (user) {
+      if (user && !timeUnknown) {
         api.patch('/auth/me', { birth_date: birthDate, birth_time: birthTime, sex }).catch(() => {});
       }
     } catch (e: any) {
@@ -113,14 +122,27 @@ export default function CalculatorBirthForm({ calculatorType }: CalculatorBirthF
       <Text style={[styles.fieldLabel, styles.fieldLabelSpaced]}>{t('calculator.birth_time_label')}</Text>
       <TextInput
         testID="calculator-birth-time-input"
-        style={styles.input}
+        style={[styles.input, timeUnknown && styles.inputDisabled]}
         value={birthTime}
         onChangeText={(text) => setBirthTime(formatTimeInput(text))}
         placeholder={t('calculator.birth_time_placeholder')}
         placeholderTextColor={Colors.textLight}
         keyboardType="number-pad"
         maxLength={5}
+        editable={!timeUnknown}
       />
+      <TouchableOpacity
+        testID="calculator-time-unknown-checkbox"
+        style={styles.checkboxRow}
+        onPress={() => setTimeUnknown((prev) => !prev)}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.checkbox, timeUnknown && styles.checkboxChecked]}>
+          {timeUnknown && <View style={styles.checkboxDot} />}
+        </View>
+        <Text style={styles.checkboxLabel}>{t('calculator.time_unknown_checkbox')}</Text>
+      </TouchableOpacity>
+      {timeUnknown && <Text style={styles.explanation}>{t('calculator.time_unknown_explanation')}</Text>}
 
       <Text style={[styles.fieldLabel, styles.fieldLabelSpaced]}>{t('calculator.sex_label')}</Text>
       <View style={styles.sexRow}>
@@ -216,6 +238,40 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     color: Colors.textLight,
     marginTop: Spacing.xs,
+  },
+  inputDisabled: {
+    opacity: 0.5,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    borderColor: Colors.accent,
+  },
+  checkboxDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: Colors.accent,
+  },
+  checkboxLabel: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    flexShrink: 1,
   },
   sexRow: {
     flexDirection: 'row',

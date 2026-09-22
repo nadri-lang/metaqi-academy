@@ -747,7 +747,7 @@ class IChingInterpretRequest(BaseModel):
 # BaZi calculator
 class BaziCalculateRequest(BaseModel):
     birth_date: str  # YYYY-MM-DD
-    birth_time: str  # HH:MM (24h)
+    birth_time: Optional[str] = None  # HH:MM (24h); None when the hour is unknown - Hour Pillar is then omitted
     sex: str  # "M" or "F"
     longitude: Optional[float] = None  # optional true-solar-time correction
 
@@ -757,6 +757,8 @@ class BaziCalculateRequest(BaseModel):
 
     @validator('birth_time')
     def validate_birth_time_format(cls, v):
+        if not v:
+            return None
         return validate_hhmm_time(v)
 
     @validator('sex')

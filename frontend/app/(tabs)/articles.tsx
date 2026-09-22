@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '@/src/services/api';
 import { useLanguage } from '@/src/context/LanguageContext';
+import { ZodiacAnimalKey } from '@/src/constants/Zodiac';
 
 interface DailyEnergy {
   id: string;
@@ -21,6 +22,7 @@ interface DailyEnergy {
   title: string;
   content: string;
   animal?: string;
+  animal_type?: ZodiacAnimalKey;
   bazi_relationships?: string;
   recommendations: string[];
   avoid: string[];
@@ -30,7 +32,7 @@ interface DailyEnergy {
 }
 
 export default function DailyEnergyDetailScreen() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [data, setData] = useState<DailyEnergy | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -124,7 +126,9 @@ export default function DailyEnergyDetailScreen() {
               <MaterialCommunityIcons name="paw" size={22} color={Colors.accent} />
               <Text style={styles.sectionTitle}>Animal del Día</Text>
             </View>
-            <Text style={styles.animalText}>{data.animal}</Text>
+            <Text style={styles.animalText}>
+              {data.animal_type ? t(`zodiac.animals.${data.animal_type}`) : data.animal}
+            </Text>
           </View>
         )}
 

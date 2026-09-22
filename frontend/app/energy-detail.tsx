@@ -23,6 +23,7 @@ import ZodiacEmblem from '@/src/components/ZodiacEmblem';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
+import { useInterstitialAd } from '@/src/hooks/use-interstitial-ad';
 
 interface DailyEnergy {
   id: string;
@@ -59,9 +60,11 @@ export default function EnergyDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const { showBeforeConsultation } = useInterstitialAd();
 
   useEffect(() => {
-    load();
+    showBeforeConsultation(load);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language, previewDate]);
 
   const load = async () => {
@@ -148,6 +151,7 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="airplane" size={28} color={Colors.primary} />
               <Text style={styles.modalTitle}>{t('daily.travel_hours')}</Text>
             </View>
+            <Text style={styles.modalNoteText}>{t('daily.travel_note')}</Text>
             {data.travel_hours && data.travel_hours.length > 0 ? (
               data.travel_hours.map((hour, idx) => (
                 <View key={idx} style={styles.modalListItem}>
@@ -222,6 +226,7 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="close-circle-outline" size={28} color={Colors.error} />
               <Text style={styles.modalTitle}>{t('daily.avoid_activities')}</Text>
             </View>
+            <Text style={styles.modalDisclaimerText}>{t('daily.avoid_disclaimer')}</Text>
             {data.avoid && data.avoid.length > 0 ? (
               data.avoid.map((item, idx) => (
                 <View key={idx} style={styles.modalListItem}>
@@ -275,6 +280,7 @@ export default function EnergyDetailScreen() {
               <MaterialCommunityIcons name="home-outline" size={28} color={Colors.jade} />
               <Text style={styles.modalTitle}>{t('daily.feng_shui')}</Text>
             </View>
+            <Text style={styles.modalNoteText}>{t('daily.feng_shui_note')}</Text>
             <Text style={styles.modalSubtitle}>{t('daily.feng_shui_sectors')}</Text>
             {data.feng_shui_sectors && data.feng_shui_sectors.length > 0 ? (
               data.feng_shui_sectors.map((item, idx) => (
@@ -310,6 +316,7 @@ export default function EnergyDetailScreen() {
               <Text style={styles.modalLearnMoreLinkText}>{t('metaphysics.what_is_strategies')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.accent} />
             </TouchableOpacity>
+            <Text style={styles.modalNoteText}>{t('daily.qimen_note')}</Text>
             <Text style={styles.modalSubtitle}>{t('daily.qimen_directions')}</Text>
             {data.qimen_directions && data.qimen_directions.length > 0 ? (
               data.qimen_directions.map((item, idx) => (
@@ -415,7 +422,7 @@ export default function EnergyDetailScreen() {
               {data.animal ? (
                 <View style={styles.animalRow}>
                   {data.animal_type ? (
-                    <ZodiacGlyph animal={data.animal_type} size={16} color={Colors.accent} />
+                    <ZodiacGlyph animal={data.animal_type} size={16} />
                   ) : (
                     <MaterialCommunityIcons name="paw" size={16} color={Colors.accent} />
                   )}
@@ -788,6 +795,21 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sansMedium,
     fontSize: Typography.sm,
     color: Colors.textLight,
+    marginBottom: Spacing.md,
+  },
+  modalNoteText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  modalDisclaimerText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    fontStyle: 'italic',
+    color: Colors.textLight,
+    lineHeight: 18,
     marginBottom: Spacing.md,
   },
   modalDescription: {

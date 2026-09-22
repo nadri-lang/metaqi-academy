@@ -313,6 +313,7 @@ export default function ProfileScreen() {
                   'profile.subscription_benefit_monthly',
                   'profile.subscription_benefit_vocation',
                   'profile.subscription_benefit_journal',
+                  'profile.subscription_benefit_ads_free',
                 ].map((key) => (
                   <View key={key} style={styles.subscriptionBenefitRow}>
                     <MaterialCommunityIcons name="check-circle" size={16} color={Colors.jade} />
@@ -349,6 +350,7 @@ export default function ProfileScreen() {
                   'profile.subscription_benefit_monthly',
                   'profile.subscription_benefit_vocation',
                   'profile.subscription_benefit_journal',
+                  'profile.subscription_benefit_ads_free',
                 ].map((key) => (
                   <View key={key} style={styles.subscriptionBenefitRow}>
                     <MaterialCommunityIcons name="check-circle-outline" size={16} color={Colors.accent} />

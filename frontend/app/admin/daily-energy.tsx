@@ -381,7 +381,7 @@ export default function AdminDailyEnergyScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.form}>
+          <View style={styles.form} key={date}>
             <Text style={styles.label}>Fecha (YYYY-MM-DD)</Text>
             <View style={styles.dateNavRow}>
               <TouchableOpacity
@@ -527,6 +527,9 @@ export default function AdminDailyEnergyScreen() {
               onChangeText={setAnimal}
               placeholder="Ej: Tigre de Madera Yang"
               placeholderTextColor={Colors.textLight}
+              autoCorrect={false}
+              autoComplete="off"
+              spellCheck={false}
             />
 
             <Text style={styles.label}>Relaciones BaZi</Text>
@@ -554,6 +557,9 @@ export default function AdminDailyEnergyScreen() {
             />
 
             <Text style={styles.label}>Actividades a Evitar (una por línea)</Text>
+            <Text style={styles.fixedNoteText}>
+              Las actividades marcadas como no recomendadas no significa que estén prohibidas, sino que el día presenta una configuración energética poco favorable para iniciar o realizar dicha actividad. Se recomienda, cuando sea posible, elegir una fecha más adecuada para obtener mejores condiciones energéticas.
+            </Text>
             <TextInput
               testID="input-avoid"
               style={[styles.input, styles.textArea]}
@@ -566,6 +572,9 @@ export default function AdminDailyEnergyScreen() {
             />
 
             <Text style={styles.label}>Sectores Feng Shui (uno por línea)</Text>
+            <Text style={styles.fixedNoteText}>
+              Se refiere a los sectores de tu casa u oficina: espacios que puedes usar, activar, donde descansar o evitar.
+            </Text>
             <TextInput
               testID="input-fengshui"
               style={[styles.input, styles.textArea]}
@@ -578,6 +587,9 @@ export default function AdminDailyEnergyScreen() {
             />
 
             <Text style={styles.label}>Direcciones Qimen (una por línea)</Text>
+            <Text style={styles.fixedNoteText}>
+              Te colocas de espalda a la dirección elegida. La energía de esa dirección te respalda y apoya tu intención durante la meditación.
+            </Text>
             <TextInput
               testID="input-qimen"
               style={[styles.input, styles.textArea]}
@@ -602,6 +614,9 @@ export default function AdminDailyEnergyScreen() {
             />
 
             <Text style={styles.label}>🚗 Horas NO recomendadas para Viajes (una por línea)</Text>
+            <Text style={styles.fixedNoteText}>
+              En estas horas, se desaconsejan los viajes largos.
+            </Text>
             <TextInput
               testID="input-travel"
               style={[styles.input, styles.textArea]}
@@ -842,6 +857,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
     marginTop: Spacing.md,
+  },
+  fixedNoteText: {
+    fontFamily: Typography.sans,
+    fontSize: Typography.xs,
+    color: Colors.textSecondary,
+    lineHeight: 16,
+    marginBottom: Spacing.xs,
   },
   input: {
     backgroundColor: Colors.background,

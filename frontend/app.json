@@ -21,7 +21,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.metaqiacademy.app",
-      "versionCode": 1
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
@@ -46,7 +46,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "androidAppId": "ca-app-pub-7209607881692193~6277265124",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ]

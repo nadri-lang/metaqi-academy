@@ -23,6 +23,7 @@ import { toAbsoluteMediaUrl } from '@/src/utils/mediaUrl';
 import ZodiacGlyph from '@/src/components/ZodiacGlyph';
 import { ZodiacAnimalKey, ElementKey, animalPolarity } from '@/src/constants/Zodiac';
 import FavoriteButton from '@/src/components/FavoriteButton';
+import { useInterstitialAd } from '@/src/hooks/use-interstitial-ad';
 
 interface MonthEnergy {
   id: string;
@@ -51,9 +52,11 @@ export default function MonthEnergyDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeSection, setActiveSection] = useState<MonthSection | null>(null);
+  const { showBeforeConsultation } = useInterstitialAd();
 
   useEffect(() => {
-    load();
+    showBeforeConsultation(load);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const load = async () => {
@@ -163,7 +166,7 @@ export default function MonthEnergyDetailScreen() {
                 </Text>
               </Text>
               <View style={styles.elementAnimalRow}>
-                <ZodiacGlyph animal={data.animal_type} size={16} color={Colors.accent} />
+                <ZodiacGlyph animal={data.animal_type} size={16} />
                 <Text style={styles.elementAnimalText}>
                   {t('month.animal_of_month')}: <Text style={styles.elementAnimalValue}>
                     {t(`zodiac.animals.${data.animal_type}`)}

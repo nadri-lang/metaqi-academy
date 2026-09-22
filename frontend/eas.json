@@ -28,7 +28,8 @@
       "env": {
         "EXPO_PUBLIC_BACKEND_URL": "https://metaqi-academy.onrender.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "565707207903-3hsai2h4k39668uen1lsr2vs1avlivo7.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "565707207903-0q93gsk8q6m6jmg1ri71bue8rmprruug.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "565707207903-0q93gsk8q6m6jmg1ri71bue8rmprruug.apps.googleusercontent.com",
+        "EXPO_PUBLIC_ADMOB_INTERSTITIAL_UNIT_ID": "ca-app-pub-7209607881692193/9306008285"
       }
     },
     "production": {
@@ -40,7 +41,8 @@
       "env": {
         "EXPO_PUBLIC_BACKEND_URL": "https://metaqi-academy.onrender.com",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "565707207903-3hsai2h4k39668uen1lsr2vs1avlivo7.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "565707207903-0q93gsk8q6m6jmg1ri71bue8rmprruug.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "565707207903-0q93gsk8q6m6jmg1ri71bue8rmprruug.apps.googleusercontent.com",
+        "EXPO_PUBLIC_ADMOB_INTERSTITIAL_UNIT_ID": "ca-app-pub-7209607881692193/9306008285"
       }
     }
   },
