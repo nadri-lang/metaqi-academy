@@ -41,7 +41,7 @@ export default {
     subscription_title: 'Abo 1,99€/Monat',
     daily_activations: 'Tagesaktivierungen',
     iching: 'IChing',
-    iching_subtitle: 'WEISSAGUNG',
+    iching_subtitle: 'ORAKEL',
     iching_explainer: 'Schreibe deine Frage · Erzeuge das Hexagramm · Erhalte seine Deutung',
     month_energy: 'Monatsenergie',
     year_energy: 'Jahresenergie',

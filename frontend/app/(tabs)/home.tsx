@@ -396,14 +396,17 @@ export default function HomeScreen() {
               <View style={styles.gridRow}>
                 <TouchableOpacity
                   testID="iching-button"
-                  style={styles.gridCard}
+                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
                   onPress={() => router.push('/iching')}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
                   </View>
-                  <Text style={styles.gridLabel}>{t('home.iching')}</Text>
+                  <View style={styles.gridRowTextCol}>
+                    <Text style={[styles.gridLabel, styles.gridLabelRow]}>{t('home.iching')}</Text>
+                    <Text style={styles.gridOracleLabel}>{t('home.iching_subtitle')}</Text>
+                  </View>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
 
@@ -423,28 +426,34 @@ export default function HomeScreen() {
               <View style={styles.gridRow}>
                 <TouchableOpacity
                   testID="month-energy-button"
-                  style={styles.gridCard}
+                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
                   onPress={() => router.push('/month-energy-detail')}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="calendar-outline" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={styles.gridLabel}>{t('home.month_energy')}</Text>
+                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.month_energy')}
+                  </Text>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   testID="year-energy-button"
-                  style={styles.gridCard}
+                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
                   onPress={() => router.push('/year-energy-detail')}
                   activeOpacity={0.85}
                 >
-                  <View style={styles.gridIconContainer}>
-                    <MaterialCommunityIcons name="shimmer" size={22} color={Colors.accent} />
+                  <View style={styles.gridRowTextCol}>
+                    <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent]}>{t('home.year_energy')}</Text>
+                    <Text style={[styles.twinBadge, styles.twinBadgeFree, styles.gridBadgeInline]}>{t('courses.free')}</Text>
                   </View>
-                  <Text style={styles.gridLabel}>{t('home.year_energy')}</Text>
-                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+                  <Image
+                    source={require('../../assets/images/year-horse-stylized.png')}
+                    style={styles.gridYearHorse}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -640,7 +649,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   brandBlockWeb: {
-    transform: [{ translateX: 90 }],
+    marginTop: -5,
+    transform: [{ translateX: 140 }],
   },
   logo: {
     fontFamily: Typography.serifBold,
@@ -650,6 +660,11 @@ const styles = StyleSheet.create({
   logoWeb: {
     fontSize: Typography['4xl'] * 3,
     color: Colors.accentLight,
+    backgroundColor: 'rgba(8,22,42,0.6)',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
   },
   socialRow: {
     flexDirection: 'row',
@@ -915,6 +930,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.calculatorBg,
     borderColor: Colors.accent + '40',
   },
+  gridCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  gridRowTextCol: {
+    flex: 1,
+    gap: 2,
+  },
   gridIconContainer: {
     width: 40,
     height: 40,
@@ -929,8 +952,30 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
+  gridLabelRow: {
+    flex: 1,
+    textAlign: 'left',
+  },
+  gridLabelLarge: {
+    fontSize: Typography.xl,
+  },
   gridLabelAccent: {
     color: Colors.accent,
+  },
+  gridOracleLabel: {
+    fontFamily: Typography.sansSemiBold,
+    fontSize: 11,
+    color: Colors.accent,
+    letterSpacing: 1.5,
+    marginTop: 2,
+  },
+  gridBadgeInline: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  gridYearHorse: {
+    width: 64,
+    height: 54,
   },
   twinRowCard: {
     flexDirection: 'row',

@@ -41,7 +41,7 @@ export default {
     subscription_title: 'Subscrição 1,99€/mês',
     daily_activations: 'Ativações do Dia',
     iching: 'IChing',
-    iching_subtitle: 'ADIVINHAÇÃO',
+    iching_subtitle: 'ORÁCULO',
     iching_explainer: 'Escreve a tua pergunta · Gera o hexagrama · Recebe a sua interpretação',
     month_energy: 'Energia do Mês',
     year_energy: 'Energia do Ano',

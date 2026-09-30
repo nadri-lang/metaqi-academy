@@ -41,7 +41,7 @@ export default {
     subscription_title: 'Abonnement 1,99€/mois',
     daily_activations: 'Activations du Jour',
     iching: 'IChing',
-    iching_subtitle: 'DIVINATION',
+    iching_subtitle: 'ORACLE',
     iching_explainer: "Écris ta question · Génère l'hexagramme · Reçois son interprétation",
     month_energy: 'Énergie du Mois',
     year_energy: 'Énergie de l\'Année',
