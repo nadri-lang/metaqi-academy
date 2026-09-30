@@ -413,14 +413,17 @@ export default function HomeScreen() {
 
                 <TouchableOpacity
                   testID="calculator-button"
-                  style={[styles.gridCard, styles.gridCardCalculator]}
+                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
                   onPress={() => setCalculatorMenuVisible(true)}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="calculator-variant" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>{t('home.calculator')}</Text>
+                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.calculator')}
+                  </Text>
+                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
               </View>
 

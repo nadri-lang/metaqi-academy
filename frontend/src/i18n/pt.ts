@@ -38,7 +38,7 @@ export default {
     daily_energy_subtitle: 'Descobre a energia de hoje',
     animal_of_day: 'Animal do dia',
     animal_element_note: '(O animal define a natureza e as relações do dia, enquanto o elemento traz e modula a sua qualidade energética do dia.)',
-    subscription_title: 'Subscrição 1,99€/mês',
+    subscription_title: 'Subscrição 3,99€/mês',
     daily_activations: 'Ativações do Dia',
     iching: 'IChing',
     iching_subtitle: 'ORÁCULO',

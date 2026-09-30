@@ -38,7 +38,7 @@ export default {
     daily_energy_subtitle: 'Entdecken Sie die heutige Energie',
     animal_of_day: 'Tier des Tages',
     animal_element_note: '(Das Tier bestimmt die Natur und die Beziehungen des Tages, während das Element seine energetische Qualität verleiht und moduliert.)',
-    subscription_title: 'Abo 1,99€/Monat',
+    subscription_title: 'Abo 3,99€/Monat',
     daily_activations: 'Tagesaktivierungen',
     iching: 'IChing',
     iching_subtitle: 'ORAKEL',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Colors } from '@/src/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,7 +19,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: Colors.textLight,
         tabBarStyle: {
           backgroundColor: Colors.primary,
-          borderTopWidth: 0,
+          borderTopWidth: Platform.OS === 'web' ? 1 : 0,
+          borderTopColor: Colors.accent + '80',
           elevation: 0,
           shadowOpacity: 0,
           height: 60 + insets.bottom,

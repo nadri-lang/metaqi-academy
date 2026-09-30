@@ -38,7 +38,7 @@ export default {
     daily_energy_subtitle: 'Descoperă energia de astăzi',
     animal_of_day: 'Animalul zilei',
     animal_element_note: '(Animalul definește natura și relațiile zilei, în timp ce elementul aduce și modulează calitatea energetică a zilei.)',
-    subscription_title: 'Abonament 1,99€/lună',
+    subscription_title: 'Abonament 3,99€/lună',
     daily_activations: 'Activările Zilei',
     iching: 'IChing',
     iching_subtitle: 'ORACOL',
