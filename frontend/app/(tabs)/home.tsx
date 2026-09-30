@@ -226,18 +226,20 @@ export default function HomeScreen() {
             <View style={styles.brandDivider} />
           </View>
 
-          <TouchableOpacity
-            testID="calculator-button"
-            style={styles.calculatorCard}
-            onPress={() => setCalculatorMenuVisible(true)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.calculatorIconContainer}>
-              <MaterialCommunityIcons name="calculator-variant" size={20} color={Colors.accent} />
-            </View>
-            <Text style={styles.calculatorCardText}>{t('home.calculator')}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.accent} />
-          </TouchableOpacity>
+          {Platform.OS !== 'web' && (
+            <TouchableOpacity
+              testID="calculator-button"
+              style={styles.calculatorCard}
+              onPress={() => setCalculatorMenuVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.calculatorIconContainer}>
+                <MaterialCommunityIcons name="calculator-variant" size={20} color={Colors.accent} />
+              </View>
+              <Text style={styles.calculatorCardText}>{t('home.calculator')}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.accent} />
+            </TouchableOpacity>
+          )}
 
           <View style={styles.languageRow} testID="language-selector">
             {languages.map((lang) => {
@@ -379,56 +381,115 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* IChing / Energía del Mes / Energía del Año - stack vertical */}
+        {/* IChing / Calculadora / Energía del Mes / Energía del Año */}
         <View style={styles.section}>
-          <View style={styles.twinStack}>
-            <TouchableOpacity
-              testID="iching-button"
-              style={styles.twinRowCard}
-              onPress={() => router.push('/iching')}
-              activeOpacity={0.85}
-            >
-              <View style={styles.twinIconContainer}>
-                <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
-              </View>
-              <View style={styles.twinRowTextCol}>
-                <Text style={styles.twinLabel}>{t('home.iching')}</Text>
-                <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
-                <Text style={styles.twinExplainer}>{t('home.iching_explainer')}</Text>
-              </View>
-              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
-            </TouchableOpacity>
+          {Platform.OS === 'web' ? (
+            <View style={styles.gridSection}>
+              <View style={styles.gridRow}>
+                <TouchableOpacity
+                  testID="iching-button"
+                  style={styles.gridCard}
+                  onPress={() => router.push('/iching')}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.gridIconContainer}>
+                    <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
+                  </View>
+                  <Text style={styles.gridLabel}>{t('home.iching')}</Text>
+                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              testID="month-energy-button"
-              style={styles.twinRowCard}
-              onPress={() => router.push('/month-energy-detail')}
-              activeOpacity={0.85}
-            >
-              <View style={styles.twinIconContainer}>
-                <MaterialCommunityIcons name="calendar-outline" size={24} color={Colors.accent} />
+                <TouchableOpacity
+                  testID="calculator-button"
+                  style={[styles.gridCard, styles.gridCardCalculator]}
+                  onPress={() => setCalculatorMenuVisible(true)}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.gridIconContainer}>
+                    <MaterialCommunityIcons name="calculator-variant" size={22} color={Colors.accent} />
+                  </View>
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent]}>{t('home.calculator')}</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.twinRowTextCol}>
-                <Text style={styles.twinLabel}>{t('home.month_energy')}</Text>
-              </View>
-              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              testID="year-energy-button"
-              style={styles.twinRowCard}
-              onPress={() => router.push('/year-energy-detail')}
-              activeOpacity={0.85}
-            >
-              <View style={styles.twinIconContainer}>
-                <MaterialCommunityIcons name="shimmer" size={24} color={Colors.accent} />
+              <View style={styles.gridRow}>
+                <TouchableOpacity
+                  testID="month-energy-button"
+                  style={styles.gridCard}
+                  onPress={() => router.push('/month-energy-detail')}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.gridIconContainer}>
+                    <MaterialCommunityIcons name="calendar-outline" size={22} color={Colors.accent} />
+                  </View>
+                  <Text style={styles.gridLabel}>{t('home.month_energy')}</Text>
+                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  testID="year-energy-button"
+                  style={styles.gridCard}
+                  onPress={() => router.push('/year-energy-detail')}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.gridIconContainer}>
+                    <MaterialCommunityIcons name="shimmer" size={22} color={Colors.accent} />
+                  </View>
+                  <Text style={styles.gridLabel}>{t('home.year_energy')}</Text>
+                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.twinRowTextCol}>
-                <Text style={styles.twinLabel}>{t('home.year_energy')}</Text>
-              </View>
-              <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          ) : (
+            <View style={styles.twinStack}>
+              <TouchableOpacity
+                testID="iching-button"
+                style={styles.twinRowCard}
+                onPress={() => router.push('/iching')}
+                activeOpacity={0.85}
+              >
+                <View style={styles.twinIconContainer}>
+                  <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
+                </View>
+                <View style={styles.twinRowTextCol}>
+                  <Text style={styles.twinLabel}>{t('home.iching')}</Text>
+                  <Text style={styles.twinBadgeMuted}>{t('home.iching_subtitle')}</Text>
+                  <Text style={styles.twinExplainer}>{t('home.iching_explainer')}</Text>
+                </View>
+                <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                testID="month-energy-button"
+                style={styles.twinRowCard}
+                onPress={() => router.push('/month-energy-detail')}
+                activeOpacity={0.85}
+              >
+                <View style={styles.twinIconContainer}>
+                  <MaterialCommunityIcons name="calendar-outline" size={24} color={Colors.accent} />
+                </View>
+                <View style={styles.twinRowTextCol}>
+                  <Text style={styles.twinLabel}>{t('home.month_energy')}</Text>
+                </View>
+                <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                testID="year-energy-button"
+                style={styles.twinRowCard}
+                onPress={() => router.push('/year-energy-detail')}
+                activeOpacity={0.85}
+              >
+                <View style={styles.twinIconContainer}>
+                  <MaterialCommunityIcons name="shimmer" size={24} color={Colors.accent} />
+                </View>
+                <View style={styles.twinRowTextCol}>
+                  <Text style={styles.twinLabel}>{t('home.year_energy')}</Text>
+                </View>
+                <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Banner de suscripción - accesos premium agrupados, stack vertical */}
@@ -816,6 +877,46 @@ const styles = StyleSheet.create({
   // IChing / Energía del Mes / Energía del Año - stack vertical, una fila por botón
   twinStack: {
     gap: Spacing.sm,
+  },
+  // Web only: IChing / Calculadora / Energía del Mes / Energía del Año as a 2x2 grid.
+  gridSection: {
+    gap: Spacing.sm,
+  },
+  gridRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  gridCard: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    gap: 6,
+  },
+  gridCardCalculator: {
+    backgroundColor: Colors.calculatorBg,
+    borderColor: Colors.accent + '40',
+  },
+  gridIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: Colors.accent + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gridLabel: {
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.base,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+  },
+  gridLabelAccent: {
+    color: Colors.accent,
   },
   twinRowCard: {
     flexDirection: 'row',
