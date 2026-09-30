@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -107,6 +109,13 @@ export default function YearEnergyDetailScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={Gradients.navy} style={styles.header}>
+        {Platform.OS === 'web' && data.animal_type === 'horse' && (
+          <Image
+            source={require('../assets/images/year-horse-stylized.png')}
+            style={styles.headerAnimalArt}
+            resizeMode="contain"
+          />
+        )}
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
             {/* Botón Volver */}
@@ -119,7 +128,7 @@ export default function YearEnergyDetailScreen() {
               <MaterialCommunityIcons name="arrow-left" size={24} color={Colors.white} />
               <Text style={styles.backButtonTextWhite}>{t('common.back')}</Text>
             </TouchableOpacity>
-            
+
             <View style={styles.iconRow}>
               <View style={styles.iconContainer}>
                 <MaterialCommunityIcons name="shimmer" size={28} color={Colors.jade} />
@@ -201,7 +210,15 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
-  header: { paddingBottom: Spacing.xl },
+  header: { paddingBottom: Spacing.xl, position: 'relative', overflow: 'hidden' },
+  headerAnimalArt: {
+    position: 'absolute',
+    right: 10,
+    top: 16,
+    width: 190,
+    height: 158,
+    opacity: 0.55,
+  },
   headerContent: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,

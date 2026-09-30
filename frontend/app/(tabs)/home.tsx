@@ -404,7 +404,7 @@ export default function HomeScreen() {
                     <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
                   </View>
                   <View style={styles.gridRowTextCol}>
-                    <Text style={[styles.gridLabel, styles.gridLabelRow]}>{t('home.iching')}</Text>
+                    <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelLarge]}>{t('home.iching')}</Text>
                     <Text style={styles.gridOracleLabel}>{t('home.iching_subtitle')}</Text>
                   </View>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
@@ -419,7 +419,7 @@ export default function HomeScreen() {
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="calculator-variant" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={[styles.gridLabel, styles.gridLabelAccent]}>{t('home.calculator')}</Text>
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>{t('home.calculator')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -445,15 +445,13 @@ export default function HomeScreen() {
                   onPress={() => router.push('/year-energy-detail')}
                   activeOpacity={0.85}
                 >
-                  <View style={styles.gridRowTextCol}>
-                    <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent]}>{t('home.year_energy')}</Text>
-                    <Text style={[styles.twinBadge, styles.twinBadgeFree, styles.gridBadgeInline]}>{t('courses.free')}</Text>
+                  <View style={styles.gridIconContainer}>
+                    <MaterialCommunityIcons name="shimmer" size={22} color={Colors.accent} />
                   </View>
-                  <Image
-                    source={require('../../assets/images/year-horse-stylized.png')}
-                    style={styles.gridYearHorse}
-                    resizeMode="contain"
-                  />
+                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.year_energy')}
+                  </Text>
+                  <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -650,7 +648,7 @@ const styles = StyleSheet.create({
   },
   brandBlockWeb: {
     marginTop: -5,
-    transform: [{ translateX: 140 }],
+    transform: [{ translateX: -60 }],
   },
   logo: {
     fontFamily: Typography.serifBold,
@@ -968,14 +966,6 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     letterSpacing: 1.5,
     marginTop: 2,
-  },
-  gridBadgeInline: {
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  gridYearHorse: {
-    width: 64,
-    height: 54,
   },
   twinRowCard: {
     flexDirection: 'row',
