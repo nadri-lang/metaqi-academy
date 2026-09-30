@@ -164,11 +164,19 @@ export default function HomeScreen() {
         <LinearGradient colors={Gradients.navy} style={styles.header}>
           <View style={styles.headerBannerSection}>
           {Platform.OS === 'web' && (
-            <Image
-              source={require('../../assets/images/web-header-banner.png')}
-              style={styles.headerBannerOverlay}
-              resizeMode="cover"
-            />
+            <>
+              <Image
+                source={require('../../assets/images/web-header-banner.png')}
+                style={styles.headerBannerOverlay}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={['transparent', 'transparent', Colors.primary]}
+                locations={[0, 0.82, 1]}
+                style={styles.headerBannerFade}
+                pointerEvents="none"
+              />
+            </>
           )}
           <View style={styles.headerTopRow}>
             {user ? (
@@ -580,9 +588,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     opacity: 0.4,
-    // @ts-expect-error web-only CSS, biases the cover-crop toward the top
-    // of the source image so the horse's head isn't cropped off.
-    objectPosition: 'center 8%',
+  },
+  headerBannerFade: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -626,7 +640,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   brandBlockWeb: {
-    transform: [{ translateX: -170 }],
+    transform: [{ translateX: 90 }],
   },
   logo: {
     fontFamily: Typography.serifBold,
