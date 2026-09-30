@@ -2,13 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -109,21 +107,6 @@ export default function YearEnergyDetailScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient colors={Gradients.navy} style={styles.header}>
-        {Platform.OS === 'web' && data.animal_type === 'horse' && (
-          <View style={styles.headerAnimalArtWrap} pointerEvents="none">
-            <Image
-              source={require('../assets/images/year-horse-stylized.png')}
-              style={styles.headerAnimalArtImage}
-              resizeMode="contain"
-            />
-            <LinearGradient
-              colors={[Colors.primary, 'transparent']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={styles.headerAnimalArtFade}
-            />
-          </View>
-        )}
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
             {/* Botón Volver */}
@@ -218,26 +201,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm,
     color: Colors.textSecondary,
   },
-  header: { paddingBottom: Spacing.xl, position: 'relative', overflow: 'hidden' },
-  headerAnimalArtWrap: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: 320,
-    opacity: 0.55,
-  },
-  headerAnimalArtImage: {
-    width: '100%',
-    height: '100%',
-  },
-  headerAnimalArtFade: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: '45%',
-  },
+  header: { paddingBottom: Spacing.xl },
   headerContent: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,

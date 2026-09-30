@@ -268,6 +268,7 @@ export default function HomeScreen() {
               );
             })}
           </View>
+          {Platform.OS === 'web' && <View style={styles.headerBannerSpacer} />}
           </View>
         </LinearGradient>
 
@@ -647,8 +648,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   brandBlockWeb: {
-    marginTop: -5,
-    transform: [{ translateX: -60 }],
+    transform: [{ translateX: 60 }],
+  },
+  headerBannerSpacer: {
+    height: 130,
   },
   logo: {
     fontFamily: Typography.serifBold,
@@ -658,11 +661,6 @@ const styles = StyleSheet.create({
   logoWeb: {
     fontSize: Typography['4xl'] * 3,
     color: Colors.accentLight,
-    backgroundColor: 'rgba(8,22,42,0.6)',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
   },
   socialRow: {
     flexDirection: 'row',
