@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/src/constants/Colors';
 import { useLanguage } from '@/src/context/LanguageContext';
@@ -27,7 +27,7 @@ export function RewardedAccessButton({ onUnlocked }: RewardedAccessButtonProps) 
     wasGranting.current = isGranting;
   }, [isGranting, hasPremiumAccess, onUnlocked]);
 
-  if (hasPremiumAccess) return null;
+  if (hasPremiumAccess || Platform.OS === 'web') return null;
 
   const busy = isLoading || isGranting;
 

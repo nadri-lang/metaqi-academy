@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -140,7 +141,18 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.pageWrapper}>
+      {Platform.OS === 'web' && (
+        <Image
+          source={require('../../assets/images/web-home-bg.png')}
+          style={styles.webBackgroundImage}
+          resizeMode="cover"
+        />
+      )}
+      <SafeAreaView
+        style={[styles.container, Platform.OS === 'web' && styles.containerWebTransparent]}
+        edges={['top']}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -456,12 +468,24 @@ export default function HomeScreen() {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  pageWrapper: { flex: 1, position: 'relative' },
+  webBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
   container: { flex: 1, backgroundColor: Colors.background },
+  containerWebTransparent: { backgroundColor: 'transparent' },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
