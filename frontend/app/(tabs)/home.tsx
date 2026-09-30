@@ -162,6 +162,14 @@ export default function HomeScreen() {
       >
         {/* Header - brand mark, language pills, share/login */}
         <LinearGradient colors={Gradients.navy} style={styles.header}>
+          <View style={styles.headerBannerSection}>
+          {Platform.OS === 'web' && (
+            <Image
+              source={require('../../assets/images/web-header-banner.png')}
+              style={styles.headerBannerOverlay}
+              resizeMode="cover"
+            />
+          )}
           <View style={styles.headerTopRow}>
             {user ? (
               <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.display_name || user.name}</Text>
@@ -216,6 +224,7 @@ export default function HomeScreen() {
               </View>
             )}
             <View style={styles.brandDivider} />
+          </View>
           </View>
 
           <TouchableOpacity
@@ -497,6 +506,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
+  },
+  headerBannerSection: {
+    position: 'relative',
+  },
+  headerBannerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.4,
   },
   headerTopRow: {
     flexDirection: 'row',
