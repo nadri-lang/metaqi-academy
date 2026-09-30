@@ -588,8 +588,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
   },
   headerWeb: {
-    borderWidth: 1,
-    borderColor: Colors.accent + '80',
+    borderWidth: 2,
+    borderColor: Colors.accentLight,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
   },
