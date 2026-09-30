@@ -197,11 +197,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {Platform.OS === 'web' && (
-            <Text style={styles.headerYearBadge}>2027</Text>
-          )}
-
-          <View style={styles.brandBlock}>
+          <View style={[styles.brandBlock, Platform.OS === 'web' && styles.brandBlockWeb]}>
             <Text style={[styles.logo, Platform.OS === 'web' && styles.logoWeb]}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
             {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
               <View style={styles.socialRow}>
@@ -525,7 +521,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
     // @ts-expect-error web-only CSS, biases the cover-crop toward the top
     // of the source image so the horse's head isn't cropped off.
-    objectPosition: 'center 15%',
+    objectPosition: 'center 8%',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -568,23 +564,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: Spacing.md,
   },
+  brandBlockWeb: {
+    transform: [{ translateX: -170 }],
+  },
   logo: {
     fontFamily: Typography.serifBold,
     fontSize: Typography['3xl'],
     color: Colors.accent,
   },
   logoWeb: {
-    fontSize: Typography['4xl'],
+    fontSize: Typography['4xl'] * 3,
     color: Colors.accentLight,
-  },
-  headerYearBadge: {
-    position: 'absolute',
-    top: 48,
-    right: 90,
-    fontFamily: Typography.serifBold,
-    fontSize: Typography.sm,
-    color: Colors.accentLight,
-    letterSpacing: 1,
   },
   socialRow: {
     flexDirection: 'row',
