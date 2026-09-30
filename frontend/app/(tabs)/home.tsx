@@ -172,7 +172,7 @@ export default function HomeScreen() {
               />
               <LinearGradient
                 colors={['transparent', 'transparent', Colors.primary]}
-                locations={[0, 0.82, 1]}
+                locations={[0, 0.94, 1]}
                 style={styles.headerBannerFade}
                 pointerEvents="none"
               />
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
     transform: [{ translateX: 60 }],
   },
   headerBannerSpacer: {
-    height: 130,
+    height: 160,
   },
   logo: {
     fontFamily: Typography.serifBold,
