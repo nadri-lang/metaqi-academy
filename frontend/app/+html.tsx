@@ -22,6 +22,18 @@ export default function Root({ children }: PropsWithChildren) {
         */}
         <meta name="google" content="notranslate" />
         {/*
+          Google AdSense base library + site-ownership verification snippet
+          (client ca-pub-7209607881692193). Web only - +html.tsx has no
+          effect on the native app. Once the site is approved in AdSense,
+          turn off Auto ads in the dashboard (we're placing ad units
+          manually) and add <ins class="adsbygoogle"> blocks where needed.
+        */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7209607881692193"
+          crossOrigin="anonymous"
+        />
+        {/*
           Disable body scrolling on web to make ScrollView components work correctly.
           If you want to enable scrolling, remove `ScrollViewStyleReset` and
           set `overflow: auto` on the body style below.
