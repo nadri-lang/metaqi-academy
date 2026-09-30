@@ -161,7 +161,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header - brand mark, language pills, share/login */}
-        <LinearGradient colors={Gradients.navy} style={styles.header}>
+        <LinearGradient colors={Gradients.navy} style={[styles.header, Platform.OS === 'web' && styles.headerWeb]}>
           <View style={styles.headerBannerSection}>
           {Platform.OS === 'web' && (
             <>
@@ -584,6 +584,12 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
   },
+  headerWeb: {
+    borderWidth: 1,
+    borderColor: Colors.accent + '80',
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+  },
   headerBannerSection: {
     position: 'relative',
   },
@@ -651,7 +657,7 @@ const styles = StyleSheet.create({
     transform: [{ translateX: 60 }],
   },
   headerBannerSpacer: {
-    height: 160,
+    height: 115,
   },
   logo: {
     fontFamily: Typography.serifBold,
