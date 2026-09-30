@@ -197,8 +197,12 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          {Platform.OS === 'web' && (
+            <Text style={styles.headerYearBadge}>2027</Text>
+          )}
+
           <View style={styles.brandBlock}>
-            <Text style={styles.logo}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+            <Text style={[styles.logo, Platform.OS === 'web' && styles.logoWeb]}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
             {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
               <View style={styles.socialRow}>
                 {socialLinks.social_facebook_url && (
@@ -565,6 +569,19 @@ const styles = StyleSheet.create({
     fontFamily: Typography.serifBold,
     fontSize: Typography['3xl'],
     color: Colors.accent,
+  },
+  logoWeb: {
+    fontSize: Typography['4xl'],
+    color: Colors.accentLight,
+  },
+  headerYearBadge: {
+    position: 'absolute',
+    top: 48,
+    right: 90,
+    fontFamily: Typography.serifBold,
+    fontSize: Typography.sm,
+    color: Colors.accentLight,
+    letterSpacing: 1,
   },
   socialRow: {
     flexDirection: 'row',
