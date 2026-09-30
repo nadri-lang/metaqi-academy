@@ -229,7 +229,6 @@ export default function HomeScreen() {
             )}
             <View style={styles.brandDivider} />
           </View>
-          </View>
 
           <TouchableOpacity
             testID="calculator-button"
@@ -262,6 +261,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               );
             })}
+          </View>
           </View>
         </LinearGradient>
 
@@ -523,6 +523,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     opacity: 0.4,
+    // @ts-expect-error web-only CSS, biases the cover-crop toward the top
+    // of the source image so the horse's head isn't cropped off.
+    objectPosition: 'center 15%',
   },
   headerTopRow: {
     flexDirection: 'row',
