@@ -11,6 +11,7 @@ import {
   Share,
   Platform,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Gradients } from '@/src/constants/Colors';
@@ -47,6 +48,15 @@ interface NewbornVocation {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
+  const headerTitleFontSize = Math.min(Math.max(windowWidth * 0.0675, 28), 108);
+  // aspectRatio + resizeMode on RN Web's <Image> don't play well together
+  // (the internal resize-mode scale math ends up using a stale/wrong
+  // container height, cropping content that should be fully visible -
+  // confirmed by comparing naturalWidth/Height against the rendered
+  // crop). Computing the banner height explicitly from window width
+  // sidesteps that entirely.
+  const headerBannerHeight = windowWidth * (687 / 2048);
   const { t, localizeContent, language, setLanguage } = useLanguage();
   const router = useRouter();
   const [dailyEnergy, setDailyEnergy] = useState<DailyEnergy | null>(null);
@@ -161,30 +171,21 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header - brand mark, language pills, share/login */}
-        <LinearGradient colors={Gradients.navy} style={[styles.header, Platform.OS === 'web' && styles.headerWeb]}>
-          <View style={styles.headerBannerSection}>
-          {Platform.OS === 'web' && (
-            <>
-              <Image
-                source={require('../../assets/images/web-header-banner.png')}
-                style={styles.headerBannerOverlay}
-                resizeMode="cover"
-              />
-              <LinearGradient
-                colors={['transparent', 'transparent', Colors.primary]}
-                locations={[0, 0.94, 1]}
-                style={styles.headerBannerFade}
-                pointerEvents="none"
-              />
-            </>
-          )}
-          <View style={styles.headerTopRow}>
-            {user ? (
-              <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.display_name || user.name}</Text>
-            ) : (
-              <View />
-            )}
-            <View style={styles.headerActions}>
+        {Platform.OS === 'web' ? (
+          <View style={[styles.headerWebBanner, { height: headerBannerHeight }]}>
+            <Image
+              source={require('../../assets/images/web-header-banner.png')}
+              style={[styles.headerBannerOverlay, { width: windowWidth, height: headerBannerHeight }]}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={['transparent', 'transparent', Colors.primary]}
+              locations={[0, 0.94, 1]}
+              style={[styles.headerBannerFade, { width: windowWidth, height: headerBannerHeight }]}
+              pointerEvents="none"
+            />
+
+            <View style={styles.headerWebTopRow}>
               <TouchableOpacity
                 testID="share-button"
                 style={styles.iconButton}
@@ -203,12 +204,11 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
 
-          <View style={[styles.brandBlock, Platform.OS === 'web' && styles.brandBlockWeb]}>
-            <Text style={[styles.logo, Platform.OS === 'web' && styles.logoWeb]}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+            <Text style={[styles.headerWebTitle, { fontSize: headerTitleFontSize }]}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+
             {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
-              <View style={styles.socialRow}>
+              <View style={styles.headerWebSocialRow}>
                 {socialLinks.social_facebook_url && (
                   <TouchableOpacity testID="home-social-facebook" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_facebook_url, 'Facebook')}>
                     <MaterialCommunityIcons name="facebook" size={18} color={Colors.white} />
@@ -231,10 +231,86 @@ export default function HomeScreen() {
                 )}
               </View>
             )}
-            <View style={styles.brandDivider} />
-          </View>
+            <View style={styles.headerWebDivider} />
 
-          {Platform.OS !== 'web' && (
+            <View style={styles.headerWebLanguageRow} testID="language-selector">
+              {languages.map((lang) => {
+                const active = lang.code === language;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    testID={`language-option-${lang.code}`}
+                    style={[styles.languagePill, active && styles.languagePillActive]}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.languagePillFlag}>{lang.flag}</Text>
+                    <Text style={[styles.languagePillText, active && styles.languagePillTextActive]}>
+                      {lang.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ) : (
+          <LinearGradient colors={Gradients.navy} style={styles.header}>
+            <View style={styles.headerTopRow}>
+              {user ? (
+                <Text style={styles.greeting} numberOfLines={1}>{t('home.welcome')}, {user.display_name || user.name}</Text>
+              ) : (
+                <View />
+              )}
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  testID="share-button"
+                  style={styles.iconButton}
+                  onPress={handleShare}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="share-variant-outline" size={18} color={Colors.white} />
+                </TouchableOpacity>
+                {!user && (
+                  <TouchableOpacity
+                    testID="header-login-btn"
+                    style={styles.loginButton}
+                    onPress={() => router.push('/(auth)/login')}
+                  >
+                    <Text style={styles.loginButtonText}>{t('common.enter')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.brandBlock}>
+              <Text style={styles.logo}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+              {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
+                <View style={styles.socialRow}>
+                  {socialLinks.social_facebook_url && (
+                    <TouchableOpacity testID="home-social-facebook" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_facebook_url, 'Facebook')}>
+                      <MaterialCommunityIcons name="facebook" size={18} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                  {socialLinks.social_instagram_url && (
+                    <TouchableOpacity testID="home-social-instagram" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_instagram_url, 'Instagram')}>
+                      <MaterialCommunityIcons name="instagram" size={18} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                  {socialLinks.social_tiktok_url && (
+                    <TouchableOpacity testID="home-social-tiktok" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_tiktok_url, 'TikTok')}>
+                      <MaterialCommunityIcons name="music-note" size={18} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                  {socialLinks.social_youtube_url && (
+                    <TouchableOpacity testID="home-social-youtube" style={styles.socialIcon} onPress={() => openSocial(socialLinks.social_youtube_url, 'YouTube')}>
+                      <MaterialCommunityIcons name="youtube" size={18} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+              <View style={styles.brandDivider} />
+            </View>
+
             <TouchableOpacity
               testID="calculator-button"
               style={styles.calculatorCard}
@@ -247,30 +323,28 @@ export default function HomeScreen() {
               <Text style={styles.calculatorCardText}>{t('home.calculator')}</Text>
               <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.accent} />
             </TouchableOpacity>
-          )}
 
-          <View style={styles.languageRow} testID="language-selector">
-            {languages.map((lang) => {
-              const active = lang.code === language;
-              return (
-                <TouchableOpacity
-                  key={lang.code}
-                  testID={`language-option-${lang.code}`}
-                  style={[styles.languagePill, active && styles.languagePillActive]}
-                  onPress={() => handleLanguageSelect(lang.code)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.languagePillFlag}>{lang.flag}</Text>
-                  <Text style={[styles.languagePillText, active && styles.languagePillTextActive]}>
-                    {lang.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          {Platform.OS === 'web' && <View style={styles.headerBannerSpacer} />}
-          </View>
-        </LinearGradient>
+            <View style={styles.languageRow} testID="language-selector">
+              {languages.map((lang) => {
+                const active = lang.code === language;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    testID={`language-option-${lang.code}`}
+                    style={[styles.languagePill, active && styles.languagePillActive]}
+                    onPress={() => handleLanguageSelect(lang.code)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.languagePillFlag}>{lang.flag}</Text>
+                    <Text style={[styles.languagePillText, active && styles.languagePillTextActive]}>
+                      {lang.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </LinearGradient>
+        )}
 
         <Modal
           visible={calculatorMenuVisible}
@@ -587,33 +661,74 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
   },
-  headerWeb: {
+  // Web header banner - a single image whose aspectRatio drives the
+  // container's height, so it (and every percentage-positioned overlay
+  // below) scales together at any viewport width, phone included.
+  // Title font size still needs JS (useWindowDimensions), since RN
+  // style values can't be percentages.
+  headerWebBanner: {
+    position: 'relative',
+    width: '100%',
     borderWidth: 2,
     borderColor: Colors.accentLight,
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
   },
-  headerBannerSection: {
-    position: 'relative',
+  headerWebTopRow: {
+    position: 'absolute',
+    top: '4%',
+    right: '2%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  headerWebTitle: {
+    position: 'absolute',
+    top: '5%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontFamily: Typography.serifBold,
+    color: Colors.accentLight,
+  },
+  headerWebSocialRow: {
+    position: 'absolute',
+    top: '19%',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  headerWebDivider: {
+    position: 'absolute',
+    top: '27%',
+    left: '50%',
+    marginLeft: -20,
+    width: 40,
+    height: 1,
+    backgroundColor: Colors.accent + '60',
+  },
+  headerWebLanguageRow: {
+    position: 'absolute',
+    bottom: '4%',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'nowrap',
+    gap: 3,
   },
   headerBannerOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
     opacity: 0.4,
   },
   headerBannerFade: {
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -656,20 +771,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: Spacing.md,
   },
-  brandBlockWeb: {
-    transform: [{ translateX: 60 }],
-  },
-  headerBannerSpacer: {
-    height: 115,
-  },
   logo: {
     fontFamily: Typography.serifBold,
     fontSize: Typography['3xl'],
     color: Colors.accent,
-  },
-  logoWeb: {
-    fontSize: Typography['4xl'] * 3,
-    color: Colors.accentLight,
   },
   socialRow: {
     flexDirection: 'row',
