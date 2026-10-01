@@ -502,7 +502,7 @@ export default function EnergyDetailScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <SafeAreaView edges={['bottom']}>
+            <SafeAreaView edges={['bottom']} style={styles.modalSafeArea}>
               <View style={styles.modalTopBar}>
                 <TouchableOpacity
                   testID="modal-back-button"
@@ -514,6 +514,7 @@ export default function EnergyDetailScreen() {
                 </TouchableOpacity>
               </View>
               <ScrollView
+                style={styles.modalScroll}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.modalScrollContent}
               >
@@ -763,6 +764,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: BorderRadius.xl,
     maxHeight: '80%',
     minHeight: 300,
+    overflow: 'hidden',
+  },
+  modalSafeArea: {
+    flex: 1,
+  },
+  modalScroll: {
+    flex: 1,
   },
   modalScrollContent: {
     padding: Spacing.lg,
