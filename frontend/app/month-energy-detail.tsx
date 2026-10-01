@@ -544,8 +544,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
-    maxHeight: '80%',
-    minHeight: 300,
+    // A fixed height (not maxHeight+minHeight) so the flex:1 ScrollView
+    // chain below has a definite box to fill - with just maxHeight, the
+    // flex:1 children had nothing driving them to grow, so the sheet
+    // collapsed to minHeight (~25% of the screen) instead of opening tall.
+    height: '80%',
     overflow: 'hidden',
   },
   modalSafeArea: {
