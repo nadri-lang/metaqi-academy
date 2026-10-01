@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Colors } from '@/src/constants/Colors';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -23,14 +23,31 @@ export default function TabsLayout() {
           borderTopColor: Colors.accent + '80',
           elevation: 0,
           shadowOpacity: 0,
-          height: 60 + insets.bottom,
+          height: (Platform.OS === 'web' ? 76 : 60) + insets.bottom,
           paddingBottom: insets.bottom + 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontFamily: Typography.sansMedium,
-          fontSize: 11,
+          fontSize: Platform.OS === 'web' ? 9.5 : 11,
         },
+        tabBarItemStyle: Platform.OS === 'web' ? { paddingHorizontal: 2 } : undefined,
+        tabBarLabel: Platform.OS === 'web'
+          ? ({ children, color }) => (
+              <Text
+                numberOfLines={2}
+                style={{
+                  fontFamily: Typography.sansMedium,
+                  fontSize: 9.5,
+                  lineHeight: 11,
+                  color,
+                  textAlign: 'center',
+                }}
+              >
+                {children}
+              </Text>
+            )
+          : undefined,
       }}
     >
       <Tabs.Screen

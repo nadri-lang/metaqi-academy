@@ -205,7 +205,12 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <Text style={[styles.headerWebTitle, { fontSize: headerTitleFontSize }]}>ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ</Text>
+            <Text
+              style={[styles.headerWebTitle, { fontSize: headerTitleFontSize }]}
+              pointerEvents="none"
+            >
+              ᴹᵉᵗᵃQⁱ ᴬᶜᵃᵈᵉᵐʸ
+            </Text>
 
             {(socialLinks.social_facebook_url || socialLinks.social_instagram_url || socialLinks.social_tiktok_url || socialLinks.social_youtube_url) && (
               <View style={styles.headerWebSocialRow}>
@@ -231,7 +236,7 @@ export default function HomeScreen() {
                 )}
               </View>
             )}
-            <View style={styles.headerWebDivider} />
+            <View style={styles.headerWebDivider} pointerEvents="none" />
 
             <View style={styles.headerWebLanguageRow} testID="language-selector">
               {languages.map((lang) => {
@@ -471,30 +476,28 @@ export default function HomeScreen() {
               <View style={styles.gridRow}>
                 <TouchableOpacity
                   testID="iching-button"
-                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
+                  style={[styles.gridCard, styles.gridCardCalculator]}
                   onPress={() => router.push('/iching')}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <HexagramBars lines={[1, 0, 1, 0, 1, 1]} size="small" />
                   </View>
-                  <View style={styles.gridRowTextCol}>
-                    <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelLarge]}>{t('home.iching')}</Text>
-                    <Text style={styles.gridOracleLabel}>{t('home.iching_subtitle')}</Text>
-                  </View>
+                  <Text style={[styles.gridLabel, styles.gridLabelLarge]}>{t('home.iching')}</Text>
+                  <Text style={styles.gridOracleLabel}>{t('home.iching_subtitle')}</Text>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   testID="calculator-button"
-                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
+                  style={[styles.gridCard, styles.gridCardCalculator]}
                   onPress={() => setCalculatorMenuVisible(true)}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="calculator-variant" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>
                     {t('home.calculator')}
                   </Text>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
@@ -504,30 +507,36 @@ export default function HomeScreen() {
               <View style={styles.gridRow}>
                 <TouchableOpacity
                   testID="month-energy-button"
-                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
+                  style={[styles.gridCard, styles.gridCardCalculator]}
                   onPress={() => router.push('/month-energy-detail')}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="calendar-outline" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
-                    {t('home.month_energy')}
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.month_energy_line1')}
+                  </Text>
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.month_energy_line2')}
                   </Text>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   testID="year-energy-button"
-                  style={[styles.gridCard, styles.gridCardCalculator, styles.gridCardRow]}
+                  style={[styles.gridCard, styles.gridCardCalculator]}
                   onPress={() => router.push('/year-energy-detail')}
                   activeOpacity={0.85}
                 >
                   <View style={styles.gridIconContainer}>
                     <MaterialCommunityIcons name="shimmer" size={22} color={Colors.accent} />
                   </View>
-                  <Text style={[styles.gridLabel, styles.gridLabelRow, styles.gridLabelAccent, styles.gridLabelLarge]}>
-                    {t('home.year_energy')}
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.year_energy_line1')}
+                  </Text>
+                  <Text style={[styles.gridLabel, styles.gridLabelAccent, styles.gridLabelLarge]}>
+                    {t('home.year_energy_line2')}
                   </Text>
                   <Text style={[styles.twinBadge, styles.twinBadgeFree]}>{t('courses.free')}</Text>
                 </TouchableOpacity>

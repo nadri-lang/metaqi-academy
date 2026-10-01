@@ -42,6 +42,19 @@ export default function Root({ children }: PropsWithChildren) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
+              /*
+                position:fixed + bottom:0 anchors to the LAYOUT viewport,
+                which on mobile Safari/Chrome is taller than what's
+                actually visible while the address bar is showing - the
+                bottom tab bar ends up partly hidden until the toolbar
+                collapses. 100dvh (dynamic viewport height) tracks the
+                real visible area instead; fall back to 100% where dvh
+                isn't supported.
+              */
+              html, body, #root, body > div:first-child {
+                height: 100%;
+                height: 100dvh;
+              }
               body > div:first-child { position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; }
               [role="tablist"] [role="tab"] * { overflow: visible !important; }
               [role="heading"], [role="heading"] * { overflow: visible !important; }
