@@ -49,6 +49,7 @@ export default function AdminUsersScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
   const [togglingBlock, setTogglingBlock] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   // Content delivery states
   const [videoUrl, setVideoUrl] = useState('');
@@ -140,6 +141,29 @@ export default function AdminUsersScreen() {
       Alert.alert('Error', error.response?.data?.detail || 'No se pudo actualizar el estado');
     } finally {
       setTogglingBlock(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    const confirmed = await confirmAsync(
+      'Eliminar usuario',
+      `¿Eliminar a ${selectedUser.email}? Se borrarán su cuenta y todos sus datos. Esta acción es irreversible.`,
+      'Eliminar',
+    );
+    if (!confirmed) return;
+
+    setDeletingUser(true);
+    try {
+      await api.delete(`/admin/users/${selectedUser.id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id));
+      setEditModalVisible(false);
+      Alert.alert('Éxito', 'Usuario eliminado');
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'No se pudo eliminar el usuario');
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -771,6 +795,21 @@ export default function AdminUsersScreen() {
                         <Text style={[styles.blockToggleButtonText, { color: selectedUser.is_blocked ? Colors.jade : Colors.error }]}>
                           {selectedUser.is_blocked ? 'Desbloquear usuario' : 'Bloquear usuario'}
                         </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.blockToggleButton, styles.blockButton, deletingUser && styles.saveButtonDisabled]}
+                    onPress={handleDeleteUser}
+                    disabled={deletingUser}
+                  >
+                    {deletingUser ? (
+                      <ActivityIndicator color={Colors.error} size="small" />
+                    ) : (
+                      <>
+                        <MaterialCommunityIcons name="delete-forever" size={18} color={Colors.error} />
+                        <Text style={[styles.blockToggleButtonText, { color: Colors.error }]}>Eliminar usuario</Text>
                       </>
                     )}
                   </TouchableOpacity>
